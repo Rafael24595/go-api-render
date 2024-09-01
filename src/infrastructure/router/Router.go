@@ -47,17 +47,6 @@ func (router Router) routeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not found", http.StatusNotFound)
 }
 
-func (route route) convertTemplateToRegex(template string) string {
-	escapedTemplate := regexp.QuoteMeta(template)
-
-	re := regexp.MustCompile(`:[\w-]+`)
-	escapedTemplate = re.ReplaceAllString(escapedTemplate, `([^/]+)`)
-
-	escapedTemplate = `^` + escapedTemplate + `$`
-
-	return escapedTemplate
-}
-
 func (route route) matches(str string) (bool, map[string]string) {
 	regexPattern := route.convertTemplateToRegex(route.route)
 
@@ -87,4 +76,15 @@ func (route route) matches(str string) (bool, map[string]string) {
 	}
 
 	return matched, params
+}
+
+func (route route) convertTemplateToRegex(template string) string {
+	escapedTemplate := regexp.QuoteMeta(template)
+
+	re := regexp.MustCompile(`:[\w-]+`)
+	escapedTemplate = re.ReplaceAllString(escapedTemplate, `([^/]+)`)
+
+	escapedTemplate = `^` + escapedTemplate + `$`
+
+	return escapedTemplate
 }
