@@ -2,8 +2,8 @@ package infrastructure
 
 import (
 	"fmt"
-	"go-api-render/src/infrastructure/router"
-	"go-api-render/src/infrastructure/router/templates"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 	"net/http"
 )
 

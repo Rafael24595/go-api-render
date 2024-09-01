@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-api-render/src/infrastructure"
+	"github.com/Rafael24595/go-api-render/src/infrastructure"
 	"log"
 	"net/http"
 )
