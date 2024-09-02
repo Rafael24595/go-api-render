@@ -15,13 +15,13 @@ type controller struct {
 	manager templates.TemplateManager
 }
 
-func NewController() Controller {
+func NewController(router *router.Router) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string)string{return fmt.Sprintf("Hello %s!", name)}).
 		AddPath("templates")
 
 	instance := controller{
-		router: router.NewRouter(),
+		router: router,
 		manager: builder.Make(),
 	}
 
@@ -31,7 +31,7 @@ func NewController() Controller {
 	return instance
 }
 
-func (controller controller) home(w http.ResponseWriter, r *router.Request) {
+func (controller controller) home(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{}
 	controller.manager.Render(w, "home.html", data)
 }
