@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request/memory"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 )
@@ -16,11 +16,11 @@ type Controller interface {
 type controller struct {
 	router *router.Router
 	manager templates.TemplateManager
-	queryRepository *memory.QueryMemory
-	commandRepository *memory.CommandMemory 
+	queryRepository request.QueryRepository
+	commandRepository request.CommandRepository 
 }
 
-func NewController(router *router.Router, queryRepository *memory.QueryMemory, commandRepository *memory.CommandMemory) Controller {
+func NewController(router *router.Router, queryRepository request.QueryRepository, commandRepository request.CommandRepository) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string)string{return fmt.Sprintf("Hello %s!", name)}).
 		AddPath("templates").
