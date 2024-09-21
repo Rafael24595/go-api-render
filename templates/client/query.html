@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="templates/client/query.css">
+    <title>Document</title>
+</head>
+<script src="templates/utils.js"></script>
+<script src="templates/client/query.js"></script>
+<body>
+    <div>
+        <div id="query-parameter-template" class="query-parameter">
+            <label for="query-status">
+                <input name="query-status" type="checkbox">
+            </label>
+            <label for="query-name">
+                <span>Parameter:</span>
+                <input name="query-name" type="text" onkeydown="newQueryRow(event)">
+            </label>
+            <label for="query-value">
+                <span>Value:</span>
+                <input name="query-value" type="text" onkeydown="newQueryRow(event)">
+            </label>
+            <button type="button" class="remove-query-button" onclick="removeQueryRow(event)" disabled>X</button>
+        </div>
+    </div>
+</body>
+</html>

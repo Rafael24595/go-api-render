@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
+	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
@@ -53,6 +54,7 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 	requests := c.queryRepository.FindAll()
 
 	context.Merge(map[string]any{
+		"Methods": domain.HttpMethods(),
 		"Requests": requests,
 	})
 

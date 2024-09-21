@@ -1,0 +1,12 @@
+.query-parameter {
+    display: flex;
+    align-items: center;
+}
+
+.remove-query-button {
+    display: none;
+}
+
+.remove-query-button.show {
+    display: initial;
+}
