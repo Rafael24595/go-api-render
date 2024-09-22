@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="templates/client/client.css">
     <title>Document</title>
 </head>
+<script src="templates/client/client.js"></script>
 <body>
     <div id="body-header">
 
@@ -14,7 +16,7 @@
     <div id="body-content">
         <div id="l-sidebar">
             {{range .Requests}}
-                <p>{{ . }}</p>
+            <p>{{ . }}</p>
             {{end}}
         </div>
         <div id="c-body">
@@ -23,7 +25,7 @@
                     <label for="method">
                         <select name="method" id="method">
                             {{range .Methods}}
-                                <option value=".">{{ . }}</option>
+                            <option value=".">{{ . }}</option>
                             {{end}}
                         </select>
                     </label>
@@ -34,9 +36,17 @@
                 </div>
                 <div>
                     <div>
-                        <p>Query parameters</p>
-                        {{ template "query.html" }}
-                </div>
+                        <button onclick="showForm('query-form')" type="button">Query</button>
+                        <button onclick="showForm('header-form')" type="button">Headers</button>
+                    </div>
+                    <div id="client-form">
+                        <div id="query-form" class="fragment-form show">
+                            {{ template "query.html" . }}
+                        </div>
+                        <div id="header-form" class="fragment-form">
+                            {{ template "header.html" . }}
+                        </div>
+                    </div>
             </form>
         </div>
         <div id="r-sidebar">
@@ -44,4 +54,5 @@
         </div>
     </div>
 </body>
+
 </html>

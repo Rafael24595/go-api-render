@@ -3,10 +3,10 @@
     align-items: center;
 }
 
-.remove-query-button {
+.query-remove-button {
     display: none;
 }
 
-.remove-query-button.show {
+.query-remove-button.show {
     display: initial;
 }

@@ -1,5 +1,8 @@
-function newQueryRow(event) {
-    const template = document.getElementById("query-parameter-template")
+const HEADER_TEMPLATE_NAME = "header-parameter-template";
+const HEADER_REMOVE_BUTTON = "header-remove-button";
+
+function newHeaderRow() {
+    const template = document.getElementById(HEADER_TEMPLATE_NAME)
     template.insertAdjacentElement("afterend", template.cloneNode(true))
     template.id = ""
 
@@ -12,15 +15,15 @@ function newQueryRow(event) {
         }
     }
     
-    for(const button of template.getElementsByClassName("remove-query-button")) {
+    for(const button of template.getElementsByClassName(HEADER_REMOVE_BUTTON)) {
         button.classList.add("show")
         button.disabled = false;
     }
 }
 
-function removeQueryRow(event) {
+function removeHeaderRow(event) {
     const parent = event.target.parentElement;
-    if(parent.id != "query-parameter-template") {
+    if(parent.id != HEADER_TEMPLATE_NAME) {
         parent.remove();
     }
 }

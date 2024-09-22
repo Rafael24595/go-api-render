@@ -1,0 +1,7 @@
+.fragment-form {
+    display: none;
+}
+
+.fragment-form.show {
+    display: initial;
+}

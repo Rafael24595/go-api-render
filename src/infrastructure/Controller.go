@@ -25,7 +25,8 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string)string{return fmt.Sprintf("Hello %s!", name)}).
 		AddPath("templates").
-		AddPath("templates/**")
+		AddPath("templates/**").
+		AddPath("templates/**/**")
 
 	instance := controller{
 		router: router,

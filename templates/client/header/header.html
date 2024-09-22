@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="templates/client/header/header.css">
+    <title>Document</title>
+</head>
+<script src="templates/utils.js"></script>
+<script src="templates/client/header/header.js"></script>
+<body>
+    <div>
+        <div id="header-parameter-template" class="header-parameter">
+            <label for="header-status">
+                <input name="header-status" type="checkbox">
+            </label>
+            <label for="header-name">
+                <input name="header-name" type="text" onkeydown="newHeaderRow()" placeholder="Header">
+            </label>
+            <label for="header-value">
+                <input name="header-value" type="text" onkeydown="newHeaderRow()" placeholder="Value">
+            </label>
+            <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
+        </div>
+    </div>
+</body>
+</html>

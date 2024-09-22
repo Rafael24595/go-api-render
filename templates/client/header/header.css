@@ -1,0 +1,12 @@
+.header-parameter {
+    display: flex;
+    align-items: center;
+}
+
+.header-remove-button {
+    display: none;
+}
+
+.header-remove-button.show {
+    display: initial;
+}
