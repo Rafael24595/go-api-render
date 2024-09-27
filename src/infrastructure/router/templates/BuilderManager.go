@@ -32,7 +32,7 @@ func (builder *BuilderManager) AddFunction(key string, value any) *BuilderManage
 }
 
 func (builder *BuilderManager) Make() TemplateManager {
-	return &templateManager{
+	return TemplateManager{
 		templates: builder.makeTemplate(),
 		builder: builder,
 	}
