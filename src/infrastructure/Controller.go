@@ -37,8 +37,9 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 
 	instance.router.ResourcesPath("templates").
 		Contextualizer(instance.contextualizer).
-		Route(http.MethodGet, "/", instance.home, nil).
-		Route(http.MethodGet, "/client", instance.client, nil)
+		ErrorHandler(instance.error).
+		Route(http.MethodGet, "/", instance.home).
+		Route(http.MethodGet, "/client", instance.client)
 
 	return instance
 }
@@ -47,11 +48,11 @@ func (c *controller) contextualizer(w http.ResponseWriter, r *http.Request) (rou
 	return collection.EmptyMap[string, any](), nil
 }
 
-func (c *controller) home(w http.ResponseWriter, r *http.Request, context router.Context) {
-	c.manager.Render(w, "home.html", context)
+func (c *controller) home(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	return c.manager.Render(w, "home.html", context)
 }
 
-func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) {
+func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	requests := c.queryRepository.FindAll()
 
 	context.Merge(map[string]any{
@@ -59,13 +60,12 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 		"Requests": requests,
 	})
 
-	c.manager.Render(w, "client/client.html", context)
+	return c.manager.Render(w, "client/client.html", context)
 }
 
 func (c *controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
 	context.Merge(map[string]any{
 		"Error": err,
 	})
-
 	c.manager.Render(w, "error.html", context)
 }
