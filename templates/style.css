@@ -1,0 +1,23 @@
+.radio-button-group {
+    display: flex;
+}
+
+.radio-button-group input[type="radio"] {
+    display: none;
+}
+
+.radio-button-group label {
+    padding: 1px 7px;
+    border: 1px solid black;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.radio-button-group label:hover {
+    background-color: #d6d5d5;
+}
+
+.radio-button-group input[type="radio"]:checked+label {
+    background-color: #d6d5d5;
+}

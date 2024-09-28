@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Document</title>
+    <link rel="stylesheet" href="templates/client/body/body.css">
 </head>
-
+<script src="templates/client/body/body.js"></script>
 <body>
     <div>
-        <div id="body-parameter-json">
-            <label for="body-parameter">
-                <textarea name="body-parameter" id="body-parameter"></textarea>
-            </label>
+        <div class="radio-button-group">
+            <input type="radio" id="text" name="body-type" value="text" checked>
+            <label for="text" onclick="showBodyForm('body-text-form')">Text</label>
+            <input type="radio" id="json" name="body-type" value="json">
+            <label for="json" onclick="showBodyForm('body-json-form')">Json</label>
+        </div>
+        <div id="body-type-form">
+            <div id="body-text-form" class="fragment-body-form show">
+                {{ template "text.html" . }}
+            </div>
+            <div id="body-json-form" class="fragment-body-form">
+                {{ template "json.html" . }}
+            </div>
         </div>
     </div>
 </body>

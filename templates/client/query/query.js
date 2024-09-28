@@ -1,5 +1,6 @@
 const QUERY_TEMPLATE_NAME = "query-parameter-template";
 const QUERY_REMOVE_BUTTON = "query-remove-button";
+const QUERY_ID_SEPARATOR = "#";
 
 function newQueryRow() {
     const template = document.getElementById(QUERY_TEMPLATE_NAME)
@@ -8,9 +9,13 @@ function newQueryRow() {
 
     const uuid = uuidv4()
     for(const label of [...template.getElementsByTagName("label")]) {
-        label.setAttribute("for", `${label.getAttribute("for")}-${uuid}`)
+        label.setAttribute("for", `${label.getAttribute("for")}${QUERY_ID_SEPARATOR}${uuid}`)
         for(const input of label.getElementsByTagName("input")) {
-            input.name = `${input.name}-${uuid}`;
+            if(input.type == "checkbox") {
+                input.checked = true;
+                input.disabled = false;
+            }
+            input.name = `${input.name}${QUERY_ID_SEPARATOR}${uuid}`;
             input.onkeydown = undefined;
         }
     }

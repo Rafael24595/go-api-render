@@ -5,10 +5,12 @@
 </head>
 <script src="templates/client/auth/auth.js"></script>
 <body>
-    <div>
+    <div class="radio-button-group">
         <input name="auth-enable" id="auth-enable" type="checkbox">
-        <button onclick="showAuthForm('auth-basic-form')" type="button">Basic</button>
-        <button onclick="showAuthForm('auth-bearer-form')" type="button">Bearer</button>
+        <input type="radio" id="basic" name="auth-type" value="basic" checked>
+        <label for="basic" onclick="showAuthForm('auth-basic-form')">Basic</label>
+        <input type="radio" id="bearer" name="auth-type" value="bearer">
+        <label for="bearer" onclick="showAuthForm('auth-bearer-form')">Bearer</label>
     </div>
     <div id="auth-type-form">
         <div id="auth-basic-form" class="fragment-auth-form show">

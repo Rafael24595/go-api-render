@@ -35,11 +35,15 @@
                     <button>Send</button>
                 </div>
                 <div>
-                    <div>
-                        <button onclick="showForm('query-form')" type="button">Query</button>
-                        <button onclick="showForm('header-form')" type="button">Headers</button>
-                        <button onclick="showForm('auth-form')" type="button">Auth</button>
-                        <button onclick="showForm('body-form')" type="button">Body</button>
+                    <div class="radio-button-group">
+                        <input type="radio" id="query" name="client-type" value="query" checked>
+                        <label for="query" onclick="showForm('query-form')">Query</label>
+                        <input type="radio" id="header" name="client-type" value="header">
+                        <label for="header" onclick="showForm('header-form')">Headers</label>
+                        <input type="radio" id="auth" name="client-type" value="auth">
+                        <label for="auth" onclick="showForm('auth-form')">Auth</label>
+                        <input type="radio" id="body" name="client-type" value="body">
+                        <label for="body" onclick="showForm('body-form')">Body</label>
                     </div>
                     <div id="client-form">
                         <div id="query-form" class="fragment-form show">
@@ -58,7 +62,11 @@
             </form>
         </div>
         <div id="r-sidebar">
-
+            {{if .Response}}
+                {{ .Response }}
+            {{else}}
+                <p>- No Data -</p>
+            {{end}}
         </div>
     </div>
 </body>

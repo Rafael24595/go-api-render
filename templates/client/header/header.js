@@ -1,5 +1,6 @@
 const HEADER_TEMPLATE_NAME = "header-parameter-template";
 const HEADER_REMOVE_BUTTON = "header-remove-button";
+const HEADER_ID_SEPARATOR = "#";
 
 function newHeaderRow() {
     const template = document.getElementById(HEADER_TEMPLATE_NAME)
@@ -8,9 +9,13 @@ function newHeaderRow() {
 
     const uuid = uuidv4()
     for(const label of [...template.getElementsByTagName("label")]) {
-        label.setAttribute("for", `${label.getAttribute("for")}-${uuid}`)
+        label.setAttribute("for", `${label.getAttribute("for")}${HEADER_ID_SEPARATOR}${uuid}`)
         for(const input of label.getElementsByTagName("input")) {
-            input.name = `${input.name}-${uuid}`;
+            if(input.type == "checkbox") {
+                input.checked = true;
+                input.disabled = false;
+            }
+            input.name = `${input.name}${HEADER_ID_SEPARATOR}${uuid}`;
             input.onkeydown = undefined;
         }
     }
