@@ -25,7 +25,7 @@
                     <label for="method">
                         <select name="method" id="method">
                             {{range .Methods}}
-                            <option value=".">{{ . }}</option>
+                            <option value="{{ . }}">{{ . }}</option>
                             {{end}}
                         </select>
                     </label>
@@ -38,6 +38,8 @@
                     <div>
                         <button onclick="showForm('query-form')" type="button">Query</button>
                         <button onclick="showForm('header-form')" type="button">Headers</button>
+                        <button onclick="showForm('auth-form')" type="button">Auth</button>
+                        <button onclick="showForm('body-form')" type="button">Body</button>
                     </div>
                     <div id="client-form">
                         <div id="query-form" class="fragment-form show">
@@ -45,6 +47,12 @@
                         </div>
                         <div id="header-form" class="fragment-form">
                             {{ template "header.html" . }}
+                        </div>
+                        <div id="body-form" class="fragment-form">
+                            {{ template "body.html" . }}
+                        </div>
+                        <div id="auth-form" class="fragment-form">
+                            {{ template "auth.html" . }}
                         </div>
                     </div>
             </form>

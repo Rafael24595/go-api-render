@@ -1,0 +1,7 @@
+.fragment-auth-form {
+    display: none;
+}
+
+.fragment-auth-form.show {
+    display: initial;
+}

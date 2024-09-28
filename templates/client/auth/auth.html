@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="templates/client/auth/auth.css">
+</head>
+<script src="templates/client/auth/auth.js"></script>
+<body>
+    <div>
+        <input name="auth-enable" id="auth-enable" type="checkbox">
+        <button onclick="showAuthForm('auth-basic-form')" type="button">Basic</button>
+        <button onclick="showAuthForm('auth-bearer-form')" type="button">Bearer</button>
+    </div>
+    <div id="auth-type-form">
+        <div id="auth-basic-form" class="fragment-auth-form show">
+            {{ template "basic.html" . }}
+        </div>
+        <div id="auth-bearer-form" class="fragment-auth-form">
+            {{ template "bearer.html" . }}
+        </div>
+    </div>
+</body>
+</html>
