@@ -8,6 +8,27 @@
 <script src="templates/client/header/header.js"></script>
 <body>
     <div>
+        {{range $Key, $Headers := .Request.Headers.Headers }}
+            {{range  $Index, $Value := $Headers.Header }}
+                {{$Uuid := Uuid}}
+                <div class="header-parameter">
+                    {{$Checked := ""}}
+                    {{if $Headers.Active}}
+                        {{$Checked = "checked"}}
+                    {{end}}
+                    <label for="header-status#{{ $Uuid }}">
+                        <input name="header-status#{{ $Uuid }}" type="checkbox" {{$Checked}}>
+                    </label>
+                    <label for="header-name#{{ $Uuid }}">
+                        <input name="header-name#{{ $Uuid }}" type="text" placeholder="Header" value="{{ $Headers.Key }}">
+                    </label>
+                    <label for="header-value#{{ $Uuid }}">
+                        <input name="header-value#{{ $Uuid }}" type="text" placeholder="Value" value="{{ $Value }}">
+                    </label>
+                    <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
+                </div>
+            {{end}}
+        {{end}}
         <div id="header-parameter-template" class="header-parameter">
             <label for="header-status">
                 <input name="header-status" type="checkbox" disabled>

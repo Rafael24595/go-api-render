@@ -8,6 +8,27 @@
 <script src="templates/client/query/query.js"></script>
 <body>
     <div>
+        {{range $Key, $Queries := .Request.Queries.Queries }}
+            {{range  $Index, $Value := $Queries.Query }}
+                {{$Uuid := Uuid}}
+                <div class="query-parameter">
+                    <label for="query-status#{{ $Uuid }}">
+                        {{$Checked := ""}}
+                        {{if $Queries.Active}}
+                            {{$Checked = "checked"}}
+                        {{end}}
+                        <input name="query-status#{{ $Uuid }}" type="checkbox" {{$Checked}}>
+                    </label>
+                    <label for="query-name#{{ $Uuid }}">
+                        <input name="query-name#{{ $Uuid }}" type="text" placeholder="Parameter" value="{{ $Queries.Key }}">
+                    </label>
+                    <label for="query-value#{{ $Uuid }}">
+                        <input name="query-value#{{ $Uuid }}" type="text" placeholder="Value" value="{{ $Value }}">
+                    </label>
+                    <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
+                </div>
+            {{end}}
+        {{end}}
         <div id="query-parameter-template" class="query-parameter">
             <label for="query-status">
                 <input name="query-status" type="checkbox" disabled>

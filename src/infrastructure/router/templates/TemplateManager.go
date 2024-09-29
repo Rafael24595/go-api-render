@@ -27,6 +27,8 @@ func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, conte
 
 	err := t.Execute(w, context.Collect())
 	if err != nil {
+		//TODO: Replace with log.
+		println(err.Error())
 		return err
 	}
 

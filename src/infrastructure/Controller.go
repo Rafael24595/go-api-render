@@ -25,6 +25,11 @@ type controller struct {
 func NewController(router *router.Router, queryRepository request.QueryRepository, commandRepository request.CommandRepository) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
+		AddFunctions(map[string]any{
+			"ToString": ToString,
+			"Uuid": Uuid,
+			"Not": Not,
+		}).
 		AddPath("templates").
 		AddPath("templates/**").
 		AddPath("templates/**/**")
@@ -58,9 +63,10 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 	requests := c.queryRepository.FindAll()
 
 	context.Merge(map[string]any{
-		"Methods":      domain.HttpMethods(),
-		"Requests":     requests,
-	})
+		"Methods":  domain.HttpMethods(),
+		"Requests": requests,
+	}).
+		PutIfAbsent("Request", domain.NewRequestEmpty())
 
 	return c.manager.Render(w, "client/client.html", context)
 }
@@ -77,7 +83,9 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 	}
 
 	context.Merge(map[string]any{
+		"Request":  request,
 		"Response": response,
+		"ClientType": r.Form.Get("client-type"),
 	})
 
 	return c.client(w, r, context)

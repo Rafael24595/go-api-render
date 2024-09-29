@@ -26,6 +26,13 @@ func (builder *BuilderManager) AddPath(path string) *BuilderManager {
 	return builder
 }
 
+func (builder *BuilderManager) AddFunctions(funcs map[string]any) *BuilderManager {
+	for k, v := range funcs {
+		builder.functions[k] = v
+	}
+	return builder
+}
+
 func (builder *BuilderManager) AddFunction(key string, value any) *BuilderManager {
 	builder.functions[key] = value
 	return builder
