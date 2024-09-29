@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="templates/client/client.css">
     <title>Document</title>
 </head>
+<script src="templates/script.js"></script>
 <script src="templates/client/client.js"></script>
 <body>
     <div id="body-header">
@@ -36,14 +37,14 @@
                 </div>
                 <div>
                     <div class="radio-button-group">
-                        <input type="radio" id="query" name="client-type" value="query" checked>
-                        <label for="query" onclick="showForm('query-form')">Query</label>
-                        <input type="radio" id="header" name="client-type" value="header">
-                        <label for="header" onclick="showForm('header-form')">Headers</label>
-                        <input type="radio" id="auth" name="client-type" value="auth">
-                        <label for="auth" onclick="showForm('auth-form')">Auth</label>
-                        <input type="radio" id="body" name="client-type" value="body">
-                        <label for="body" onclick="showForm('body-form')">Body</label>
+                        <input type="radio" id="query" class="client-tag" name="client-type" value="query" checked>
+                        <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
+                        <input type="radio" id="header" class="client-tag" name="client-type" value="header">
+                        <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
+                        <input type="radio" id="auth" class="client-tag" name="client-type" value="auth">
+                        <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
+                        <input type="radio" id="body" class="client-tag" name="client-type" value="body">
+                        <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
                     </div>
                     <div id="client-form">
                         <div id="query-form" class="fragment-form show">

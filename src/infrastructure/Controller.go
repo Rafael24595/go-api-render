@@ -66,7 +66,7 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 }
 
 func (c *controller) request(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	request, err := proccessRequest(r)
+	request, err := proccessRequestAnonymous(r)
 	if err != nil {
 		return err
 	}

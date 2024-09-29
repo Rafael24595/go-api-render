@@ -7,10 +7,10 @@
 <body>
     <div class="radio-button-group">
         <input name="auth-enable" id="auth-enable" type="checkbox">
-        <input type="radio" id="basic" name="auth-type" value="basic" checked>
-        <label for="basic" onclick="showAuthForm('auth-basic-form')">Basic</label>
-        <input type="radio" id="bearer" name="auth-type" value="bearer">
-        <label for="bearer" onclick="showAuthForm('auth-bearer-form')">Bearer</label>
+        <input type="radio" id="basic" name="auth-type" class="auth-tag" value="basic" checked>
+        <label for="basic" id="auth-label-basic" onclick="showAuthForm('auth-basic-form')">Basic</label>
+        <input type="radio" id="bearer" name="auth-type" class="auth-tag" value="bearer">
+        <label for="bearer" id="auth-label-bearer" onclick="showAuthForm('auth-bearer-form')">Bearer</label>
     </div>
     <div id="auth-type-form">
         <div id="auth-basic-form" class="fragment-auth-form show">
