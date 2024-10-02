@@ -4,14 +4,19 @@
     <title>Document</title>
 </head>
 <body>
+    {{ $Auth := (index .Request.Auths.Auths "BEARER").Parameters }}
     <label for="auth-bearer-status">
-        <input name="auth-bearer-status" type="checkbox">
+        <input name="auth-bearer-status" type="checkbox" {{if $Auth.Active }} checked {{end}}>
     </label>
     <label for="auth-bearer-prefix">
-        <input name="auth-bearer-prefix" type="text" placeholder="bearer">
+        {{ $Prefix := (index $Auth "prefix").Value }}
+        <input name="auth-bearer-prefix" type="text" placeholder="bearer" value="{{ $Prefix }}">
     </label>
     <label for="auth-bearer-token">
-        <textarea name="auth-bearer-token" id="auth-bearer-token" placeholder="token"></textarea>
+        {{ $Token := (index $Auth "token").Value }}
+        <textarea name="auth-bearer-token" id="auth-bearer-token" placeholder="token">
+            {{ $Token }}
+        </textarea>
     </label>
 </body>
 </html>

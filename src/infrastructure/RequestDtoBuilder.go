@@ -65,7 +65,7 @@ func proccessRequest(r *http.Request, name string) (*domain.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	request.Auth = *auth
+	request.Auths = *auth
 
 	return request, nil
 }

@@ -60,16 +60,20 @@
                         <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
                     </div>
                     <div id="client-form">
-                        <div id="query-form" class="fragment-form show">
+                        <div id="query-form" class="fragment-form  
+                            {{if or (Not .ClientType) (eq .ClientType $TagQuery) }} show {{end}}">
                             {{ template "query.html" . }}
                         </div>
-                        <div id="header-form" class="fragment-form">
+                        <div id="header-form" class="fragment-form 
+                            {{if eq .ClientType $TagHeader }} show {{end}}">
                             {{ template "header.html" . }}
                         </div>
-                        <div id="body-form" class="fragment-form">
+                        <div id="body-form" class="fragment-form 
+                            {{if eq .ClientType $TagBody }} show {{end}}">
                             {{ template "body.html" . }}
                         </div>
-                        <div id="auth-form" class="fragment-form">
+                        <div id="auth-form" class="fragment-form 
+                            {{if eq .ClientType $TagAuth }} show {{end}}">
                             {{ template "auth.html" . }}
                         </div>
                     </div>

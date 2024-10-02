@@ -6,17 +6,24 @@
 <script src="templates/client/auth/auth.js"></script>
 <body>
     <div class="radio-button-group">
-        <input name="auth-enable" id="auth-enable" type="checkbox">
-        <input type="radio" id="basic" name="auth-type" class="auth-tag" value="basic" checked>
+        <input name="auth-enable" id="auth-enable" type="checkbox" 
+            {{if .AuthStatus }} checked {{end}}>
+        {{ $TagBasic := "basic" }}
+        <input type="radio" id="basic" name="auth-type" class="auth-tag" value="basic" 
+            {{if or (Not .AuthType) (eq .AuthType $TagBasic) }} checked {{end}}>
         <label for="basic" id="auth-label-basic" onclick="showAuthForm('auth-basic-form')">Basic</label>
-        <input type="radio" id="bearer" name="auth-type" class="auth-tag" value="bearer">
+        {{ $TagBearer := "bearer" }}
+        <input type="radio" id="bearer" name="auth-type" class="auth-tag" value="bearer"
+            {{if eq .AuthType $TagBearer }} checked {{end}}>
         <label for="bearer" id="auth-label-bearer" onclick="showAuthForm('auth-bearer-form')">Bearer</label>
     </div>
     <div id="auth-type-form">
-        <div id="auth-basic-form" class="fragment-auth-form show">
+        <div id="auth-basic-form" class="fragment-auth-form 
+            {{if or (Not .AuthType) (eq .AuthType $TagBasic) }} show {{end}}">
             {{ template "basic.html" . }}
         </div>
-        <div id="auth-bearer-form" class="fragment-auth-form">
+        <div id="auth-bearer-form" class="fragment-auth-form 
+            {{if eq .AuthType $TagBearer }} show {{end}}">
             {{ template "bearer.html" . }}
         </div>
     </div>

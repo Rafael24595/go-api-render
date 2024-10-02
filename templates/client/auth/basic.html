@@ -5,14 +5,17 @@
 </head>
 <body>
     <div>
+        {{ $Auth := (index .Request.Auths.Auths "BASIC") }}
         <label for="auth-basic-status">
-            <input name="auth-basic-status" type="checkbox">
+            <input name="auth-basic-status" type="checkbox" {{if $Auth.Active }} checked {{end}}>
         </label>
         <label for="auth-basic-user">
-            <input name="auth-basic-user" type="text" placeholder="username">
+            {{ $Username := (index $Auth.Parameters "username").Value }}
+            <input name="auth-basic-user" type="text" placeholder="username" value="{{ $Username }}">
         </label>
         <label for="auth-basic-password">
-            <input name="auth-basic-password" type="password" placeholder="password">
+            {{ $Password := (index $Auth.Parameters "password").Value }}
+            <input name="auth-basic-password" type="password" placeholder="password" value="{{ $Password }}">
         </label>
     </div>
 </body>

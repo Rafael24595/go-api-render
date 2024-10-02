@@ -27,8 +27,8 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
 		AddFunctions(map[string]any{
 			"ToString": ToString,
-			"Uuid": Uuid,
-			"Not": Not,
+			"Uuid":     Uuid,
+			"Not":      Not,
 		}).
 		AddPath("templates").
 		AddPath("templates/**").
@@ -82,10 +82,16 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		return err
 	}
 
+	clientType := r.Form.Get("client-type")
+	authStatus := r.Form.Get("auth-enable") == "on"
+	authType := r.Form.Get("auth-type")
+
 	context.Merge(map[string]any{
-		"Request":  request,
-		"Response": response,
-		"ClientType": r.Form.Get("client-type"),
+		"Request":    request,
+		"Response":   response,
+		"ClientType": clientType,
+		"AuthStatus": authStatus,
+		"AuthType":   authType,
 	})
 
 	return c.client(w, r, context)
