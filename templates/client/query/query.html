@@ -12,32 +12,35 @@
             {{range  $Index, $Value := $Queries.Query }}
                 {{$Uuid := Uuid}}
                 <div class="query-parameter">
-                    <label for="query-status#{{ $Uuid }}">
-                        {{$Checked := ""}}
-                        {{if $Queries.Active}}
-                            {{$Checked = "checked"}}
-                        {{end}}
-                        <input name="query-status#{{ $Uuid }}" type="checkbox" {{$Checked}}>
+                    {{ $QueryStatusKey := Concat $.Constants.Query.QueryStatus $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $QueryStatusKey }}">
+                        <input name="{{ $QueryStatusKey }}" type="checkbox" 
+                            {{if $Queries.Active}} checked {{end}}>
                     </label>
-                    <label for="query-name#{{ $Uuid }}">
-                        <input name="query-name#{{ $Uuid }}" type="text" placeholder="Parameter" value="{{ $Queries.Key }}">
+
+                    {{ $QueryNameKey := Concat $.Constants.Query.QueryName $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $QueryNameKey }}">
+                        <input name="{{ $QueryNameKey }}" type="text" placeholder="Parameter" value="{{ $Queries.Key }}">
                     </label>
-                    <label for="query-value#{{ $Uuid }}">
-                        <input name="query-value#{{ $Uuid }}" type="text" placeholder="Value" value="{{ $Value }}">
+
+                    {{ $QueryValueKey := Concat $.Constants.Query.QueryValue $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $QueryValueKey }}">
+                        <input name="{{ $QueryValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
                     </label>
+                    
                     <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
                 </div>
             {{end}}
         {{end}}
         <div id="query-parameter-template" class="query-parameter">
-            <label for="query-status">
-                <input name="query-status" type="checkbox" disabled>
+            <label for="{{ .Constants.Query.QueryStatus }}">
+                <input name="{{ .Constants.Query.QueryStatus }}" type="checkbox" disabled>
             </label>
-            <label for="query-name">
-                <input name="query-name" type="text" onkeydown="newQueryRow()" placeholder="Parameter">
+            <label for="{{ .Constants.Query.QueryName }}">
+                <input name="{{ .Constants.Query.QueryName }}" type="text" onkeydown="newQueryRow()" placeholder="Parameter">
             </label>
-            <label for="query-value">
-                <input name="query-value" type="text" onkeydown="newQueryRow()" placeholder="Value">
+            <label for="{{ .Constants.Query.QueryValue }}">
+                <input name="{{ .Constants.Query.QueryValue }}" type="text" onkeydown="newQueryRow()" placeholder="Value">
             </label>
             <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
         </div>

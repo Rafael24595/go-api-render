@@ -30,6 +30,7 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 			"ToString": ToString,
 			"Uuid":     Uuid,
 			"Not":      Not,
+			"Concat":   Concat,
 		}).
 		AddPath("templates").
 		AddPath("templates/**").

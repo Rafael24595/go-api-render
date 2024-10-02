@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -22,4 +23,8 @@ func Not(item any) bool {
 		return !boolean
 	}
 	return false
+}
+
+func Concat(items ...string) string {
+	return strings.Join(items, "")
 }

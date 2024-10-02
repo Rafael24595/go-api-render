@@ -12,6 +12,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/body"
 	"github.com/Rafael24595/go-api-core/src/domain/header"
 	"github.com/Rafael24595/go-api-core/src/domain/query"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/google/uuid"
 )
 
@@ -24,6 +25,8 @@ const (
 	AUTH_BEARER_PREFIX  = "auth-bearer-prefix"
 	AUTH_BEARER_TOKEN   = "auth-bearer-token"
 )
+
+var constants = configuration.GetConstants()
 
 func proccessRequestAnonymous(r *http.Request) (*domain.Request, error) {
 	name := fmt.Sprintf("temp_%s", uuid.NewString())
@@ -92,21 +95,19 @@ func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 	uuids := collection.FromMap(form).
 		KeysList().
 		Filter(func(k string) bool {
-			return strings.Contains(k, "query-name#")
+			return strings.Contains(k, constants.Format.FormatKey(constants.Query.QueryName, ""))
 		}).
 		MapSelf(func(k string) string {
-			parts := strings.Split(k, "#")
+			parts := strings.Split(k, constants.Format.KeySeparator)
 			return parts[len(parts)-1]
 		}).
 		Collect()
 
 	queries := query.NewQueries()
 	for _, uuid := range uuids {
-		sStatus := form.Get(fmt.Sprintf("query-status#%s", uuid))
-
-		status := strings.ToLower(sStatus) == "on"
-		name := form.Get(fmt.Sprintf("query-name#%s", uuid))
-		value := form.Get(fmt.Sprintf("query-value#%s", uuid))
+		status := form.Get(constants.Format.FormatKey(constants.Query.QueryStatus, uuid)) == "on"
+		name := form.Get(constants.Format.FormatKey(constants.Query.QueryName, uuid))
+		value := form.Get(constants.Format.FormatKey(constants.Query.QueryValue, uuid))
 
 		if name == "" {
 			continue
