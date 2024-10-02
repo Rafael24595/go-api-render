@@ -8,6 +8,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 )
@@ -52,7 +53,9 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 }
 
 func (c *controller) contextualizer(w http.ResponseWriter, r *http.Request) (router.Context, error) {
-	return collection.EmptyMap[string, any](), nil
+	return collection.FromMap(map[string]any{
+		"Constants": configuration.GetConstants(),
+	}), nil
 }
 
 func (c *controller) home(w http.ResponseWriter, r *http.Request, context router.Context) error {
@@ -72,6 +75,8 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 }
 
 func (c *controller) request(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	constants := configuration.GetConstants()
+
 	request, err := proccessRequestAnonymous(r)
 	if err != nil {
 		return err
@@ -82,7 +87,7 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		return err
 	}
 
-	clientType := r.Form.Get("client-type")
+	clientType := r.Form.Get(constants.Client.ClientType)
 	authStatus := r.Form.Get("auth-enable") == "on"
 	authType := r.Form.Get("auth-type")
 

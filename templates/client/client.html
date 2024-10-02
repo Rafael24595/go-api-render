@@ -27,11 +27,10 @@
                     <label for="method">
                         <select name="method" id="method">
                             {{range .Methods}}
-                                {{$SELECTED := ""}}
-                                {{if eq $.Request.Method . }}
-                                    {{$SELECTED = "selected"}}
-                                {{end}}
-                                <option value="{{ . }}" {{$SELECTED}}>{{ . }}</option>
+                                <option value="{{ . }}" 
+                                    {{if eq $.Request.Method . }} selected {{end}}>
+                                    {{ . }}
+                                </option>
                             {{end}}
                         </select>
                     </label>
@@ -42,38 +41,45 @@
                 </div>
                 <div>
                     <div class="radio-button-group">
-                        {{ $TagQuery := "query" }}
-                        <input type="radio" id="query" class="client-tag" name="client-type" value="query" 
-                            {{if or (Not .ClientType) (eq .ClientType $TagQuery) }} checked {{end}}>
+                        <input type="radio" id="query" class="client-tag" 
+                            name="{{ .Constants.Client.ClientType }}" 
+                            value="{{ .Constants.Client.TagQuery }}" 
+                            {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
                         <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
-                        {{ $TagHeader := "header" }}
-                        <input type="radio" id="header" class="client-tag" name="client-type" value="header" 
-                            {{if eq .ClientType $TagHeader }} checked {{end}}>
+
+                        <input type="radio" id="header" class="client-tag" 
+                            name="{{ .Constants.Client.ClientType }}" 
+                            value="{{ .Constants.Client.TagHeader }}" 
+                            {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
                         <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
-                        {{ $TagAuth := "auth" }}
-                        <input type="radio" id="auth" class="client-tag" name="client-type" value="auth" 
-                            {{if eq .ClientType $TagAuth }} checked {{end}}>
+
+                        <input type="radio" id="auth" class="client-tag" 
+                            name="{{ .Constants.Client.ClientType }}" 
+                            value="{{ .Constants.Client.TagAuth }}" 
+                            {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
                         <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
-                        {{ $TagBody := "body" }}
-                        <input type="radio" id="body" class="client-tag" name="client-type" value="body" 
-                            {{if eq .ClientType $TagBody }} checked {{end}}>
+
+                        <input type="radio" id="body" class="client-tag" 
+                            name="{{ .Constants.Client.ClientType }}" 
+                            value="{{ .Constants.Client.TagBody }}" 
+                            {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
                         <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
                     </div>
                     <div id="client-form">
                         <div id="query-form" class="fragment-form  
-                            {{if or (Not .ClientType) (eq .ClientType $TagQuery) }} show {{end}}">
+                            {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} show {{end}}">
                             {{ template "query.html" . }}
                         </div>
                         <div id="header-form" class="fragment-form 
-                            {{if eq .ClientType $TagHeader }} show {{end}}">
+                            {{if eq .ClientType .Constants.Client.TagHeader }} show {{end}}">
                             {{ template "header.html" . }}
                         </div>
                         <div id="body-form" class="fragment-form 
-                            {{if eq .ClientType $TagBody }} show {{end}}">
+                            {{if eq .ClientType  .Constants.Client.TagBody }} show {{end}}">
                             {{ template "body.html" . }}
                         </div>
                         <div id="auth-form" class="fragment-form 
-                            {{if eq .ClientType $TagAuth }} show {{end}}">
+                            {{if eq .ClientType .Constants.Client.TagAuth }} show {{end}}">
                             {{ template "auth.html" . }}
                         </div>
                     </div>
