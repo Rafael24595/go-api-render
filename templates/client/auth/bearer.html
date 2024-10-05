@@ -6,17 +6,30 @@
 <body>
     {{ $Auth := (index .Request.Auths.Auths "BEARER").Parameters }}
     <label for="auth-bearer-status">
-        <input name="auth-bearer-status" type="checkbox" {{if $Auth.Active }} checked {{end}}>
+        <input 
+            id="auth-bearer-status" 
+            name="{{ .Constants.Auth.Bearer.Status }}" 
+            type="checkbox" 
+            {{if $Auth.Active }} checked {{end}}>
     </label>
+
     <label for="auth-bearer-prefix">
         {{ $Prefix := (index $Auth "prefix").Value }}
-        <input name="auth-bearer-prefix" type="text" placeholder="bearer" value="{{ $Prefix }}">
+        <input 
+            id="auth-bearer-prefix"
+            name="{{ .Constants.Auth.Bearer.Prefix }}" 
+            type="text" 
+            placeholder="bearer" 
+            value="{{ $Prefix }}">
     </label>
+
     <label for="auth-bearer-token">
         {{ $Token := (index $Auth "token").Value }}
-        <textarea name="auth-bearer-token" id="auth-bearer-token" placeholder="token">
-            {{ $Token }}
-        </textarea>
+        <textarea 
+            id="auth-bearer-token"
+            name="{{ .Constants.Auth.Bearer.Token }}" 
+            id="auth-bearer-token" 
+            placeholder="token">{{ $Token }}</textarea>
     </label>
 </body>
 </html>

@@ -25,7 +25,7 @@
                 <input name="id" id="id" type="hidden" value="{{ .Request.Id }}">
                 <div>
                     <label for="method">
-                        <select name="method" id="method">
+                        <select name="{{ .Constants.Client.Method }}" id="method">
                             {{range .Methods}}
                                 <option value="{{ . }}" 
                                     {{if eq $.Request.Method . }} selected {{end}}>
@@ -35,32 +35,32 @@
                         </select>
                     </label>
                     <label for="url">
-                        <input name="url" id="url" type="text" value="{{ .Request.Uri }}">
+                        <input name="{{ .Constants.Client.Uri }}" id="url" type="text" value="{{ .Request.Uri }}">
                     </label>
                     <button>Send</button>
                 </div>
                 <div>
                     <div class="radio-button-group">
                         <input type="radio" id="query" class="client-tag" 
-                            name="{{ .Constants.Client.ClientType }}" 
+                            name="{{ .Constants.Client.Type }}" 
                             value="{{ .Constants.Client.TagQuery }}" 
                             {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
                         <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
 
                         <input type="radio" id="header" class="client-tag" 
-                            name="{{ .Constants.Client.ClientType }}" 
+                            name="{{ .Constants.Client.Type }}" 
                             value="{{ .Constants.Client.TagHeader }}" 
                             {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
                         <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
 
                         <input type="radio" id="auth" class="client-tag" 
-                            name="{{ .Constants.Client.ClientType }}" 
+                            name="{{ .Constants.Client.Type }}" 
                             value="{{ .Constants.Client.TagAuth }}" 
                             {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
                         <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
 
                         <input type="radio" id="body" class="client-tag" 
-                            name="{{ .Constants.Client.ClientType }}" 
+                            name="{{ .Constants.Client.Type }}" 
                             value="{{ .Constants.Client.TagBody }}" 
                             {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
                         <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>

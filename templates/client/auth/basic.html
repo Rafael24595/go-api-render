@@ -7,15 +7,31 @@
     <div>
         {{ $Auth := (index .Request.Auths.Auths "BASIC") }}
         <label for="auth-basic-status">
-            <input name="auth-basic-status" type="checkbox" {{if $Auth.Active }} checked {{end}}>
+            <input 
+                id="auth-basic-status"
+                name="{{ .Constants.Auth.Basic.Status }}" 
+                type="checkbox" 
+                {{if $Auth.Active }} checked {{end}}>
         </label>
+
         <label for="auth-basic-user">
             {{ $Username := (index $Auth.Parameters "username").Value }}
-            <input name="auth-basic-user" type="text" placeholder="username" value="{{ $Username }}">
+            <input 
+                id="auth-basic-user" 
+                name="{{ .Constants.Auth.Basic.User }}" 
+                type="text" 
+                placeholder="username" 
+                value="{{ $Username }}">
         </label>
+
         <label for="auth-basic-password">
             {{ $Password := (index $Auth.Parameters "password").Value }}
-            <input name="auth-basic-password" type="password" placeholder="password" value="{{ $Password }}">
+            <input 
+                id="auth-basic-password" 
+                name="{{ .Constants.Auth.Basic.Password }}" 
+                type="password" 
+                placeholder="password" 
+                value="{{ $Password }}">
         </label>
     </div>
 </body>

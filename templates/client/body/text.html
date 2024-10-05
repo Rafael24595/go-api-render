@@ -6,7 +6,12 @@
 <body>
     <div>
         <label for="body-parameter-text">
-            <textarea name="body-parameter-text" id="body-parameter-text" class="body-parameter" placeholder="Text" onchange="syncronizeBodies(event)"></textarea>
+            <textarea 
+                name="{{ .Constants.Body.ValueText }}" 
+                id="body-parameter-text" 
+                class="body-parameter" 
+                placeholder="Text" 
+                onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
         </label>
     </div>
 </body>

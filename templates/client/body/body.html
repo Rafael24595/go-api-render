@@ -7,9 +7,19 @@
 <body>
     <div>
         <div class="radio-button-group">
-            <input type="radio" id="text" name="body-type" value="text" checked>
+            <input 
+                type="radio" 
+                id="text" 
+                name="{{ .Constants.Body.Type }}" 
+                value="{{ .Constants.Body.TagText }}"
+                {{if or (Not .BodyType) (eq .BodyType .Constants.Body.TagText) }} checked {{end}}>
             <label for="text" onclick="showBodyForm('body-text-form')">Text</label>
-            <input type="radio" id="json" name="body-type" value="json">
+            <input 
+                type="radio" 
+                id="json" 
+                name="{{ .Constants.Body.Type }}" 
+                value="{{ .Constants.Body.TagJson }}"
+                {{if eq .BodyType .Constants.Body.TagJson }} checked {{end}}>
             <label for="json" onclick="showBodyForm('body-json-form')">Json</label>
         </div>
         <div id="body-type-form">

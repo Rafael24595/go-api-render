@@ -28,3 +28,10 @@ func Not(item any) bool {
 func Concat(items ...string) string {
 	return strings.Join(items, "")
 }
+
+func String(item any) string {
+	if v, ok := item.([]byte); ok {
+		return string(v)
+	}
+	return fmt.Sprintf("%v", item)
+}

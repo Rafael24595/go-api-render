@@ -6,7 +6,12 @@
 <body>
     <div>
         <label for="body-parameter-json">
-            <textarea name="body-parameter-json" id="body-parameter-json" class="body-parameter" placeholder="Json" onchange="syncronizeBodies(event)"></textarea>
+            <textarea 
+                name="{{ .Constants.Body.ValueJson }}" 
+                id="body-parameter-json" 
+                class="body-parameter" 
+                placeholder="Json" 
+                onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
         </label>
     </div>
 </body>

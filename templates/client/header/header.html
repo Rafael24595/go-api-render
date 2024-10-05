@@ -16,28 +16,36 @@
                     {{if $Headers.Active}}
                         {{$Checked = "checked"}}
                     {{end}}
-                    <label for="header-status#{{ $Uuid }}">
-                        <input name="header-status#{{ $Uuid }}" type="checkbox" {{$Checked}}>
+
+                    {{ $HeaderStatusKey := Concat $.Constants.Header.Status $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $HeaderStatusKey }}">
+                        <input name="{{ $HeaderStatusKey }}" type="checkbox" 
+                            {{if $Headers.Active}} checked {{end}}>
                     </label>
-                    <label for="header-name#{{ $Uuid }}">
-                        <input name="header-name#{{ $Uuid }}" type="text" placeholder="Header" value="{{ $Headers.Key }}">
+
+                    {{ $HeaderNameKey := Concat $.Constants.Header.Name $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $HeaderNameKey }}">
+                        <input name="{{ $HeaderNameKey }}" type="text" placeholder="Header" value="{{ $Headers.Key }}">
                     </label>
-                    <label for="header-value#{{ $Uuid }}">
-                        <input name="header-value#{{ $Uuid }}" type="text" placeholder="Value" value="{{ $Value }}">
+
+                    {{ $HeaderValueKey := Concat $.Constants.Header.Value $.Constants.Format.KeySeparator $Uuid }}
+                    <label for="{{ $HeaderValueKey }}">
+                        <input name="{{ $HeaderValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
                     </label>
+
                     <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
                 </div>
             {{end}}
         {{end}}
         <div id="header-parameter-template" class="header-parameter">
-            <label for="header-status">
-                <input name="header-status" type="checkbox" disabled>
+            <label for="{{ .Constants.Header.Status }}">
+                <input name="{{ .Constants.Header.Status }}" type="checkbox" disabled>
             </label>
-            <label for="header-name">
-                <input name="header-name" type="text" onkeydown="newHeaderRow()" placeholder="Header">
+            <label for="{{ .Constants.Header.Name }}">
+                <input name="{{ .Constants.Header.Name }}" type="text" onkeydown="newHeaderRow()" placeholder="Header">
             </label>
-            <label for="header-value">
-                <input name="header-value" type="text" onkeydown="newHeaderRow()" placeholder="Value">
+            <label for="{{ .Constants.Header.Value }}">
+                <input name="{{ .Constants.Header.Value }}" type="text" onkeydown="newHeaderRow()" placeholder="Value">
             </label>
             <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
         </div>

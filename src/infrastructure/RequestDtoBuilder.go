@@ -16,16 +16,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	AUTH_TYPE           = "auth-type"
-	AUTH_BASIC_STATUS   = "auth-basic-status"
-	AUTH_BASIC_USER     = "auth-basic-user"
-	AUTH_BASIC_PASSWORD = "auth-basic-password"
-	AUTH_BEARER_STATUS  = "auth-bearer-status"
-	AUTH_BEARER_PREFIX  = "auth-bearer-prefix"
-	AUTH_BEARER_TOKEN   = "auth-bearer-token"
-)
-
 var constants = configuration.GetConstants()
 
 func proccessRequestAnonymous(r *http.Request) (*domain.Request, error) {
@@ -74,7 +64,7 @@ func proccessRequest(r *http.Request, name string) (*domain.Request, error) {
 }
 
 func proccessMethod(r *http.Request) (*domain.HttpMethod, error) {
-	sMethod := r.FormValue("method")
+	sMethod := r.FormValue(constants.Client.Method)
 	if sMethod == "" {
 		return nil, commons.ApiErrorFrom(422, "Method is not defined")
 	}
@@ -82,7 +72,7 @@ func proccessMethod(r *http.Request) (*domain.HttpMethod, error) {
 }
 
 func proccessUrl(r *http.Request) (string, error) {
-	url := r.FormValue("url")
+	url := r.FormValue(constants.Client.Uri)
 	if url == "" {
 		return "", commons.ApiErrorFrom(422, "URL is not defined")
 	}
@@ -95,7 +85,7 @@ func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 	uuids := collection.FromMap(form).
 		KeysList().
 		Filter(func(k string) bool {
-			return strings.Contains(k, constants.Format.FormatKey(constants.Query.QueryName, ""))
+			return strings.Contains(k, constants.Format.FormatKey(constants.Query.Name, ""))
 		}).
 		MapSelf(func(k string) string {
 			parts := strings.Split(k, constants.Format.KeySeparator)
@@ -105,9 +95,9 @@ func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 
 	queries := query.NewQueries()
 	for _, uuid := range uuids {
-		status := form.Get(constants.Format.FormatKey(constants.Query.QueryStatus, uuid)) == "on"
-		name := form.Get(constants.Format.FormatKey(constants.Query.QueryName, uuid))
-		value := form.Get(constants.Format.FormatKey(constants.Query.QueryValue, uuid))
+		status := form.Get(constants.Format.FormatKey(constants.Query.Status, uuid)) == "on"
+		name := form.Get(constants.Format.FormatKey(constants.Query.Name, uuid))
+		value := form.Get(constants.Format.FormatKey(constants.Query.Value, uuid))
 
 		if name == "" {
 			continue
@@ -125,21 +115,19 @@ func proccessHeaders(r *http.Request) (*header.Headers, error) {
 	uuids := collection.FromMap(form).
 		KeysList().
 		Filter(func(k string) bool {
-			return strings.Contains(k, "header-name#")
+			return strings.Contains(k, constants.Format.FormatKey(constants.Header.Name, ""))
 		}).
 		MapSelf(func(k string) string {
-			parts := strings.Split(k, "#")
+			parts := strings.Split(k, constants.Format.KeySeparator)
 			return parts[len(parts)-1]
 		}).
 		Collect()
 
 	headers := header.NewHeaders()
 	for _, uuid := range uuids {
-		sStatus := form.Get(fmt.Sprintf("header-status#%s", uuid))
-
-		status := strings.ToLower(sStatus) == "on"
-		name := form.Get(fmt.Sprintf("header-name#%s", uuid))
-		value := form.Get(fmt.Sprintf("header-value#%s", uuid))
+		status := form.Get(constants.Format.FormatKey(constants.Header.Status, uuid)) == "on"
+		name := form.Get(constants.Format.FormatKey(constants.Header.Name, uuid))
+		value := form.Get(constants.Format.FormatKey(constants.Header.Value, uuid))
 
 		if name == "" {
 			continue
@@ -153,14 +141,17 @@ func proccessHeaders(r *http.Request) (*header.Headers, error) {
 
 func proccessBody(r *http.Request) (*body.Body, error) {
 	form := r.Form
-	bodyType := form.Get("body-type")
-	contentType, _ := body.ContentTypeFromString(bodyType)
-	payload := form.Get(fmt.Sprintf("body-parameter-%s", bodyType))
+	bodyType := form.Get(constants.Body.Type)
+	contentType, _ := constants.Body.ContentTypeFromType(bodyType)
+	parameterType, _ := constants.Body.BodyTypeFromType(bodyType)
+	payload := form.Get(parameterType)
 	return body.NewBodyString(contentType, payload), nil
 }
 
 func proccessAuth(r *http.Request) (*auth.Auths, error) {
-	auths := auth.NewAuths()
+	authStatus := r.Form.Get(constants.Auth.Enabled) == "on"
+
+	auths := auth.NewAuths(authStatus)
 
 	basic, err := proccessAuthBasic(r)
 	if err != nil {
@@ -185,9 +176,9 @@ func proccessAuth(r *http.Request) (*auth.Auths, error) {
 func proccessAuthBasic(r *http.Request) (*auth.Auth, error) {
 	form := r.Form
 
-	status := strings.ToLower(form.Get(AUTH_BASIC_STATUS)) == "on"
-	user := form.Get(AUTH_BASIC_USER)
-	password := form.Get(AUTH_BASIC_PASSWORD)
+	status := strings.ToLower(form.Get(constants.Auth.Basic.Status)) == "on"
+	user := form.Get(constants.Auth.Basic.User)
+	password := form.Get(constants.Auth.Basic.Password)
 
 	return auth.NewAuthEmpty(status, auth.Basic).
 		PutParam(auth.BASIC_PARAM_USER, user).
@@ -197,12 +188,12 @@ func proccessAuthBasic(r *http.Request) (*auth.Auth, error) {
 func proccessAuthBearer(r *http.Request) (*auth.Auth, error) {
 	form := r.Form
 
-	status := strings.ToLower(form.Get(AUTH_BEARER_STATUS)) == "on"
+	status := strings.ToLower(form.Get(constants.Auth.Bearer.Status)) == "on"
 	prefix := auth.DEFAULT_BEARER_PREFIX
-	if form.Has(AUTH_BEARER_PREFIX) {
-		prefix = form.Get(AUTH_BEARER_PREFIX)
+	if form.Has(constants.Auth.Bearer.Prefix) {
+		prefix = form.Get(constants.Auth.Bearer.Prefix)
 	}
-	token := form.Get(AUTH_BEARER_TOKEN)
+	token := form.Get(constants.Auth.Bearer.Token)
 
 	return auth.NewAuthEmpty(status, auth.Bearer).
 		PutParam(auth.BEARER_PARAM_PREFIX, prefix).

@@ -31,6 +31,7 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 			"Uuid":     Uuid,
 			"Not":      Not,
 			"Concat":   Concat,
+			"String":   String,
 		}).
 		AddPath("templates").
 		AddPath("templates/**").
@@ -88,9 +89,10 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		return err
 	}
 
-	clientType := r.Form.Get(constants.Client.ClientType)
-	authStatus := r.Form.Get("auth-enable") == "on"
-	authType := r.Form.Get("auth-type")
+	clientType := r.Form.Get(constants.Client.Type)
+	bodyType := r.Form.Get(constants.Body.Type)
+	authStatus := r.Form.Get(constants.Auth.Enabled) == "on"
+	authType := r.Form.Get(constants.Auth.Type)
 
 	context.Merge(map[string]any{
 		"Request":    request,
@@ -98,6 +100,7 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		"ClientType": clientType,
 		"AuthStatus": authStatus,
 		"AuthType":   authType,
+		"BodyType":   bodyType,
 	})
 
 	return c.client(w, r, context)

@@ -12,18 +12,18 @@
             {{range  $Index, $Value := $Queries.Query }}
                 {{$Uuid := Uuid}}
                 <div class="query-parameter">
-                    {{ $QueryStatusKey := Concat $.Constants.Query.QueryStatus $.Constants.Format.KeySeparator $Uuid }}
+                    {{ $QueryStatusKey := Concat $.Constants.Query.Status $.Constants.Format.KeySeparator $Uuid }}
                     <label for="{{ $QueryStatusKey }}">
                         <input name="{{ $QueryStatusKey }}" type="checkbox" 
                             {{if $Queries.Active}} checked {{end}}>
                     </label>
 
-                    {{ $QueryNameKey := Concat $.Constants.Query.QueryName $.Constants.Format.KeySeparator $Uuid }}
+                    {{ $QueryNameKey := Concat $.Constants.Query.Name $.Constants.Format.KeySeparator $Uuid }}
                     <label for="{{ $QueryNameKey }}">
                         <input name="{{ $QueryNameKey }}" type="text" placeholder="Parameter" value="{{ $Queries.Key }}">
                     </label>
 
-                    {{ $QueryValueKey := Concat $.Constants.Query.QueryValue $.Constants.Format.KeySeparator $Uuid }}
+                    {{ $QueryValueKey := Concat $.Constants.Query.Value $.Constants.Format.KeySeparator $Uuid }}
                     <label for="{{ $QueryValueKey }}">
                         <input name="{{ $QueryValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
                     </label>
@@ -33,14 +33,14 @@
             {{end}}
         {{end}}
         <div id="query-parameter-template" class="query-parameter">
-            <label for="{{ .Constants.Query.QueryStatus }}">
-                <input name="{{ .Constants.Query.QueryStatus }}" type="checkbox" disabled>
+            <label for="{{ .Constants.Query.Status }}">
+                <input name="{{ .Constants.Query.Status }}" type="checkbox" disabled>
             </label>
-            <label for="{{ .Constants.Query.QueryName }}">
-                <input name="{{ .Constants.Query.QueryName }}" type="text" onkeydown="newQueryRow()" placeholder="Parameter">
+            <label for="{{ .Constants.Query.Name }}">
+                <input name="{{ .Constants.Query.Name }}" type="text" onkeydown="newQueryRow()" placeholder="Parameter">
             </label>
-            <label for="{{ .Constants.Query.QueryValue }}">
-                <input name="{{ .Constants.Query.QueryValue }}" type="text" onkeydown="newQueryRow()" placeholder="Value">
+            <label for="{{ .Constants.Query.Value }}">
+                <input name="{{ .Constants.Query.Value }}" type="text" onkeydown="newQueryRow()" placeholder="Value">
             </label>
             <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
         </div>
