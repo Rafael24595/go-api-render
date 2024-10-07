@@ -20,6 +20,7 @@ type Format struct {
 }
 
 type Client struct {
+	Id        string
 	Type      string
 	Method    string
 	Uri       string
@@ -78,6 +79,7 @@ func getConstants() Constants {
 			KeySeparator: "#",
 		},
 		Client: Client{
+			Id:        "id",
 			Type:      "client-type",
 			Method:    "method",
 			Uri:       "uri",

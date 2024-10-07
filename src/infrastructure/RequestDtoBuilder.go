@@ -36,6 +36,8 @@ func proccessRequest(r *http.Request, name string) (*domain.Request, error) {
 
 	request := domain.NewRequest(name, *method, url)
 
+	request.Id = r.FormValue(constants.Client.Id)
+
 	queries, err := proccessQueryParams(r)
 	if err != nil {
 		return nil, err

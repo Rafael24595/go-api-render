@@ -17,13 +17,14 @@ type Controller interface {
 }
 
 type controller struct {
-	router            *router.Router
-	manager           templates.TemplateManager
-	queryRepository   request.QueryRepository
-	commandRepository request.CommandRepository
+	router                   *router.Router
+	manager                  templates.TemplateManager
+	queryRepositoryHistoric  request.RepositoryQuery
+	queryRepositoryPersisted request.RepositoryQuery
+	commandRepository        *request.MemoryCommandManager
 }
 
-func NewController(router *router.Router, queryRepository request.QueryRepository, commandRepository request.CommandRepository) Controller {
+func NewController(router *router.Router, queryRepositoryHistoric request.RepositoryQuery, queryRepositoryPersisted request.RepositoryQuery, commandRepository *request.MemoryCommandManager) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
 		AddFunctions(map[string]any{
@@ -38,10 +39,11 @@ func NewController(router *router.Router, queryRepository request.QueryRepositor
 		AddPath("templates/**/**")
 
 	instance := controller{
-		router:            router,
-		manager:           builder.Make(),
-		queryRepository:   queryRepository,
-		commandRepository: commandRepository,
+		router:                   router,
+		manager:                  builder.Make(),
+		queryRepositoryHistoric:  queryRepositoryHistoric,
+		queryRepositoryPersisted: queryRepositoryPersisted,
+		commandRepository:        commandRepository,
 	}
 
 	instance.router.ResourcesPath("templates").
@@ -65,13 +67,13 @@ func (c *controller) home(w http.ResponseWriter, r *http.Request, context router
 }
 
 func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	requests := c.queryRepository.FindAll()
+	requests := c.queryRepositoryHistoric.FindAll()
 
 	context.Merge(map[string]any{
 		"Methods":  domain.HttpMethods(),
 		"Requests": requests,
 	}).
-		PutIfAbsent("Request", domain.NewRequestEmpty())
+	PutIfAbsent("Request", domain.NewRequestEmpty())
 
 	return c.manager.Render(w, "client/client.html", context)
 }
@@ -93,6 +95,8 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 	bodyType := r.Form.Get(constants.Body.Type)
 	authStatus := r.Form.Get(constants.Auth.Enabled) == "on"
 	authType := r.Form.Get(constants.Auth.Type)
+
+	request = c.commandRepository.Insert(*request)
 
 	context.Merge(map[string]any{
 		"Request":    request,

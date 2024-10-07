@@ -100,6 +100,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 
 	if ok {
 		(*errorHandler)(wrt, req, context, err)
+		return
 	}
 
 	http.Error(wrt, err.Error(), http.StatusInternalServerError)

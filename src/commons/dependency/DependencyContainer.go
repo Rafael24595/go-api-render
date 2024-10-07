@@ -1,31 +1,41 @@
 package dependency
 
 import (
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request/memory"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 )
 
 var instance *DependencyContainer
 
 type DependencyContainer struct {
-	RequestQuery *memory.QueryMemory
-	RequestCommand *memory.CommandMemory
+	RequestQueryHistoric request.RepositoryQuery
+	RequestQueryPersisted request.RepositoryQuery
+	RequestCommandManager *request.MemoryCommandManager
 }
 
 func Initialize() *DependencyContainer {
 	if instance != nil {
 		panic("//TODO: Yet instanced")
 	}
-
-	requestQuery, err := memory.InitializeQueryMemory()
+	
+	requestQueryHistoric, err := request.InitializeMemoryQueryPath(request.HISTORIC_FILE_PATH)
 	if err != nil {
 		panic(err)
 	}
 
-	requestCommand := memory.NewCommandMemory(requestQuery)
+	requestQueryPersisted, err := request.InitializeMemoryQueryPath(request.DEFAULT_FILE_PATH)
+	if err != nil {
+		panic(err)
+	}
+
+	requestCommandHistoric := request.NewMemoryCommand(requestQueryHistoric)
+	requestCommandPersisted := request.NewMemoryCommand(requestQueryPersisted)
+
+	requestCommandManager := request.NewMemoryCommandManager(requestQueryHistoric, requestCommandHistoric, requestCommandPersisted)
 
 	container := &DependencyContainer{
-		RequestQuery: requestQuery,
-		RequestCommand: requestCommand,
+		RequestQueryHistoric: requestQueryHistoric,
+		RequestQueryPersisted: requestQueryPersisted,
+		RequestCommandManager: requestCommandManager,
 	}
 
 	instance = container

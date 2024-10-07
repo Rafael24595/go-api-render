@@ -22,7 +22,7 @@
         </div>
         <div id="c-body">
             <form action="/client" method="post">
-                <input name="id" id="id" type="hidden" value="{{ .Request.Id }}">
+                <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
                 <div>
                     <label for="method">
                         <select name="{{ .Constants.Client.Method }}" id="method">
