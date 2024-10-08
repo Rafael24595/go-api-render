@@ -81,14 +81,11 @@
                             {{ template "auth.html" . }}
                         </div>
                     </div>
+                </div>
             </form>
         </div>
         <div id="r-sidebar">
-            {{if .Response}}
-                {{ .Response.Time }}
-            {{else}}
-                <p>- No Data -</p>
-            {{end}}
+            {{ template "response.html" . }}
         </div>
     </div>
 </body>

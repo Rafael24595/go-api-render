@@ -1,0 +1,11 @@
+<div>
+    {{if .Response}}
+        <p>
+            <span>Status: {{ .Response.Status }}</span>
+            <span>Time: {{ .Response.Time }}</span>
+            <span>Size: {{ .Response.Size }}</span>
+        </p>
+    {{else}}
+        <p>- No Data -</p>
+    {{end}}
+</div>
