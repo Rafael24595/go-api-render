@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/commons"
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
@@ -11,6 +12,10 @@ import (
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
+)
+
+const (
+	ID_REQUEST = "id_request"
 )
 
 type Controller interface {
@@ -49,9 +54,10 @@ func NewController(router *router.Router, queryRepositoryHistoric request.Reposi
 	instance.router.ResourcesPath("templates").
 		Contextualizer(instance.contextualizer).
 		ErrorHandler(instance.error).
-		Route(http.MethodGet, "/", instance.home).
-		Route(http.MethodGet, "/client", instance.client).
-		Route(http.MethodPost, "/client", instance.request)
+		Route(http.MethodGet, instance.home, "/").
+		Route(http.MethodGet, instance.client, "/client").
+		Route(http.MethodPost, instance.request, "/client").
+		Route(http.MethodGet, instance.historic, "/client/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -105,6 +111,20 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		"AuthStatus": authStatus,
 		"AuthType":   authType,
 		"BodyType":   bodyType,
+	})
+
+	return c.client(w, r, context)
+}
+
+func (c *controller) historic(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	idRequest := r.PathValue(ID_REQUEST)
+	request, ok := c.queryRepositoryHistoric.Find(idRequest)
+	if !ok {
+		return commons.ApiErrorFrom(404, "Historic request not found.")
+	}
+
+	context.Merge(map[string]any{
+		"Request":    request,
 	})
 
 	return c.client(w, r, context)

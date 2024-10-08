@@ -43,26 +43,26 @@ func (r *Router) ErrorHandler(handler errorHandler) *Router {
 	return r
 }
 
-func (r *Router) RouteOptions(method string, pattern string, handler requestHandler, contextualizer *contextHandler, error *errorHandler) *Router {
-	route := r.patternKey(method, pattern)
+func (r *Router) RouteOptions(method string, handler requestHandler, contextualizer *contextHandler, error *errorHandler, pattern string, params ...any) *Router {
+	route := r.patternKey(method, pattern, params...)
 	if contextualizer != nil {
 		r.contextualizer.Put(route, *contextualizer)
 	}
 	if error != nil {
 		r.errors.Put(route, *error)
 	}
-	return r.Route(method, pattern, handler)
+	return r.Route(method, handler, pattern, params...)
 }
 
-func (r *Router) Route(method string, pattern string, handler requestHandler) *Router {
-	route := r.patternKey(method, pattern)
+func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
+	route := r.patternKey(method, pattern, params...)
 	r.routes.Put(route, handler)
 	http.HandleFunc(route, r.handler)
 	return r
 }
 
-func (r Router) patternKey(method, pattern string) string {
-	return fmt.Sprintf("%s %s", method, pattern)
+func (r Router) patternKey(method, pattern string, params ...any) string {
+	return fmt.Sprintf("%s %s", method, fmt.Sprintf(pattern, params...))
 }
 
 func (r *Router) Listen(host string) error {

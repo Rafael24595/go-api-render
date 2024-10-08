@@ -4,21 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="templates/style.css">
-    <link rel="stylesheet" href="templates/client/client.css">
+    <link rel="stylesheet" href="/templates/style.css">
+    <link rel="stylesheet" href="/templates/client/client.css">
     <title>Document</title>
 </head>
-<script src="templates/script.js"></script>
-<script src="templates/client/client.js"></script>
+<script src="/templates/script.js"></script>
+<script src="/templates/client/client.js"></script>
 <body>
     <div id="body-header">
 
     </div>
     <div id="body-content">
         <div id="l-sidebar">
-            {{range .Requests}}
-            <p>{{ . }}</p>
-            {{end}}
+            {{ template "historic.html" . }}
         </div>
         <div id="c-body">
             <form action="/client" method="post">
