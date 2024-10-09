@@ -1,5 +1,20 @@
 <div>
-    {{ range $Key, $Value := .Response.Cookies.Cookies }}
-        <p>{{ $Value }}</p>
-    {{ end }}
+    <table>
+        <tbody>
+            <tr>
+                <th>Name</th>
+                <th>Value</th>
+            </tr>
+            {{ range $Key, $Value := .Response.Cookies.Cookies }}
+                <tr>
+                    <td>
+                        {{ $Value.Code }}
+                    </td>
+                    <td>
+                        {{ParseCookie $Value }}
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
 </div>

@@ -1,8 +1,12 @@
 package templates
 
 import (
-	"fmt"
 	"html/template"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/Rafael24595/go-api-core/src/commons/collection"
 )
 
 type builderTemplate interface {
@@ -47,8 +51,31 @@ func (builder *BuilderManager) Make() TemplateManager {
 
 func (builder *BuilderManager) makeTemplate() *template.Template {
 	templates := template.New("").Funcs(builder.functions)
-	for _, t := range builder.templates {
-		templates = template.Must(templates.ParseGlob(fmt.Sprintf("%s/*.html", t)))
-	}
+	templates.ParseFiles(builder.files()...)
 	return templates
+}
+
+func (builder *BuilderManager) files() []string {
+	files := collection.EmptyMap[string, bool]()
+	for _, t := range builder.templates {
+		err := filepath.WalkDir(t, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			
+			if d.IsDir() || !strings.HasSuffix(d.Name(), ".html") {
+				return nil
+			}
+			
+			files.Put(path, true)
+	
+			return nil
+		})
+
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return files.Keys()
 }

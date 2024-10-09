@@ -3,8 +3,8 @@
     {{if .Response}}
         <p>
             <span>Status: {{ .Response.Status }}</span>
-            <span>Time: {{ .Response.Time }}</span>
-            <span>Size: {{ .Response.Size }}</span>
+            <span>Time: {{ FormatMilliseconds .Response.Time }}</span>
+            <span>Size: {{ FormatBytes .Response.Size }}</span>
         </p>
         <div class="radio-button-group">
             <input type="radio" id="request-payload" class="reponse-tag" 
@@ -28,7 +28,7 @@
         <div id="response-container">
             <div id="payload-container" class="fragment-form  
                 {{if or (Not .ResponseType) (eq .ResponseType .Constants.Response.TagPayload) }} show {{end}}">
-                {{ template "payload.html" . }}
+                {{ template "resp_payload.html" . }}
             </div>
             <div id="header-container" class="fragment-form  
                 {{if eq .ResponseType .Constants.Response.TagHeader }} show {{end}}">

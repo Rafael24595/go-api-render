@@ -6,7 +6,7 @@
                 <span>{{ .Uri }}</span>
             </div>
             <div>
-                <span>{{ .Timestamp }}</span>
+                <span>{{ FormatMillisecondsDate .Timestamp }}</span>
             </div>
         </a>
     {{end}}

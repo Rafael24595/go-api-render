@@ -1,5 +1,20 @@
 <div>
-    {{ range $Key, $Value := .Response.Headers.Headers }}
-        <p>{{ $Value }}</p>
-    {{ end }}
+    <table>
+        <tbody>
+            <tr>
+                <th>Name</th>
+                <th>Value</th>
+            </tr>
+            {{ range $Key, $Value := .Response.Headers.Headers }}
+                <tr>
+                    <td>
+                        {{ $Value.Key }}
+                    </td>
+                    <td>
+                        {{Join $Value.Header " |" }}
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
 </div>

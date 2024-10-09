@@ -33,15 +33,17 @@ func NewController(router *router.Router, queryRepositoryHistoric request.Reposi
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
 		AddFunctions(map[string]any{
-			"ToString": ToString,
-			"Uuid":     Uuid,
-			"Not":      Not,
-			"Concat":   Concat,
-			"String":   String,
+			"Uuid":                   Uuid,
+			"Not":                    Not,
+			"Concat":                 Concat,
+			"String":                 String,
+			"Join":                   Join,
+			"FormatMilliseconds":     FormatMilliseconds,
+			"FormatMillisecondsDate": FormatMillisecondsDate,
+			"FormatBytes":            FormatBytes,
+			"ParseCookie":            ParseCookie,
 		}).
-		AddPath("templates").
-		AddPath("templates/**").
-		AddPath("templates/**/**")
+		AddPath("templates")
 
 	instance := controller{
 		router:                   router,
@@ -79,7 +81,7 @@ func (c *controller) client(w http.ResponseWriter, r *http.Request, context rout
 		"Methods":  domain.HttpMethods(),
 		"Requests": requests,
 	}).
-	PutIfAbsent("Request", domain.NewRequestEmpty())
+		PutIfAbsent("Request", domain.NewRequestEmpty())
 
 	return c.manager.Render(w, "client/client.html", context)
 }
@@ -124,7 +126,7 @@ func (c *controller) historic(w http.ResponseWriter, r *http.Request, context ro
 	}
 
 	context.Merge(map[string]any{
-		"Request":    request,
+		"Request": request,
 	})
 
 	return c.client(w, r, context)
