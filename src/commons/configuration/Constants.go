@@ -7,12 +7,13 @@ import (
 )
 
 type Constants struct {
-	Format Format
-	Client Client
-	Query  Query
-	Header Header
-	Body   Body
-	Auth   Auth
+	Format   Format
+	Client   Client
+	Query    Query
+	Header   Header
+	Body     Body
+	Auth     Auth
+	Response Response
 }
 
 type Format struct {
@@ -71,6 +72,13 @@ type Bearer struct {
 	Token  string
 }
 
+type Response struct {
+	Type       string
+	TagPayload string
+	TagHeader  string
+	TagCookie  string
+}
+
 var constants = getConstants()
 
 func getConstants() Constants {
@@ -120,6 +128,12 @@ func getConstants() Constants {
 				Prefix: "auth-bearer-prefix",
 				Token:  "auth-bearer-token",
 			},
+		},
+		Response: Response{
+			Type:       "request-type",
+			TagPayload: "payload",
+			TagHeader:  "header",
+			TagCookie:  "cookie",
 		},
 	}
 }

@@ -1,0 +1,5 @@
+<div>
+    {{ range $Key, $Value := .Response.Cookies.Cookies }}
+        <p>{{ $Value }}</p>
+    {{ end }}
+</div>

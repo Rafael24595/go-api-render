@@ -1,22 +1,25 @@
 #l-sidebar {
+    overflow: auto;
     display: flex;
-    justify-content: center;
     flex: 1 1 auto;
     width: 20%;
+    border: 1px solid lightgray;
 }
 
 #c-body {
     display: flex;
     justify-content: center;
     flex: 1 1 auto;
-    width: 60%;
+    width: 40%;
+    border: 1px solid lightgray;
 }
 
 #r-sidebar {
+    overflow: auto;
     display: flex;
-    justify-content: center;
     flex: 1 1 auto;
-    width: 20%;
+    width: 40%;
+    border: 1px solid lightgray;
 }
 
 .fragment-form {

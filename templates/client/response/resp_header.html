@@ -1,0 +1,5 @@
+<div>
+    {{ range $Key, $Value := .Response.Headers.Headers }}
+        <p>{{ $Value }}</p>
+    {{ end }}
+</div>

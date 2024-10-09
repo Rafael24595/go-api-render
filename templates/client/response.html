@@ -1,3 +1,4 @@
+<script src="/templates/client/response.js"></script>
 <div>
     {{if .Response}}
         <p>
@@ -5,6 +6,39 @@
             <span>Time: {{ .Response.Time }}</span>
             <span>Size: {{ .Response.Size }}</span>
         </p>
+        <div class="radio-button-group">
+            <input type="radio" id="request-payload" class="reponse-tag" 
+                name="{{ .Constants.Response.Type }}" 
+                value="{{ .Constants.Response.TagPayload }}" 
+                {{if or (Not .ResponseType) (eq .ResponseType .Constants.Response.TagPayload) }} checked {{end}}>
+            <label for="request-payload" id="reponse-label-payload" onclick="showContainer('payload-container')">Payload</label>
+
+            <input type="radio" id="request-header" class="reponse-tag" 
+                name="{{ .Constants.Response.Type }}" 
+                value="{{ .Constants.Response.TagHeader }}" 
+                {{if eq .ResponseType .Constants.Response.TagHeader }} checked {{end}}>
+            <label for="request-header" id="reponse-label-header" onclick="showContainer('header-container')">Header</label>
+
+            <input type="radio" id="request-cookie" class="reponse-tag" 
+                name="{{ .Constants.Response.Type }}" 
+                value="{{ .Constants.Response.TagCookie }}" 
+                {{if eq .ResponseType .Constants.Response.TagCookie }} checked {{end}}>
+            <label for="request-cookie" id="reponse-label-cookie" onclick="showContainer('cookie-container')">Cookie</label>
+        </div>
+        <div id="response-container">
+            <div id="payload-container" class="fragment-form  
+                {{if or (Not .ResponseType) (eq .ResponseType .Constants.Response.TagPayload) }} show {{end}}">
+                {{ template "payload.html" . }}
+            </div>
+            <div id="header-container" class="fragment-form  
+                {{if eq .ResponseType .Constants.Response.TagHeader }} show {{end}}">
+                {{ template "resp_header.html" . }}
+            </div>
+            <div id="cookie-container" class="fragment-form  
+                {{if eq .ResponseType .Constants.Response.TagCookie }} show {{end}}">
+                {{ template "resp_cookie.html" . }}
+            </div>
+        </div>
     {{else}}
         <p>- No Data -</p>
     {{end}}
