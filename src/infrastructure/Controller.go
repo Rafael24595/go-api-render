@@ -8,6 +8,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
@@ -24,12 +25,12 @@ type Controller interface {
 type controller struct {
 	router                   *router.Router
 	manager                  templates.TemplateManager
-	queryRepositoryHistoric  request.RepositoryQuery
-	queryRepositoryPersisted request.RepositoryQuery
+	queryRepositoryHistoric  request.IRepositoryQuery
+	queryRepositoryPersisted request.IRepositoryQuery
 	commandRepository        *request.MemoryCommandManager
 }
 
-func NewController(router *router.Router, queryRepositoryHistoric request.RepositoryQuery, queryRepositoryPersisted request.RepositoryQuery, commandRepository *request.MemoryCommandManager) Controller {
+func NewController(router *router.Router, queryRepositoryHistoric request.IRepositoryQuery, queryRepositoryPersisted request.IRepositoryQuery, commandRepository *request.MemoryCommandManager) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
 		AddFunctions(map[string]any{
@@ -75,7 +76,12 @@ func (c *controller) home(w http.ResponseWriter, r *http.Request, context router
 }
 
 func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	requests := c.queryRepositoryHistoric.FindAll()
+	requests := c.queryRepositoryHistoric.FindOptions(repository.FilterOptions[domain.Request]{
+		Sort: func(i, j domain.Request) bool  {
+			return j.Timestamp > i.Timestamp
+		},
+		To: 10,
+	})
 
 	context.Merge(map[string]any{
 		"Methods":  domain.HttpMethods(),

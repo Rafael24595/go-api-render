@@ -85,7 +85,7 @@ func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 	form := r.Form
 
 	uuids := collection.FromMap(form).
-		KeysList().
+		KeysCollection().
 		Filter(func(k string) bool {
 			return strings.Contains(k, constants.Format.FormatKey(constants.Query.Name, ""))
 		}).
@@ -115,7 +115,7 @@ func proccessHeaders(r *http.Request) (*header.Headers, error) {
 	form := r.Form
 
 	uuids := collection.FromMap(form).
-		KeysList().
+	KeysCollection().
 		Filter(func(k string) bool {
 			return strings.Contains(k, constants.Format.FormatKey(constants.Header.Name, ""))
 		}).

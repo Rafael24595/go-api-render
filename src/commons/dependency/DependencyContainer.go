@@ -7,8 +7,8 @@ import (
 var instance *DependencyContainer
 
 type DependencyContainer struct {
-	RequestQueryHistoric request.RepositoryQuery
-	RequestQueryPersisted request.RepositoryQuery
+	RequestQueryHistoric request.IRepositoryQuery
+	RequestQueryPersisted request.IRepositoryQuery
 	RequestCommandManager *request.MemoryCommandManager
 }
 
