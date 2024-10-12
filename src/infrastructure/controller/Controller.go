@@ -1,4 +1,4 @@
-package infrastructure
+package controller
 
 import (
 	"fmt"
@@ -8,9 +8,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
+	core_repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 )
@@ -23,14 +23,13 @@ type Controller interface {
 }
 
 type controller struct {
-	router                   *router.Router
-	manager                  templates.TemplateManager
-	queryRepositoryHistoric  request.IRepositoryQuery
-	queryRepositoryPersisted request.IRepositoryQuery
-	commandRepository        *request.MemoryCommandManager
+	router              *router.Router
+	manager             templates.TemplateManager
+	repositoryHisotric  *repository.RequestManager
+	repositoryPersisted *repository.RequestManager
 }
 
-func NewController(router *router.Router, queryRepositoryHistoric request.IRepositoryQuery, queryRepositoryPersisted request.IRepositoryQuery, commandRepository *request.MemoryCommandManager) Controller {
+func NewController(router *router.Router, repositoryHisotric *repository.RequestManager, repositoryPersisted *repository.RequestManager) Controller {
 	builder := templates.NewBuilder().
 		AddFunction("SayHello", func(name string) string { return fmt.Sprintf("Hello %s!", name) }).
 		AddFunctions(map[string]any{
@@ -47,11 +46,10 @@ func NewController(router *router.Router, queryRepositoryHistoric request.IRepos
 		AddPath("templates")
 
 	instance := controller{
-		router:                   router,
-		manager:                  builder.Make(),
-		queryRepositoryHistoric:  queryRepositoryHistoric,
-		queryRepositoryPersisted: queryRepositoryPersisted,
-		commandRepository:        commandRepository,
+		router:              router,
+		manager:             builder.Make(),
+		repositoryHisotric:  repositoryHisotric,
+		repositoryPersisted: repositoryPersisted,
 	}
 
 	instance.router.ResourcesPath("templates").
@@ -76,8 +74,8 @@ func (c *controller) home(w http.ResponseWriter, r *http.Request, context router
 }
 
 func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	requests := c.queryRepositoryHistoric.FindOptions(repository.FilterOptions[domain.Request]{
-		Sort: func(i, j domain.Request) bool  {
+	requests := c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
+		Sort: func(i, j domain.Request) bool {
 			return j.Timestamp > i.Timestamp
 		},
 		To: 10,
@@ -110,7 +108,11 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 	authStatus := r.Form.Get(constants.Auth.Enabled) == "on"
 	authType := r.Form.Get(constants.Auth.Type)
 
-	request = c.commandRepository.Insert(*request)
+	if request.Status == domain.Historic {
+		request, response = c.repositoryHisotric.Insert(*request, *response)
+	} else {
+		request, response = c.repositoryPersisted.Insert(*request, *response)
+	}
 
 	context.Merge(map[string]any{
 		"Request":    request,
@@ -126,13 +128,14 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 
 func (c *controller) historic(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
-	request, ok := c.queryRepositoryHistoric.Find(idRequest)
+	request, response, ok := c.repositoryHisotric.Find(idRequest)
 	if !ok {
 		return commons.ApiErrorFrom(404, "Historic request not found.")
 	}
 
 	context.Merge(map[string]any{
 		"Request": request,
+		"Response": response,
 	})
 
 	return c.client(w, r, context)
