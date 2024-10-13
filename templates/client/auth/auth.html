@@ -10,7 +10,7 @@
             name="{{ .Constants.Auth.Enabled }}" 
             id="auth-enable" 
             type="checkbox" 
-            {{if .AuthStatus }} checked {{end}}>
+            {{if .Request.Auths.Status }} checked {{end}}>
 
         <input 
             type="radio" 

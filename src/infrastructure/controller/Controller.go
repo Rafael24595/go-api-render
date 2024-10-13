@@ -105,7 +105,6 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 
 	clientType := r.Form.Get(constants.Client.Type)
 	bodyType := r.Form.Get(constants.Body.Type)
-	authStatus := r.Form.Get(constants.Auth.Enabled) == "on"
 	authType := r.Form.Get(constants.Auth.Type)
 
 	if request.Status == domain.Historic {
@@ -118,7 +117,6 @@ func (c *controller) request(w http.ResponseWriter, r *http.Request, context rou
 		"Request":    request,
 		"Response":   response,
 		"ClientType": clientType,
-		"AuthStatus": authStatus,
 		"AuthType":   authType,
 		"BodyType":   bodyType,
 	})
