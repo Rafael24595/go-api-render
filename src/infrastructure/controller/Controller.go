@@ -76,7 +76,7 @@ func (c *controller) home(w http.ResponseWriter, r *http.Request, context router
 func (c *controller) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	requests := c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
 		Sort: func(i, j domain.Request) bool {
-			return j.Timestamp > i.Timestamp
+			return i.Timestamp > j.Timestamp
 		},
 		To: 10,
 	})

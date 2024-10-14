@@ -66,7 +66,8 @@ func (r Router) patternKey(method, pattern string, params ...any) string {
 }
 
 func (r *Router) Listen(host string) error {
-	return http.ListenAndServe(":8080", nil)
+	println(fmt.Sprintf("Listen at: %s", host))
+	return http.ListenAndServe(host, nil)
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
