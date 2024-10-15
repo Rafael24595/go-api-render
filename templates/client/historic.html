@@ -1,14 +1,16 @@
-<div>
+<div  id="request-container">
     <a href="/client">New</a>
-    {{range .Requests}}
-        <a href="/client/{{ .Id }}">
-            <div>
-                <span>{{ .Method }}</span>
-                <span>{{ .Uri }}</span>
-            </div>
-            <div>
-                <span>{{ FormatMillisecondsDate .Timestamp }}</span>
-            </div>
-        </a>
-    {{end}}
+    <div  id="historic-container">
+        {{range .Requests}}
+            <a href="/client/{{ .Id }}">
+                <div>
+                    <span>{{ .Method }}</span>
+                    <span>{{ .Uri }}</span>
+                </div>
+                <div>
+                    <span>{{ FormatMillisecondsDate .Timestamp }}</span>
+                </div>
+            </a>
+        {{end}}
+    </div>
 </div>

@@ -1,11 +1,23 @@
 html, body {
     margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#body-header {
+    height: 75px;
 }
 
 #body-content {
     display: flex;
-    align-items: flex-start;
     justify-content: center;
+    flex: 1 1 auto;
+    height: 0px;
 }
 
 .radio-button-group {

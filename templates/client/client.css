@@ -15,7 +15,7 @@
 }
 
 #r-sidebar {
-    overflow: auto;
+    overflow: hidden;
     display: flex;
     flex: 1 1 auto;
     width: 40%;
@@ -28,4 +28,16 @@
 
 .fragment-form.show {
     display: initial;
+}
+
+#request-container, #response-container {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+#historic-container, #response-payload {
+    flex: 1 1 auto;
+    overflow: auto;
 }

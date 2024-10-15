@@ -1,7 +1,7 @@
-const RESPONSE_CONTAINER = "response-container";
+const RESPONSE_PAYLOAD = "response-payload";
 
 function showContainer(form) {
-    for (const element of document.getElementById(RESPONSE_CONTAINER).children) {
+    for (const element of document.getElementById(RESPONSE_PAYLOAD).children) {
         if (element.id == form) {
             element.classList.add("show");
             continue;
