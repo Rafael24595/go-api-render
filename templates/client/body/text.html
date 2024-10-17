@@ -1,18 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <link rel="stylesheet" href="/templates/client/body/body.css">
 </head>
-<body>
-    <div>
-        <label for="body-parameter-text">
-            <textarea 
-                name="{{ .Constants.Body.ValueText }}" 
-                id="body-parameter-text" 
-                class="body-parameter" 
-                placeholder="Text" 
-                onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
-        </label>
-    </div>
-</body>
-</html>
+<label for="body-parameter-text">
+    <textarea 
+        name="{{ .Constants.Body.ValueText }}" 
+        id="body-parameter-text" 
+        class="body-parameter" 
+        placeholder="Text" 
+        onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
+</label>

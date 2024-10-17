@@ -5,3 +5,7 @@
 .fragment-body-form.show {
     display: initial;
 }
+
+#body-type-form {
+    padding: 10px;
+}

@@ -5,3 +5,7 @@
 .fragment-auth-form.show {
     display: initial;
 }
+
+#auth-type-form {
+    padding: 10px;
+}

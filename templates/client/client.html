@@ -19,10 +19,10 @@
             {{ template "historic.html" . }}
         </div>
         <div id="c-body">
-            <form action="/client" method="post">
+            <form id="client-form" action="/client" method="post">
                 <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
-                <div>
-                    <label for="method">
+                <div id="client-bar">
+                    <label id="method-form" for="method">
                         <select name="{{ .Constants.Client.Method }}" id="method">
                             {{range .Methods}}
                                 <option value="{{ . }}" 
@@ -32,13 +32,13 @@
                             {{end}}
                         </select>
                     </label>
-                    <label for="url">
+                    <label id="url-form" for="url">
                         <input name="{{ .Constants.Client.Uri }}" id="url" type="text" value="{{ .Request.Uri }}">
                     </label>
                     <button>Send</button>
                 </div>
                 <div>
-                    <div class="radio-button-group">
+                    <div class="radio-button-group border-bottom">
                         <input type="radio" id="query" class="client-tag" 
                             name="{{ .Constants.Client.Type }}" 
                             value="{{ .Constants.Client.TagQuery }}" 
@@ -63,7 +63,7 @@
                             {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
                         <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
                     </div>
-                    <div id="client-form">
+                    <div id="client-form-options">
                         <div id="query-form" class="fragment-form  
                             {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} show {{end}}">
                             {{ template "query.html" . }}
