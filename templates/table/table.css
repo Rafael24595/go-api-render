@@ -5,12 +5,27 @@
     border-collapse: collapse;
 }
 
-.table-styled table, .table-styled th, .table-styled tr, .table-styled td {
+.table-styled table, .table-styled th, .table-styled td {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
 }
 
 .table-styled tr:nth-child(even) {
-    background-color: #f3f3f3;
-  }
+    /* background-color: #f3f3f3; */
+}
+
+.table-styled tr:first-child th {
+    border-top: 0;
+}
+
+.table-styled tr:last-child td {
+    border-bottom: 0;
+}
+.table-styled tr td:first-child, .table-styled tr th:first-child {
+    border-left: 0;
+}
+
+.table-styled tr td:last-child, .table-styled tr th:last-child {
+    border-right: 0;
+}

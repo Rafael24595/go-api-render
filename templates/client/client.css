@@ -57,7 +57,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 16px;
+    padding: 15px;
 }
 
 #method-form {
@@ -68,17 +68,48 @@
     height: 100%;
 }
 
+#method-form select:focus, #url-form input:focus {
+    outline: solid;
+    outline-color: #9b9b9b;
+    outline-width: 1px;
+}
+
 #url-form {
     flex: 1 1 auto;
 }
 
 #url-form input {
+    padding-left: 5px;
+    padding-right: 5px;
     width: 100%;
 }
 
+#client-button-send {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#method-form select, #url-form input, #client-button-send {
+    box-sizing: border-box;
+    border: 1px solid #9b9b9b;
+}
+
 .request-option {
-    padding: 5px;
+    padding: 10px;
     text-align: center;
+}
+
+#method-form select, #url-form input, #client-button-send, #response-metadata span {
+    height: 25px;
+}
+
+#response-metadata {
+    padding: 15px;
+    display: flex;
+}
+
+#response-metadata span {
+    margin-right: 10px;
 }
 
 .request-preview {

@@ -1,11 +1,11 @@
 <script src="/templates/client/response.js"></script>
 <div id="response-container">
     {{if .Response}}
-        <p>
+        <div id="response-metadata">
             <span>Status: {{ .Response.Status }}</span>
             <span>Time: {{ FormatMilliseconds .Response.Time }}</span>
             <span>Size: {{ FormatBytes .Response.Size }}</span>
-        </p>
+        </div>
         <div class="radio-button-group border-bottom">
             <input type="radio" id="request-payload" class="reponse-tag" 
                 name="{{ .Constants.Response.Type }}" 
