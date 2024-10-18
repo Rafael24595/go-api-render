@@ -4,9 +4,9 @@
 }
 
 .query-remove-button {
-    display: none;
+    visibility: hidden;
 }
 
 .query-remove-button.show {
-    display: initial;
+    visibility: visible;
 }

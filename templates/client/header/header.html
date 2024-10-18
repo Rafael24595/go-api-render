@@ -11,7 +11,7 @@
         {{range $Key, $Headers := .Request.Headers.Headers }}
             {{range  $Index, $Value := $Headers.Header }}
                 {{$Uuid := Uuid}}
-                <div class="header-parameter">
+                <div class="header-parameter e-key-value-form">
                     {{$Checked := ""}}
                     {{if $Headers.Active}}
                         {{$Checked = "checked"}}
@@ -33,12 +33,12 @@
                         <input name="{{ $HeaderValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
                     </label>
 
-                    <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
+                    <button type="button" class="key-value-form-remove-button show" onclick="removeHeaderRow(event)">X</button>
                 </div>
             {{end}}
         {{end}}
-        <div id="header-parameter-template" class="header-parameter">
-            <label for="{{ .Constants.Header.Status }}">
+        <div id="header-parameter-template" class="header-parameter e-key-value-form">
+            <label for="{{ .Constants.Header.Status }}" class="status-check">
                 <input name="{{ .Constants.Header.Status }}" type="checkbox" disabled>
             </label>
             <label for="{{ .Constants.Header.Name }}">
@@ -47,7 +47,7 @@
             <label for="{{ .Constants.Header.Value }}">
                 <input name="{{ .Constants.Header.Value }}" type="text" onkeydown="newHeaderRow()" placeholder="Value">
             </label>
-            <button type="button" class="header-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
+            <button type="button" class="key-value-form-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
         </div>
     </div>
 </body>

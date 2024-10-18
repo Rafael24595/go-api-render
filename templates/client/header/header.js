@@ -1,5 +1,5 @@
 const HEADER_TEMPLATE_NAME = "header-parameter-template";
-const HEADER_REMOVE_BUTTON = "header-remove-button";
+const HEADER_REMOVE_BUTTON = "key-value-form-remove-button";
 const HEADER_ID_SEPARATOR = "#";
 
 function newHeaderRow() {

@@ -1,5 +1,5 @@
 const QUERY_TEMPLATE_NAME = "query-parameter-template";
-const QUERY_REMOVE_BUTTON = "query-remove-button";
+const QUERY_REMOVE_BUTTON = "key-value-form-remove-button";
 const QUERY_ID_SEPARATOR = "#";
 
 function newQueryRow() {

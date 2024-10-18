@@ -11,9 +11,9 @@
         {{range $Key, $Queries := .Request.Queries.Queries }}
             {{range  $Index, $Value := $Queries.Query }}
                 {{$Uuid := Uuid}}
-                <div class="query-parameter">
+                <div class="query-parameter e-key-value-form">
                     {{ $QueryStatusKey := Concat $.Constants.Query.Status $.Constants.Format.KeySeparator $Uuid }}
-                    <label for="{{ $QueryStatusKey }}">
+                    <label for="{{ $QueryStatusKey }}" class="status-check">
                         <input name="{{ $QueryStatusKey }}" type="checkbox" 
                             {{if $Queries.Active}} checked {{end}}>
                     </label>
@@ -28,12 +28,12 @@
                         <input name="{{ $QueryValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
                     </label>
                     
-                    <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
+                    <button type="button" class="key-value-form-remove-button show" onclick="removeQueryRow(event)">X</button>
                 </div>
             {{end}}
         {{end}}
-        <div id="query-parameter-template" class="query-parameter">
-            <label for="{{ .Constants.Query.Status }}">
+        <div id="query-parameter-template" class="query-parameter e-key-value-form">
+            <label for="{{ .Constants.Query.Status }}" class="status-check">
                 <input name="{{ .Constants.Query.Status }}" type="checkbox" disabled>
             </label>
             <label for="{{ .Constants.Query.Name }}">
@@ -42,7 +42,7 @@
             <label for="{{ .Constants.Query.Value }}">
                 <input name="{{ .Constants.Query.Value }}" type="text" onkeydown="newQueryRow()" placeholder="Value">
             </label>
-            <button type="button" class="query-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
+            <button type="button" class="key-value-form-remove-button" onclick="removeQueryRow(event)" disabled>X</button>
         </div>
     </div>
 </body>
