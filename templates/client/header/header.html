@@ -1,54 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
     <link rel="stylesheet" href="/templates/client/header/header.css">
-    <title>Document</title>
 </head>
+
 <script src="/templates/utils.js"></script>
 <script src="/templates/client/header/header.js"></script>
-<body>
-    <div>
-        {{range $Key, $Headers := .Request.Headers.Headers }}
-            {{range  $Index, $Value := $Headers.Header }}
-                {{$Uuid := Uuid}}
-                <div class="header-parameter e-key-value-form">
-                    {{$Checked := ""}}
-                    {{if $Headers.Active}}
-                        {{$Checked = "checked"}}
-                    {{end}}
 
-                    {{ $HeaderStatusKey := Concat $.Constants.Header.Status $.Constants.Format.KeySeparator $Uuid }}
-                    <label for="{{ $HeaderStatusKey }}">
-                        <input name="{{ $HeaderStatusKey }}" type="checkbox" 
-                            {{if $Headers.Active}} checked {{end}}>
-                    </label>
+<div>
+    {{range $Key, $Headers := .Request.Headers.Headers }}
+        {{range  $Index, $Value := $Headers.Header }}
+            {{$Uuid := Uuid}}
+            <div class="header-parameter e-key-value-form">
+                {{$Checked := ""}}
+                {{if $Headers.Active}}
+                    {{$Checked = "checked"}}
+                {{end}}
 
-                    {{ $HeaderNameKey := Concat $.Constants.Header.Name $.Constants.Format.KeySeparator $Uuid }}
-                    <label for="{{ $HeaderNameKey }}">
-                        <input name="{{ $HeaderNameKey }}" type="text" placeholder="Header" value="{{ $Headers.Key }}">
-                    </label>
+                {{ $HeaderStatusKey := Concat $.Constants.Header.Status $.Constants.Format.KeySeparator $Uuid }}
+                <label for="{{ $HeaderStatusKey }}">
+                    <input name="{{ $HeaderStatusKey }}" type="checkbox" 
+                        {{if $Headers.Active}} checked {{end}}>
+                </label>
 
-                    {{ $HeaderValueKey := Concat $.Constants.Header.Value $.Constants.Format.KeySeparator $Uuid }}
-                    <label for="{{ $HeaderValueKey }}">
-                        <input name="{{ $HeaderValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
-                    </label>
+                {{ $HeaderNameKey := Concat $.Constants.Header.Name $.Constants.Format.KeySeparator $Uuid }}
+                <label for="{{ $HeaderNameKey }}">
+                    <input name="{{ $HeaderNameKey }}" type="text" placeholder="Header" value="{{ $Headers.Key }}">
+                </label>
 
-                    <button type="button" class="key-value-form-remove-button show" onclick="removeHeaderRow(event)">X</button>
-                </div>
-            {{end}}
+                {{ $HeaderValueKey := Concat $.Constants.Header.Value $.Constants.Format.KeySeparator $Uuid }}
+                <label for="{{ $HeaderValueKey }}">
+                    <input name="{{ $HeaderValueKey }}" type="text" placeholder="Value" value="{{ $Value }}">
+                </label>
+
+                <button type="button" class="key-value-form-remove-button show" onclick="removeHeaderRow(event)"></button>
+            </div>
         {{end}}
-        <div id="header-parameter-template" class="header-parameter e-key-value-form">
-            <label for="{{ .Constants.Header.Status }}" class="status-check">
-                <input name="{{ .Constants.Header.Status }}" type="checkbox" disabled>
-            </label>
-            <label for="{{ .Constants.Header.Name }}">
-                <input name="{{ .Constants.Header.Name }}" type="text" onkeydown="newHeaderRow()" placeholder="Header">
-            </label>
-            <label for="{{ .Constants.Header.Value }}">
-                <input name="{{ .Constants.Header.Value }}" type="text" onkeydown="newHeaderRow()" placeholder="Value">
-            </label>
-            <button type="button" class="key-value-form-remove-button" onclick="removeHeaderRow(event)" disabled>X</button>
-        </div>
+    {{end}}
+    <div id="header-parameter-template" class="header-parameter e-key-value-form">
+        <label for="{{ .Constants.Header.Status }}" class="status-check">
+            <input name="{{ .Constants.Header.Status }}" type="checkbox" disabled>
+        </label>
+        <label for="{{ .Constants.Header.Name }}">
+            <input name="{{ .Constants.Header.Name }}" type="text" onkeydown="newHeaderRow()" placeholder="Header">
+        </label>
+        <label for="{{ .Constants.Header.Value }}">
+            <input name="{{ .Constants.Header.Value }}" type="text" onkeydown="newHeaderRow()" placeholder="Value">
+        </label>
+        <button type="button" class="key-value-form-remove-button" onclick="removeHeaderRow(event)" disabled></button>
     </div>
-</body>
-</html>
+</div>

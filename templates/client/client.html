@@ -72,7 +72,7 @@
                             {{if eq .ClientType .Constants.Client.TagHeader }} show {{end}}">
                             {{ template "header.html" . }}
                         </div>
-                        <div id="body-form" class="fragment-form 
+                        <div id="body-form" refresh="refreshBodies" class="fragment-form 
                             {{if eq .ClientType  .Constants.Client.TagBody }} show {{end}}">
                             {{ template "body.html" . }}
                         </div>

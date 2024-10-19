@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Rafael24595/go-api-core/src/domain/body"
 	"github.com/Rafael24595/go-api-core/src/domain/cookie"
 	"github.com/google/uuid"
 )
@@ -33,6 +34,16 @@ func String(item any) string {
 		return string(v)
 	}
 	return fmt.Sprintf("%v", item)
+}
+
+func BodyString(container string, payload body.Body) string {
+	if container == constants.Body.TagText && payload.ContentType == body.Text {
+		return String(payload.Bytes)
+	}
+	if container == constants.Body.TagJson && payload.ContentType == body.Json {
+		return String(payload.Bytes)
+	}
+	return ""
 }
 
 func Join(items any, separator string) string {

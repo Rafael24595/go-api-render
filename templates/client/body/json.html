@@ -1,11 +1,25 @@
-<head>
-    <link rel="stylesheet" href="/templates/client/body/body.css">
-</head>
+<script src="/templates/libs/codemirror/5.65.7/js/javascript.min.js"></script>
+<script src="/templates/libs/codemirror/5.65.7/js/javascript-lint.min.js"></script>
+
+<script>
+    let jsonEditor
+    document.addEventListener('DOMContentLoaded', function () {
+        jsonEditor = CodeMirror.fromTextArea(document.getElementById('body-parameter-json'), {
+        lineNumbers: true,
+        mode: "javascript",
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        lint: true,
+        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
+        });
+    });
+</script>
+
 <label for="body-parameter-json">
     <textarea 
         name="{{ .Constants.Body.ValueJson }}" 
         id="body-parameter-json" 
         class="body-parameter" 
         placeholder="Json" 
-        onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
+        onchange="syncronizeBodies(event)">{{ BodyString .Constants.Body.TagJson .Request.Body }}</textarea>
 </label>

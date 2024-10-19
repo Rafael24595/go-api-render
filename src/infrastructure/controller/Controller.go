@@ -42,6 +42,7 @@ func NewController(router *router.Router, repositoryHisotric *repository.Request
 			"FormatMillisecondsDate": FormatMillisecondsDate,
 			"FormatBytes":            FormatBytes,
 			"ParseCookie":            ParseCookie,
+			"BodyString":             BodyString,
 		}).
 		AddPath("templates")
 
@@ -132,7 +133,7 @@ func (c *controller) historic(w http.ResponseWriter, r *http.Request, context ro
 	}
 
 	context.Merge(map[string]any{
-		"Request": request,
+		"Request":  request,
 		"Response": response,
 	})
 

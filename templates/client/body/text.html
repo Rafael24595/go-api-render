@@ -1,11 +1,25 @@
-<head>
-    <link rel="stylesheet" href="/templates/client/body/body.css">
-</head>
+<script>
+    let textEditor
+    document.addEventListener('DOMContentLoaded', function () {
+        textEditor = CodeMirror.fromTextArea(document.getElementById('body-parameter-text'), {
+        lineNumbers: true,
+        mode: "text",
+        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
+        });
+        
+        /*textEditor.on('change', function() {
+            if (changeProcess) {
+                syncronize(textEditor, textEditor.getValue());
+            }
+        });*/
+    });
+</script>
+
 <label for="body-parameter-text">
     <textarea 
         name="{{ .Constants.Body.ValueText }}" 
         id="body-parameter-text" 
         class="body-parameter" 
         placeholder="Text" 
-        onchange="syncronizeBodies(event)">{{ String .Request.Body.Bytes }}</textarea>
+        onchange="syncronizeBodies(event)">{{ BodyString .Constants.Body.TagText .Request.Body }}</textarea>
 </label>

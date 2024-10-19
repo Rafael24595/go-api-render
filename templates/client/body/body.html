@@ -1,35 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <link rel="stylesheet" href="/templates/client/body/body.css">
+    <link rel="stylesheet" href="/templates/libs/codemirror/5.65.7/css/codemirror.min.css">
+    <link rel="stylesheet" href="/templates/libs/codemirror/5.65.7/css/lint.min.css">
 </head>
+
 <script src="/templates/client/body/body.js"></script>
-<body>
-    <div>
-        <div class="radio-button-group border-bottom">
-            <input 
-                type="radio" 
-                id="text" 
-                name="{{ .Constants.Body.Type }}" 
-                value="{{ .Constants.Body.TagText }}"
-                {{if or (Not .BodyType) (eq .BodyType .Constants.Body.TagText) }} checked {{end}}>
-            <label for="text" onclick="showBodyForm('body-text-form')">Text</label>
-            <input 
-                type="radio" 
-                id="json" 
-                name="{{ .Constants.Body.Type }}" 
-                value="{{ .Constants.Body.TagJson }}"
-                {{if eq .BodyType .Constants.Body.TagJson }} checked {{end}}>
-            <label for="json" onclick="showBodyForm('body-json-form')">Json</label>
+
+<script src="/templates/libs/codemirror/5.65.7/js/codemirror.min.js"></script>
+<script src="/templates/libs/codemirror/5.65.7/js/lint.min.js"></script>
+<script src="/templates/libs/jshint/2.13.4/jshint.min.js"></script>
+
+<div>
+    <div class="radio-button-group border-bottom">
+        <input 
+            type="radio" 
+            id="text" 
+            name="{{ .Constants.Body.Type }}" 
+            value="{{ .Constants.Body.TagText }}"
+            {{if or (Not .BodyType) (eq .BodyType .Constants.Body.TagText) }} checked {{end}}>
+        <label for="text" onclick="showBodyForm('body-text-form')">Text</label>
+        <input 
+            type="radio" 
+            id="json" 
+            name="{{ .Constants.Body.Type }}" 
+            value="{{ .Constants.Body.TagJson }}"
+            {{if eq .BodyType .Constants.Body.TagJson }} checked {{end}}>
+        <label for="json" onclick="showBodyForm('body-json-form')">Json</label>
+    </div>
+    <div id="body-type-form">
+        <div id="body-text-form" refresh="text" class="fragment-body-form show">
+            {{ template "text.html" . }}
         </div>
-        <div id="body-type-form">
-            <div id="body-text-form" class="fragment-body-form show">
-                {{ template "text.html" . }}
-            </div>
-            <div id="body-json-form" class="fragment-body-form">
-                {{ template "json.html" . }}
-            </div>
+        <div id="body-json-form" refresh="json" class="fragment-body-form">
+            {{ template "json.html" . }}
         </div>
     </div>
-</body>
-</html>
+</div>

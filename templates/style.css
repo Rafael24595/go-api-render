@@ -53,8 +53,15 @@ body {
     margin-bottom: 5px;
 }
 
+.key-value-form-remove-button::after {
+    content: "✖";
+}
+
 .key-value-form-remove-button {
     visibility: hidden;
+    height: 25px;
+    width: 25px;
+    border: 1px solid;
 }
 
 .key-value-form-remove-button.show {
