@@ -49,6 +49,15 @@ type Body struct {
 	TagJson   string
 	ValueText string
 	ValueJson string
+	TypeOf    TypeOf
+}
+
+type TypeOf struct {
+	None body.ContentType
+	Text body.ContentType
+	Xml  body.ContentType
+	Html body.ContentType
+	Json body.ContentType
 }
 
 type Auth struct {
@@ -112,6 +121,13 @@ func getConstants() Constants {
 			TagJson:   "json",
 			ValueText: "body-text",
 			ValueJson: "body-json",
+			TypeOf: TypeOf{
+				None: body.None,
+				Text: body.Text,
+				Xml:  body.Xml,
+				Html: body.Html,
+				Json: body.Json,
+			},
 		},
 		Auth: Auth{
 			Type:      "auth-type",

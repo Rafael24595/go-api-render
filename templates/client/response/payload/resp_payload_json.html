@@ -1,0 +1,12 @@
+<script>
+    let jsonViewer
+    document.addEventListener('DOMContentLoaded', function () {
+        jsonViewer = CodeMirror(document.getElementById('response-payload-bytes'), {
+        value: "{{ String .Response.Body.Bytes }}",
+        lineNumbers: true,
+        lineWrapping: true,
+        mode: "javascript",
+        readOnly: true
+        });
+    });
+</script>
