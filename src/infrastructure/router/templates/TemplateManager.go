@@ -29,7 +29,7 @@ func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, conte
 	if err != nil {
 		//TODO: Replace with log.
 		println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
