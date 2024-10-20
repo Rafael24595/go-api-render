@@ -5,15 +5,16 @@
     <div  id="historic-container">
         {{range .Requests}}
             <div class="request-preview">
-                <a href="/client/{{ .Id }}">
-                    <div>
-                        <span>{{ .Method }}</span>
-                        <span>{{ .Uri }}</span>
+                <a href="/client/{{ .Id }}" class="request-link" title="{{ .Uri }}">
+                    <div class="request-sign">
+                        <span class="request-sign-method">{{ .Method }}</span>
+                        <span class="request-sign-url">{{ .Uri }}</span>
                     </div>
                     <div>
-                        <span>{{ FormatMillisecondsDate .Timestamp }}</span>
+                        <span class="request-sign-timestamp">{{ FormatMillisecondsDate .Timestamp }}</span>
                     </div>
                 </a>
+                <button type="button" class="key-value-form-remove-button show" onclick="removeRequest('{{ .Id }}')"></button>
             </div>
         {{end}}
     </div>

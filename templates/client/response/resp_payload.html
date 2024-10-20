@@ -2,13 +2,15 @@
     <div id="response-content-types">
         <span>{{ .Response.Body.ContentType }}</span>
     </div>
-    {{if eq .Response.Body.ContentType .Constants.Body.TypeOf.None}}
-        - Not Defined -
-    {{else if eq .Response.Body.ContentType .Constants.Body.TypeOf.Html}}
-        {{ template "resp_payload_html.html" . }}
-    {{else if eq .Response.Body.ContentType .Constants.Body.TypeOf.Json}}
-        {{ template "resp_payload_json.html" . }}
-    {{else}}
-        {{ template "resp_payload_text.html" . }}
-    {{end}}
+    <div>
+        {{if eq .Response.Body.ContentType .Constants.Body.TypeOf.None}}
+            - Not Defined -
+        {{else if eq .Response.Body.ContentType .Constants.Body.TypeOf.Html}}
+            {{ template "resp_payload_html.html" . }}
+        {{else if eq .Response.Body.ContentType .Constants.Body.TypeOf.Json}}
+            {{ template "resp_payload_json.html" . }}
+        {{else}}
+            {{ template "resp_payload_text.html" . }}
+        {{end}}
+    </div>
 </div>

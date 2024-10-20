@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -102,6 +104,26 @@ func FormatBytes(bytes int) string {
 
 func ParseCookie(cookie cookie.Cookie) string {
 	return cookie.String()
+}
+
+func FormatXml(input string) string {
+	//TODO: implement
+	return input
+}
+
+func FormatHtml(input string) string {
+	//TODO: implement
+    return input
+}
+
+func FormatJson(input string) string {
+	var prettyJson bytes.Buffer
+	err := json.Indent(&prettyJson, []byte(input), "", "    ")
+	if err != nil {
+		println(err.Error())
+		prettyJson = *bytes.NewBuffer([]byte(input))
+	}
+	return prettyJson.String()
 }
 
 func round(num float64) float64 {

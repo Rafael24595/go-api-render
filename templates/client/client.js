@@ -25,3 +25,21 @@ function showForm(form) {
         element.classList.remove("show");
     }
 }
+
+async function removeRequest(id) {
+    try {
+        const response = await fetch(`/client/${id}`, {
+            method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const newHtml = await response.text();
+
+        document.body.innerHTML = newHtml;
+    } catch (error) {
+        console.error('Error sending DELETE request:', error);
+    }
+}

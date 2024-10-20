@@ -43,6 +43,9 @@ func NewController(router *router.Router, repositoryHisotric *repository.Request
 			"FormatBytes":            FormatBytes,
 			"ParseCookie":            ParseCookie,
 			"BodyString":             BodyString,
+			"FormatXml":              FormatXml,
+			"FormatHtml":             FormatHtml,
+			"FormatJson":             FormatJson,
 		}).
 		AddPath("templates")
 
@@ -59,7 +62,8 @@ func NewController(router *router.Router, repositoryHisotric *repository.Request
 		Route(http.MethodGet, instance.home, "/").
 		Route(http.MethodGet, instance.client, "/client").
 		Route(http.MethodPost, instance.request, "/client").
-		Route(http.MethodGet, instance.historic, "/client/{%s}", ID_REQUEST)
+		Route(http.MethodGet, instance.historic, "/client/{%s}", ID_REQUEST).
+		Route(http.MethodDelete, instance.remove, "/client/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -136,6 +140,20 @@ func (c *controller) historic(w http.ResponseWriter, r *http.Request, context ro
 		"Request":  request,
 		"Response": response,
 	})
+
+	return c.client(w, r, context)
+}
+
+func (c *controller) remove(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	idRequest := r.PathValue(ID_REQUEST)
+	request, _, ok := c.repositoryHisotric.Find(idRequest)
+	if !ok {
+		return commons.ApiErrorFrom(404, "Historic request not found.")
+	}
+
+	if request != nil {
+		c.repositoryHisotric.Delete(*request)
+	}
 
 	return c.client(w, r, context)
 }

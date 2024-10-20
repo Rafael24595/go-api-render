@@ -99,6 +99,18 @@
     border: 1px solid #9b9b9b;
 }
 
+#method-form select, #client-button-send {
+    cursor: pointer;
+}
+
+#client-button-send:hover {
+    background-color: #c1d7e4;
+}
+
+#url-form input {
+    cursor: text;
+}
+
 .request-option {
     padding: 10px;
     text-align: center;
@@ -118,11 +130,38 @@
 }
 
 .request-preview {
+    display: flex;
     border-bottom: 1px solid #b3b3b3;
     padding: 10px;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #response-content-types {
     display: flex;
     justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.request-link {
+    overflow: hidden;
+}
+
+.request-sign {
+    display: flex;
+}
+
+.request-sign-method {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.request-sign-url {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.request-sign-timestamp {
+    font-style: italic;
 }

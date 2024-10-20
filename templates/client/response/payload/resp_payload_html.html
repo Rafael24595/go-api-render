@@ -2,7 +2,7 @@
     let htmlViewer
     document.addEventListener('DOMContentLoaded', function () {
         htmlViewer = CodeMirror(document.getElementById('response-payload-bytes'), {
-        value: "{{ String .Response.Body.Bytes }}",
+        value: "{{ FormatHtml (String .Response.Body.Bytes) }}",
         lineNumbers: true,
         lineWrapping: true,
         mode: "htmlmixed",

@@ -79,3 +79,12 @@ func (m *RequestManager) Insert(request domain.Request, response domain.Response
 
 	return requestResult, resultResponse
 }
+
+func (m *RequestManager) Delete(request domain.Request) (*domain.Request, *domain.Response) {
+	requestResult := m.cRequest.Delete(request)
+	response, ok := m.qResponse.Find(request.Id)
+	if ok {
+		m.cResponse.Delete(*response)
+	}
+	return requestResult, response
+}
