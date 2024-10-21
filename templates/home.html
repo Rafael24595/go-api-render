@@ -1,13 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <p>
-        {{ SayHello "go-api-render" }}
-    </p>
-</body>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/templates/style.css">
+        <title>Document</title>
+    </head>
+
+    <script src="/templates/script.js"></script>
+    <script src="/templates/utils.js"></script>
+
+    {{ template "codemirror.html" . }}
+
+    <body>
+        <div id="body-header">
+
+        </div>
+        <div id="body-content">
+            {{ Template .BodyTemplate . }}
+        </div>
+    </body>
 </html>

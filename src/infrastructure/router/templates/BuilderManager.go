@@ -43,10 +43,12 @@ func (builder *BuilderManager) AddFunction(key string, value any) *BuilderManage
 }
 
 func (builder *BuilderManager) Make() TemplateManager {
-	return TemplateManager{
-		templates: builder.makeTemplate(),
+	instance := TemplateManager{
 		builder: builder,
 	}
+	builder.AddFunction("Template", instance.template)
+	instance.templates = builder.makeTemplate()
+	return instance
 }
 
 func (builder *BuilderManager) makeTemplate() *template.Template {

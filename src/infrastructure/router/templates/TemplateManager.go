@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bytes"
 	"html/template"
 	"net/http"
 	"path"
@@ -33,4 +34,17 @@ func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, conte
 	}
 
 	return nil
+}
+
+func (manager *TemplateManager) template(name string, data interface{}) (template.HTML, error) {
+	buf := bytes.NewBuffer([]byte{})
+	t := manager.load().Lookup(name)
+
+	err := t.ExecuteTemplate(buf, name, data)
+	if err != nil {
+		return template.HTML(""), err
+	}
+
+	ret := template.HTML(buf.String())
+	return ret, nil
 }

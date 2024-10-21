@@ -1,97 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/templates/style.css">
     <link rel="stylesheet" href="/templates/client/client.css">
-    <title>Document</title>
 </head>
 
-<script src="/templates/script.js"></script>
 <script src="/templates/client/client.js"></script>
 
-{{ template "codemirror.html" . }}
-
-<body>
-    <div id="body-header">
-
-    </div>
-    <div id="body-content">
-        <div id="l-sidebar">
-            {{ template "historic.html" . }}
+<div id="l-sidebar">
+    {{ template "historic.html" . }}
+</div>
+<div id="c-body">
+    <form id="client-form" action="/client" method="post">
+        <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
+        <div id="client-bar">
+            <label id="method-form" for="method">
+                <select name="{{ .Constants.Client.Method }}" id="method">
+                    {{range .Methods}}
+                        <option value="{{ . }}" 
+                            {{if eq $.Request.Method . }} selected {{end}}>
+                            {{ . }}
+                        </option>
+                    {{end}}
+                </select>
+            </label>
+            <label id="url-form" for="url">
+                <input name="{{ .Constants.Client.Uri }}" id="url" type="text" value="{{ .Request.Uri }}">
+            </label>
+            <button id="client-button-send">Send</button>
         </div>
-        <div id="c-body">
-            <form id="client-form" action="/client" method="post">
-                <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
-                <div id="client-bar">
-                    <label id="method-form" for="method">
-                        <select name="{{ .Constants.Client.Method }}" id="method">
-                            {{range .Methods}}
-                                <option value="{{ . }}" 
-                                    {{if eq $.Request.Method . }} selected {{end}}>
-                                    {{ . }}
-                                </option>
-                            {{end}}
-                        </select>
-                    </label>
-                    <label id="url-form" for="url">
-                        <input name="{{ .Constants.Client.Uri }}" id="url" type="text" value="{{ .Request.Uri }}">
-                    </label>
-                    <button id="client-button-send">Send</button>
+        <div>
+            <div class="radio-button-group border-bottom">
+                <input type="radio" id="query" class="client-tag" 
+                    name="{{ .Constants.Client.Type }}" 
+                    value="{{ .Constants.Client.TagQuery }}" 
+                    {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
+                <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
+
+                <input type="radio" id="header" class="client-tag" 
+                    name="{{ .Constants.Client.Type }}" 
+                    value="{{ .Constants.Client.TagHeader }}" 
+                    {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
+                <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
+
+                <input type="radio" id="auth" class="client-tag" 
+                    name="{{ .Constants.Client.Type }}" 
+                    value="{{ .Constants.Client.TagAuth }}" 
+                    {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
+                <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
+
+                <input type="radio" id="body" class="client-tag" 
+                    name="{{ .Constants.Client.Type }}" 
+                    value="{{ .Constants.Client.TagBody }}" 
+                    {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
+                <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
+            </div>
+            <div id="client-form-options">
+                <div id="query-form" class="fragment-form  
+                    {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} show {{end}}">
+                    {{ template "query.html" . }}
                 </div>
-                <div>
-                    <div class="radio-button-group border-bottom">
-                        <input type="radio" id="query" class="client-tag" 
-                            name="{{ .Constants.Client.Type }}" 
-                            value="{{ .Constants.Client.TagQuery }}" 
-                            {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
-                        <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
-
-                        <input type="radio" id="header" class="client-tag" 
-                            name="{{ .Constants.Client.Type }}" 
-                            value="{{ .Constants.Client.TagHeader }}" 
-                            {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
-                        <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
-
-                        <input type="radio" id="auth" class="client-tag" 
-                            name="{{ .Constants.Client.Type }}" 
-                            value="{{ .Constants.Client.TagAuth }}" 
-                            {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
-                        <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
-
-                        <input type="radio" id="body" class="client-tag" 
-                            name="{{ .Constants.Client.Type }}" 
-                            value="{{ .Constants.Client.TagBody }}" 
-                            {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
-                        <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
-                    </div>
-                    <div id="client-form-options">
-                        <div id="query-form" class="fragment-form  
-                            {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} show {{end}}">
-                            {{ template "query.html" . }}
-                        </div>
-                        <div id="header-form" class="fragment-form 
-                            {{if eq .ClientType .Constants.Client.TagHeader }} show {{end}}">
-                            {{ template "header.html" . }}
-                        </div>
-                        <div id="body-form" refresh="refreshBodies" class="fragment-form 
-                            {{if eq .ClientType  .Constants.Client.TagBody }} show {{end}}">
-                            {{ template "body.html" . }}
-                        </div>
-                        <div id="auth-form" class="fragment-form 
-                            {{if eq .ClientType .Constants.Client.TagAuth }} show {{end}}">
-                            {{ template "auth.html" . }}
-                        </div>
-                    </div>
+                <div id="header-form" class="fragment-form 
+                    {{if eq .ClientType .Constants.Client.TagHeader }} show {{end}}">
+                    {{ template "header.html" . }}
                 </div>
-            </form>
+                <div id="body-form" refresh="refreshBodies" class="fragment-form 
+                    {{if eq .ClientType  .Constants.Client.TagBody }} show {{end}}">
+                    {{ template "body.html" . }}
+                </div>
+                <div id="auth-form" class="fragment-form 
+                    {{if eq .ClientType .Constants.Client.TagAuth }} show {{end}}">
+                    {{ template "auth.html" . }}
+                </div>
+            </div>
         </div>
-        <div id="r-sidebar">
-            {{ template "response.html" . }}
-        </div>
-    </div>
-</body>
-
-</html>
+    </form>
+</div>
+<div id="r-sidebar">
+    {{ template "response.html" . }}
+</div>

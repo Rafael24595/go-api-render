@@ -7,13 +7,14 @@ import (
 )
 
 type Constants struct {
-	Format   Format
-	Client   Client
-	Query    Query
-	Header   Header
-	Body     Body
-	Auth     Auth
-	Response Response
+	Format     Format
+	Client     Client
+	Collection Collection
+	Query      Query
+	Header     Header
+	Body       Body
+	Auth       Auth
+	Response   Response
 }
 
 type Format struct {
@@ -29,6 +30,17 @@ type Client struct {
 	TagHeader string
 	TagAuth   string
 	TagBody   string
+}
+
+type Collection struct {
+	Variable Variable
+}
+
+type Variable struct {
+	Status string
+	Name   string
+	Value  string
+	Type   string
 }
 
 type Query struct {
@@ -104,6 +116,14 @@ func getConstants() Constants {
 			TagHeader: "header",
 			TagAuth:   "auth",
 			TagBody:   "body",
+		},
+		Collection: Collection{
+			Variable: Variable{
+				Status: "collection-variable-status",
+				Name:   "collection-variable-name",
+				Value:  "collection-variable-value",
+				Type:   "collection-variable-type",
+			},
 		},
 		Query: Query{
 			Status: "query-status",

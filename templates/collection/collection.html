@@ -1,0 +1,87 @@
+<head>
+    <link rel="stylesheet" href="/templates/collection/collection.css">
+</head>
+
+<script src="/templates/collection/collection.js"></script>
+
+<div id="l-sidebar">
+    
+</div>
+<div id="c-body">
+    <form id="collection-form" action="">
+        <div class="border-bottom">
+            <div id="collection-data">
+                <h3>Collection data</h3>
+                <div id="collection-general-data">
+                    <label for="name">
+                        <p>Name: 
+                            <input type="text" name="name" id="name">
+                        </p>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="collection-variables">
+            <h3>Variables:</h3>
+            <div id="collection-variables-data">
+                {{range $Key, $Variable := .Collection.Variables }}
+                    {{$Uuid := Uuid}}
+                    <div class="query-parameter e-key-value-form">
+                        {{ $CollectionVariableStatus := Concat $.Constants.Collection.Variable.Status $.Constants.Format.KeySeparator $Uuid }}
+                        <label for="{{ $CollectionVariableStatus }}" class="status-check">
+                            <input name="{{ $CollectionVariableStatus }}" type="checkbox" 
+                                {{if $Variable.Active}} checked {{end}}>
+                        </label>
+    
+                        {{ $CollectionVariableName := Concat $.Constants.Collection.Variable.Name $.Constants.Format.KeySeparator $Uuid }}
+                        <label for="{{ $CollectionVariableName }}">
+                            <input name="{{ $CollectionVariableName }}" type="text" placeholder="Parameter" value="{{ $Variable.Name }}">
+                        </label>
+    
+                        {{ $CollectionVariableValue := Concat $.Constants.Collection.Variable.Value $.Constants.Format.KeySeparator $Uuid }}
+                        <label for="{{ $CollectionVariableValue }}">
+                            <input name="{{ $CollectionVariableValue }}" type="text" placeholder="Parameter" value="{{ $Variable.Value }}">
+                        </label>
+    
+                        {{ $CollectionVariableType := Concat $.Constants.Collection.Variable.Type $.Constants.Format.KeySeparator $Uuid }}
+                        <label for="{{ $CollectionVariableType }}">
+                            <select name="{{ $CollectionVariableType }}">
+                                {{range .VariableTypes}}
+                                    <option value="{{ . }}" 
+                                        {{if eq $.Variable.Type . }} selected {{end}}>
+                                        {{ . }}
+                                    </option>
+                                {{end}}
+                            </select>
+                        </label>
+                        
+                        <button type="button" class="key-value-form-remove-button show" onclick="removeVariableRow(event)"></button>
+                    </div>
+                {{end}}
+                <div id="collection-variable-template" class="query-parameter e-key-value-form">
+                    <label for="{{ .Constants.Collection.Variable.Status }}" class="status-check">
+                        <input name="{{ .Constants.Collection.Variable.Status }}" type="checkbox" disabled>
+                    </label>
+                    <label for="{{ .Constants.Collection.Variable.Name }}">
+                        <input name="{{ .Constants.Collection.Variable }}" type="text" onkeydown="newVariableRow()" placeholder="Parameter">
+                    </label>
+                    <label for="{{ .Constants.Collection.Variable.Value }}">
+                        <input name="{{ .Constants.Collection.Variable.Value }}" type="text" onkeydown="newVariableRow()" placeholder="Value">
+                    </label>
+                    <label for="{{ .Constants.Collection.Variable.Value}}">
+                        <select name="{{ .Constants.Collection.Variable.Value }}">
+                            {{range .VariableTypes}}
+                                <option value="{{ . }}">{{ . }}</option>
+                            {{end}}
+                        </select>
+                    </label>
+                    <button type="button" class="key-value-form-remove-button" onclick="removeVariableRow(event)" disabled></button>
+                </div>
+            </div>
+        </div>
+        <div id="collection-form-buttons" class="border-top">
+            <button class="collection-form-button">Send</button>
+        </div>
+    </form>
+</div>

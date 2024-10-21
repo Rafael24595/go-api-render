@@ -3,8 +3,9 @@
     <link rel="stylesheet" href="/templates/client/query/query.css">
     <title>Document</title>
 </head>
-<script src="/templates/utils.js"></script>
+
 <script src="/templates/client/query/query.js"></script>
+
 <div>
     {{range $Key, $Queries := .Request.Queries.Queries }}
         {{range  $Index, $Value := $Queries.Query }}
