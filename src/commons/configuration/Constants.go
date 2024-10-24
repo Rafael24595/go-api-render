@@ -23,6 +23,7 @@ type Format struct {
 
 type Client struct {
 	Id        string
+	Name      string
 	Type      string
 	Method    string
 	Uri       string
@@ -30,6 +31,7 @@ type Client struct {
 	TagHeader string
 	TagAuth   string
 	TagBody   string
+	DoRequest string
 }
 
 type Collection struct {
@@ -109,6 +111,7 @@ func getConstants() Constants {
 		},
 		Client: Client{
 			Id:        "id",
+			Name:      "name",
 			Type:      "client-type",
 			Method:    "method",
 			Uri:       "uri",
@@ -116,6 +119,7 @@ func getConstants() Constants {
 			TagHeader: "header",
 			TagAuth:   "auth",
 			TagBody:   "body",
+			DoRequest: "do-request",
 		},
 		Collection: Collection{
 			Variable: Variable{

@@ -50,14 +50,18 @@ func (m *RequestManager) FindOptions(options repository.FilterOptions[domain.Req
 	return m.qRequest.FindOptions(options)
 }
 
-func (m *RequestManager) Insert(request domain.Request, response domain.Response) (*domain.Request, *domain.Response) {
+func (m *RequestManager) Insert(request domain.Request, response *domain.Response) (*domain.Request, *domain.Response) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	requestResult := m.cRequest.Insert(request)
+	ids, requestResult := m.insertRequest(request)
+	resultResponse := m.insertResponse(ids, requestResult, response)
 
-	response.Id = requestResult.Id
-	resultResponse := m.cResponse.Insert(response)
+	return requestResult, resultResponse
+}
+
+func (m *RequestManager) insertRequest(request domain.Request) ([]string, *domain.Request) {
+	result := m.cRequest.Insert(request)
 
 	ids := m.cRequest.DeleteOptions(repository.FilterOptions[domain.Request]{
 		Sort: func(i, j domain.Request) bool {
@@ -66,6 +70,18 @@ func (m *RequestManager) Insert(request domain.Request, response domain.Response
 		From: m.limit,
 	})
 
+	return ids, result
+}
+
+func (m *RequestManager) insertResponse(ids []string, request *domain.Request, response *domain.Response) *domain.Response {
+	if response == nil {
+		return nil
+	}
+
+	response.Id = request.Id
+
+	result := m.cResponse.Insert(*response)
+	
 	idCollection := collection.FromList(ids)
 
 	m.cResponse.DeleteOptions(repository.FilterOptions[domain.Response]{
@@ -77,7 +93,7 @@ func (m *RequestManager) Insert(request domain.Request, response domain.Response
 		},
 	})
 
-	return requestResult, resultResponse
+	return result
 }
 
 func (m *RequestManager) Delete(request domain.Request) (*domain.Request, *domain.Response) {

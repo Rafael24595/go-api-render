@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -13,17 +12,11 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/header"
 	"github.com/Rafael24595/go-api-core/src/domain/query"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/google/uuid"
 )
 
 var constants = configuration.GetConstants()
 
-func proccessRequestAnonymous(r *http.Request) (*domain.Request, error) {
-	name := fmt.Sprintf("temp_%s", uuid.NewString())
-	return proccessRequest(r, name)
-}
-
-func proccessRequest(r *http.Request, name string) (*domain.Request, error) {
+func proccessRequest(r *http.Request) (*domain.Request, error) {
 	method, err := proccessMethod(r)
 	if err != nil {
 		return nil, err
@@ -34,9 +27,15 @@ func proccessRequest(r *http.Request, name string) (*domain.Request, error) {
 		return nil, err
 	}
 
+	name := r.FormValue(constants.Client.Name)
+
 	request := domain.NewRequest(name, *method, url)
 
 	request.Id = r.FormValue(constants.Client.Id)
+
+	if name != "" {
+		request.Status = domain.Saved
+	}
 
 	queries, err := proccessQueryParams(r)
 	if err != nil {

@@ -65,7 +65,7 @@ func loadPersistedMemoryDependencies() *repository.RequestManager {
 	}
 	requestCommandPersisted := request.NewMemoryCommand(requestQueryPersisted)
 
-	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, request.CSVT_PERSISTED_FILE_PATH)
+	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, response.CSVT_PERSISTED_FILE_PATH)
 	responseQueryPersisted, err := response.InitializeMemoryQuery(fileResponse)
 	if err != nil {
 		panic(err)

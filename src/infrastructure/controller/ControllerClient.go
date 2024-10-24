@@ -67,14 +67,19 @@ func (c *ControllerClient) client(w http.ResponseWriter, r *http.Request, contex
 func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	constants := configuration.GetConstants()
 
-	request, err := proccessRequestAnonymous(r)
+	request, err := proccessRequest(r)
 	if err != nil {
 		return err
 	}
 
-	response, err := core_infrastructure.Client().Fetch(*request)
-	if err != nil {
-		return err
+	doRequest := r.FormValue(constants.Client.DoRequest) == "true"
+
+	var response *domain.Response
+	if doRequest {
+		response, err = core_infrastructure.Client().Fetch(*request)
+		if err != nil {
+			return err
+		}
 	}
 
 	clientType := r.Form.Get(constants.Client.Type)
@@ -82,9 +87,9 @@ func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, conte
 	authType := r.Form.Get(constants.Auth.Type)
 
 	if request.Status == domain.Historic {
-		request, response = c.repositoryHisotric.Insert(*request, *response)
+		request, response = c.repositoryHisotric.Insert(*request, response)
 	} else {
-		request, response = c.repositoryPersisted.Insert(*request, *response)
+		request, response = c.repositoryPersisted.Insert(*request, response)
 	}
 
 	context.Merge(map[string]any{
