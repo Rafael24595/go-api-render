@@ -5,13 +5,20 @@
 <script src="/templates/client/client.js"></script>
 
 <div id="l-sidebar">
-    {{ template "historic.html" . }}
+    {{ template "request_sidebar.html" . }}
 </div>
 <div id="c-body">
-    <form id="client-form" action="/client" method="post">
+    <form id="client-form"
+        {{if Not .Request.Id }} 
+            action="/client" 
+        {{else}}
+            action="/client/{{ .Request.Id }}?{{ .Constants.SidebarRequest.Type }}={{ .RequestType }}" 
+        {{end}}
+        method="post">
         <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
         <input name="{{ .Constants.Client.Name }}" id="name" type="hidden" value="{{ .Request.Name }}">
         <input name="{{ .Constants.Client.DoRequest }}" id="do-request" type="hidden" value="true">
+        <input name="{{ .Constants.SidebarRequest.Type }}" id="do-request" type="hidden" value="{{ .RequestType }}">
         <div id="client-bar">
             <label id="method-form" for="method">
                 <select name="{{ .Constants.Client.Method }}" id="method">
@@ -34,25 +41,25 @@
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagQuery }}" 
                     {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
-                <label for="query" id="client-label-query" onclick="showForm('query-form')">Query</label>
+                <label for="query" id="client-label-query" onclick="showForm('client-form-options', 'query-form')">Query</label>
 
                 <input type="radio" id="header" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagHeader }}" 
                     {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
-                <label for="header" id="client-label-header"onclick="showForm('header-form')">Headers</label>
+                <label for="header" id="client-label-header"onclick="showForm('client-form-options', 'header-form')">Headers</label>
 
                 <input type="radio" id="auth" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagAuth }}" 
                     {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
-                <label for="auth" id="client-label-auth"onclick="showForm('auth-form')">Auth</label>
+                <label for="auth" id="client-label-auth"onclick="showForm('client-form-options', 'auth-form')">Auth</label>
 
                 <input type="radio" id="body" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagBody }}" 
                     {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
-                <label for="body" id="client-label-body"onclick="showForm('body-form')">Body</label>
+                <label for="body" id="client-label-body"onclick="showForm('client-form-options', 'body-form')">Body</label>
             </div>
             <div id="client-form-options">
                 <div id="query-form" class="fragment-form  

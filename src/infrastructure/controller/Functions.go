@@ -24,6 +24,9 @@ func Not(item any) bool {
 	if boolean, ok := item.(bool); ok {
 		return !boolean
 	}
+	if str, ok := item.(string); ok {
+		return str == ""
+	}
 	return false
 }
 

@@ -1,0 +1,24 @@
+<div  id="request-container">
+    <div class="request-option border-bottom">
+        <a href="/client">New</a>
+    </div>
+    <div  id="historic-container">
+        {{range .RequestsPersisted}}
+            <div class="request-preview">
+                <a href="/client/{{ .Id }}?{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagSaved }}" class="request-link" title="{{ .Uri }}">
+                    <div class="request-sign">
+                        <span class="request-sign-method">{{ .Method }}</span>
+                        <span class="request-sign-name">{{ .Name }}</span>
+                    </div>
+                    <div>
+                        <span class="request-sign-timestamp">{{ FormatMillisecondsDate .Timestamp }}</span>
+                    </div>
+                </a>
+                <div class="request-buttons">
+                    <button type="button" class="form-button remove-button" onclick="removeRequest('{{ .Id }}', '{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagSaved }}')"></button>
+                    <button type="button" class="form-button update-button" onclick="updateRequest('{{ .Id }}', '{{ .Name }}')"></button>
+                </div>
+            </div>
+        {{end}}
+    </div>
+</div>

@@ -7,14 +7,15 @@ import (
 )
 
 type Constants struct {
-	Format     Format
-	Client     Client
-	Collection Collection
-	Query      Query
-	Header     Header
-	Body       Body
-	Auth       Auth
-	Response   Response
+	Format         Format
+	Client         Client
+	Collection     Collection
+	Query          Query
+	Header         Header
+	Body           Body
+	Auth           Auth
+	SidebarRequest SidebarRequest
+	Response       Response
 }
 
 type Format struct {
@@ -95,6 +96,12 @@ type Bearer struct {
 	Token  string
 }
 
+type SidebarRequest struct {
+	Type        string
+	TagHistoric string
+	TagSaved    string
+}
+
 type Response struct {
 	Type       string
 	TagPayload string
@@ -169,8 +176,13 @@ func getConstants() Constants {
 				Token:  "auth-bearer-token",
 			},
 		},
+		SidebarRequest: SidebarRequest{
+			Type:        "request-type",
+			TagHistoric: "historic",
+			TagSaved:    "saved",
+		},
 		Response: Response{
-			Type:       "request-type",
+			Type:       "request-container",
 			TagPayload: "payload",
 			TagHeader:  "header",
 			TagCookie:  "cookie",

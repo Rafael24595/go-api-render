@@ -1,0 +1,10 @@
+.request-buttons {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+}
+
+.request-buttons button {
+    margin-top: 2.5px;
+    margin-bottom: 2.5px;
+}

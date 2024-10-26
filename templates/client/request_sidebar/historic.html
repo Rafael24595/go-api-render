@@ -3,9 +3,9 @@
         <a href="/client">New</a>
     </div>
     <div  id="historic-container">
-        {{range .Requests}}
+        {{range .RequestsHistoric}}
             <div class="request-preview">
-                <a href="/client/{{ .Id }}" class="request-link" title="{{ .Uri }}">
+                <a href="/client/{{ .Id }}?{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagHistoric }}" class="request-link" title="{{ .Uri }}">
                     <div class="request-sign">
                         <span class="request-sign-method">{{ .Method }}</span>
                         <span class="request-sign-url">{{ .Uri }}</span>
@@ -14,7 +14,7 @@
                         <span class="request-sign-timestamp">{{ FormatMillisecondsDate .Timestamp }}</span>
                     </div>
                 </a>
-                <button type="button" class="key-value-form-remove-button show" onclick="removeRequest('{{ .Id }}')"></button>
+                <button type="button" class="key-value-form-remove-button show" onclick="removeRequest('{{ .Id }}', '{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagHistoric }}')"></button>
             </div>
         {{end}}
     </div>

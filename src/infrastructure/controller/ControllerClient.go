@@ -36,28 +36,36 @@ func NewControllerClient(router *router.Router, builder *templates.BuilderManage
 		Route(http.MethodGet, instance.home, "/").
 		Route(http.MethodGet, instance.client, "/client").
 		Route(http.MethodPost, instance.request, "/client").
-		Route(http.MethodGet, instance.historic, "/client/{%s}", ID_REQUEST).
+		Route(http.MethodPost, instance.request, "/client/{%s}", ID_REQUEST).
+		Route(http.MethodGet, instance.show, "/client/{%s}", ID_REQUEST).
 		Route(http.MethodDelete, instance.remove, "/client/{%s}", ID_REQUEST)
 
 	return instance
 }
 
 func (c *ControllerClient) home(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	return c.client(w ,r, context)
+	return c.client(w, r, context)
 }
 
 func (c *ControllerClient) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	requests := c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
+	requestsHistoric := c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
 		Sort: func(i, j domain.Request) bool {
 			return i.Timestamp > j.Timestamp
 		},
 		To: 10,
 	})
 
+	requestsPersisted := c.repositoryPersisted.FindOptions(core_repository.FilterOptions[domain.Request]{
+		Sort: func(i, j domain.Request) bool {
+			return i.Timestamp > j.Timestamp
+		},
+	})
+
 	context.Merge(map[string]any{
-		"BodyTemplate": "client.html",
-		"Methods":  domain.HttpMethods(),
-		"Requests": requests,
+		"BodyTemplate":      "client.html",
+		"Methods":           domain.HttpMethods(),
+		"RequestsHistoric":   requestsHistoric,
+		"RequestsPersisted": requestsPersisted,
 	}).
 		PutIfAbsent("Request", domain.NewRequestEmpty())
 
@@ -86,48 +94,86 @@ func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, conte
 	bodyType := r.Form.Get(constants.Body.Type)
 	authType := r.Form.Get(constants.Auth.Type)
 
+	var requestType string
 	if request.Status == domain.Historic {
 		request, response = c.repositoryHisotric.Insert(*request, response)
+		requestType = constants.SidebarRequest.TagHistoric
 	} else {
 		request, response = c.repositoryPersisted.Insert(*request, response)
+		requestType = constants.SidebarRequest.TagSaved
 	}
 
 	context.Merge(map[string]any{
-		"Request":    request,
-		"Response":   response,
-		"ClientType": clientType,
-		"AuthType":   authType,
-		"BodyType":   bodyType,
+		"Request":     request,
+		"Response":    response,
+		"ClientType":  clientType,
+		"AuthType":    authType,
+		"BodyType":    bodyType,
+		"RequestType": requestType,
 	})
 
 	return c.client(w, r, context)
 }
 
-func (c *ControllerClient) historic(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
-	request, response, ok := c.repositoryHisotric.Find(idRequest)
+
+	var request *domain.Request
+	var response *domain.Response 
+	var ok bool
+
+	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
+	if requestType == constants.SidebarRequest.TagSaved {
+		request, response, ok = c.repositoryPersisted.Find(idRequest)
+	} else {
+		request, response, ok = c.repositoryHisotric.Find(idRequest)
+	}
+
 	if !ok {
-		return commons.ApiErrorFrom(404, "Historic request not found.")
+		return commons.ApiErrorFrom(404, "Request not found.")
 	}
 
 	context.Merge(map[string]any{
 		"Request":  request,
 		"Response": response,
+		"RequestType": requestType,
 	})
 
 	return c.client(w, r, context)
 }
 
 func (c *ControllerClient) remove(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	constants := configuration.GetConstants()
+
 	idRequest := r.PathValue(ID_REQUEST)
-	request, _, ok := c.repositoryHisotric.Find(idRequest)
+	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
+	persisted := requestType == constants.SidebarRequest.TagSaved
+
+	var request *domain.Request
+	var ok bool
+	if persisted {
+		request, _, ok = c.repositoryPersisted.Find(idRequest)
+	} else {
+		request, _, ok = c.repositoryHisotric.Find(idRequest)
+	}
+
 	if !ok {
 		return commons.ApiErrorFrom(404, "Historic request not found.")
 	}
 
-	if request != nil {
+	if request == nil {
+		return c.client(w, r, context)
+	}
+	
+	if persisted {
+		c.repositoryPersisted.Delete(*request)
+	} else {
 		c.repositoryHisotric.Delete(*request)
 	}
 
+	context.Merge(map[string]any{
+		"RequestType": requestType,
+	})
+	
 	return c.client(w, r, context)
 }
