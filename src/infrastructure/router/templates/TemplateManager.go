@@ -1,17 +1,18 @@
 package templates
 
 import (
-	"bytes"
 	"html/template"
 	"net/http"
 	"path"
 
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/datalist"
 )
 
 type TemplateManager struct {
 	templates *template.Template
+	lists     *datalist.DataListManager
 	builder   builderTemplate
 }
 
@@ -20,6 +21,10 @@ func (manager *TemplateManager) load() *template.Template {
 		return manager.builder.makeTemplate()
 	}
 	return manager.templates
+}
+
+func (manager *TemplateManager) ListManager() *datalist.DataListManager {
+	return manager.lists
 }
 
 func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, context router.Context) error {
@@ -36,15 +41,3 @@ func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, conte
 	return nil
 }
 
-func (manager *TemplateManager) template(name string, data interface{}) (template.HTML, error) {
-	buf := bytes.NewBuffer([]byte{})
-	t := manager.load().Lookup(name)
-
-	err := t.ExecuteTemplate(buf, name, data)
-	if err != nil {
-		return template.HTML(""), err
-	}
-
-	ret := template.HTML(buf.String())
-	return ret, nil
-}

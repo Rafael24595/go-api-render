@@ -11,7 +11,7 @@
                         <span class="request-sign-url">{{ .Uri }}</span>
                     </div>
                     <div>
-                        <span class="request-sign-timestamp">{{ FormatMillisecondsDate .Timestamp }}</span>
+                        <span class="request-sign-timestamp">{{ MillisecondsToDate .Timestamp }}</span>
                     </div>
                 </a>
                 <button type="button" class="key-value-form-remove-button show" onclick="removeRequest('{{ .Id }}', '{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagHistoric }}')"></button>

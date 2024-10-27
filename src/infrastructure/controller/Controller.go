@@ -11,32 +11,28 @@ import (
 )
 
 type Controller struct {
-	router              *router.Router
-	manager             templates.TemplateManager
+	router  *router.Router
+	manager templates.TemplateManager
 }
 
 func NewController(router *router.Router, repositoryHisotric *repository.RequestManager, repositoryPersisted *repository.RequestManager) Controller {
 	builder := templates.NewBuilder().
 		AddFunctions(map[string]any{
-			"Uuid":                   Uuid,
-			"Not":                    Not,
-			"Concat":                 Concat,
-			"String":                 String,
-			"Join":                   Join,
-			"FormatMilliseconds":     FormatMilliseconds,
-			"FormatMillisecondsDate": FormatMillisecondsDate,
-			"FormatBytes":            FormatBytes,
-			"ParseCookie":            ParseCookie,
-			"BodyString":             BodyString,
-			"FormatXml":              FormatXml,
-			"FormatHtml":             FormatHtml,
-			"FormatJson":             FormatJson,
+			"FormatBytes": FormatBytes,
+			"ParseCookie": ParseCookie,
+			"BodyString":  BodyString,
+			"FormatXml":   FormatXml,
+			"FormatHtml":  FormatHtml,
+			"FormatJson":  FormatJson,
 		}).
 		AddPath("templates")
 
+	builder.ListManager().
+		PutStatic("headers-list", httpHeaders)
+
 	instance := Controller{
-		router:              router,
-		manager:             builder.Make(),
+		router:  router,
+		manager: builder.Make(),
 	}
 
 	router.ResourcesPath("templates").
@@ -58,7 +54,7 @@ func (c *Controller) contextualizer(w http.ResponseWriter, r *http.Request) (rou
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
 	context.Merge(map[string]any{
 		"BodyTemplate": "error.html",
-		"Error": err,
+		"Error":        err,
 	})
 
 	c.manager.Render(w, "home.html", context)

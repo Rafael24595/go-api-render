@@ -3,7 +3,7 @@
     {{if .Response}}
         <div id="response-metadata">
             <span>Status: {{ .Response.Status }}</span>
-            <span>Time: {{ FormatMilliseconds .Response.Time }}</span>
+            <span>Time: {{ MilisecondsToTime .Response.Time }}</span>
             <span>Size: {{ FormatBytes .Response.Size }}</span>
         </div>
         <div class="radio-button-group border-bottom">

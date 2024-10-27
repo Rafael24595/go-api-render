@@ -33,6 +33,12 @@ func NewRequestManagerLimited(limit int, qRequest request.IRepositoryQuery, cReq
 	}
 }
 
+func (m *RequestManager) Exists(key string) (bool, bool) {
+	_, okReq := m.qRequest.Find(key)
+	_, okRes := m.qResponse.Find(key)
+	return okReq, okRes
+}
+
 func (m *RequestManager) FindAll() []domain.Request {
 	return m.qRequest.FindAll()
 }

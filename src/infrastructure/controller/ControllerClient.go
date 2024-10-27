@@ -99,6 +99,11 @@ func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, conte
 		request, response = c.repositoryHisotric.Insert(*request, response)
 		requestType = constants.SidebarRequest.TagHistoric
 	} else {
+		okHist, _ := c.repositoryHisotric.Exists(request.Id)
+		okPers, _ := c.repositoryPersisted.Exists(request.Id)
+		if okHist && !okPers {
+			request.Id = ""
+		}
 		request, response = c.repositoryPersisted.Insert(*request, response)
 		requestType = constants.SidebarRequest.TagSaved
 	}

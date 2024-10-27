@@ -57,7 +57,7 @@ func (r *Router) RouteOptions(method string, handler requestHandler, contextuali
 func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	r.routes.Put(route, handler)
-	http.HandleFunc(route, r.handler)
+	http.HandleFunc(route, r.gotHandler)
 	return r
 }
 
@@ -68,6 +68,10 @@ func (r Router) patternKey(method, pattern string, params ...any) string {
 func (r *Router) Listen(host string) error {
 	println(fmt.Sprintf("Listen at: %s", host))
 	return http.ListenAndServe(host, nil)
+}
+
+func (r *Router) gotHandler(wrt http.ResponseWriter, req *http.Request) {
+	go r.handler(wrt, req)
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
