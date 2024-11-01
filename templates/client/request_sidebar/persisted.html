@@ -1,11 +1,18 @@
 <div  id="request-container">
     <div class="request-option border-bottom">
-        <a href="/client">New</a>
+        <a onclick="goto('/client', {
+            'queries': {'{{ $.Constants.SidebarRequest.TypeView }}': '{{ $.Constants.SidebarRequest.TagSaved }}',
+            'clean': true
+        })">New</a>
     </div>
     <div  id="historic-container">
         {{range .RequestsPersisted}}
             <div class="request-preview">
-                <a href="/client/{{ .Id }}?{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagSaved }}" class="request-link" title="{{ .Uri }}">
+                <a class="request-link" title="{{ .Uri }}"
+                    onclick="goto('/client', {
+                        'paths': ['{{ .Id }}'], 
+                        'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagSaved }}'}
+                    })">
                     <div class="request-sign">
                         <span class="request-sign-method">{{ .Method }}</span>
                         <span class="request-sign-name">{{ .Name }}</span>
@@ -16,7 +23,7 @@
                 </a>
                 <div class="request-buttons">
                     <button type="button" class="form-button remove-button" onclick="removeRequest('{{ .Id }}', '{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagSaved }}')"></button>
-                    <button type="button" class="form-button update-button" onclick="updateRequest('{{ .Id }}', '{{ .Name }}')"></button>
+                    <button type="button" class="form-button update-button" onclick="updateRequest('{{ .Id }}', '{{ $.Constants.SidebarRequest.TagSaved }}', '{{ .Name }}')"></button>
                 </div>
             </div>
         {{end}}

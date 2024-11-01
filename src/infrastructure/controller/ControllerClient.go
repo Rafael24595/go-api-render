@@ -36,9 +36,10 @@ func NewControllerClient(router *router.Router, builder *templates.BuilderManage
 		Route(http.MethodGet, instance.home, "/").
 		Route(http.MethodGet, instance.client, "/client").
 		Route(http.MethodPost, instance.request, "/client").
-		Route(http.MethodPost, instance.request, "/client/{%s}", ID_REQUEST).
 		Route(http.MethodGet, instance.show, "/client/{%s}", ID_REQUEST).
-		Route(http.MethodDelete, instance.remove, "/client/{%s}", ID_REQUEST)
+		Route(http.MethodPost, instance.request, "/client/{%s}", ID_REQUEST).
+		Route(http.MethodDelete, instance.remove, "/client/{%s}", ID_REQUEST).
+		Route(http.MethodPut, instance.update, "/client/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -64,7 +65,7 @@ func (c *ControllerClient) client(w http.ResponseWriter, r *http.Request, contex
 	context.Merge(map[string]any{
 		"BodyTemplate":      "client.html",
 		"Methods":           domain.HttpMethods(),
-		"RequestsHistoric":   requestsHistoric,
+		"RequestsHistoric":  requestsHistoric,
 		"RequestsPersisted": requestsPersisted,
 	}).
 		PutIfAbsent("Request", domain.NewRequestEmpty())
@@ -124,7 +125,7 @@ func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context 
 	idRequest := r.PathValue(ID_REQUEST)
 
 	var request *domain.Request
-	var response *domain.Response 
+	var response *domain.Response
 	var ok bool
 
 	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
@@ -139,8 +140,8 @@ func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context 
 	}
 
 	context.Merge(map[string]any{
-		"Request":  request,
-		"Response": response,
+		"Request":     request,
+		"Response":    response,
 		"RequestType": requestType,
 	})
 
@@ -163,13 +164,13 @@ func (c *ControllerClient) remove(w http.ResponseWriter, r *http.Request, contex
 	}
 
 	if !ok {
-		return commons.ApiErrorFrom(404, "Historic request not found.")
+		return commons.ApiErrorFrom(404, "Request not found.")
 	}
 
 	if request == nil {
 		return c.client(w, r, context)
 	}
-	
+
 	if persisted {
 		c.repositoryPersisted.Delete(*request)
 	} else {
@@ -179,6 +180,32 @@ func (c *ControllerClient) remove(w http.ResponseWriter, r *http.Request, contex
 	context.Merge(map[string]any{
 		"RequestType": requestType,
 	})
-	
+
 	return c.client(w, r, context)
 }
+
+func (c *ControllerClient) update(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	constants := configuration.GetConstants()
+
+	idRequest := r.PathValue(ID_REQUEST)
+	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
+	name := r.FormValue("name")
+
+	request, _, _ := c.repositoryPersisted.Find(idRequest)
+	
+	if request == nil {
+		return commons.ApiErrorFrom(404, "Request not found.")
+	}
+
+	request.Name = name
+
+	c.repositoryPersisted.Insert(*request, nil)
+
+	context.Merge(map[string]any{
+		"RequestType": requestType,
+		"Request":     request,
+	})
+
+	return c.client(w, r, context)
+}
+

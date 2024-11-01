@@ -13,7 +13,7 @@ async function removeRequest(id, type) {
 
         document.body.innerHTML = newHtml;
     } catch (error) {
-        console.error('Error sending DELETE request:', error);
+        console.error('Error sending request:', error);
     }
 }
 

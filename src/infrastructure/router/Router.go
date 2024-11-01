@@ -57,7 +57,7 @@ func (r *Router) RouteOptions(method string, handler requestHandler, contextuali
 func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	r.routes.Put(route, handler)
-	http.HandleFunc(route, r.gotHandler)
+	http.HandleFunc(route, r.handler)
 	return r
 }
 

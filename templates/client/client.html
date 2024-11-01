@@ -41,25 +41,25 @@
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagQuery }}" 
                     {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
-                <label for="query" id="client-label-query" onclick="showForm('client-form-options', 'query-form')">Query</label>
+                <label for="query" id="client-label-query" onclick="event, 'client-form-options', 'query-form')">Query</label>
 
                 <input type="radio" id="header" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagHeader }}" 
                     {{if eq .ClientType .Constants.Client.TagHeader }} checked {{end}}>
-                <label for="header" id="client-label-header"onclick="showForm('client-form-options', 'header-form')">Headers</label>
+                <label for="header" id="client-label-header"onclick="showForm(event, 'client-form-options', 'header-form')">Headers</label>
 
                 <input type="radio" id="auth" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagAuth }}" 
                     {{if eq .ClientType .Constants.Client.TagAuth }} checked {{end}}>
-                <label for="auth" id="client-label-auth"onclick="showForm('client-form-options', 'auth-form')">Auth</label>
+                <label for="auth" id="client-label-auth"onclick="showForm(event, 'client-form-options', 'auth-form')">Auth</label>
 
                 <input type="radio" id="body" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagBody }}" 
                     {{if eq .ClientType .Constants.Client.TagBody }} checked {{end}}>
-                <label for="body" id="client-label-body"onclick="showForm('client-form-options', 'body-form')">Body</label>
+                <label for="body" id="client-label-body"onclick="showForm(event, 'client-form-options', 'body-form')">Body</label>
             </div>
             <div id="client-form-options">
                 <div id="query-form" class="fragment-form  

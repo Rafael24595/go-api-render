@@ -6,16 +6,16 @@
 
 <div class="radio-button-group cover border-bottom">
     <input type="radio" id="historic" class="request-tag" 
-        name="{{ .Constants.SidebarRequest.Type }}" 
+        name="{{ .Constants.SidebarRequest.TypeView }}" 
         value="{{ .Constants.SidebarRequest.TagHistoric }}" 
         {{if or (Not .RequestType) (eq .RequestType .Constants.SidebarRequest.TagHistoric) }} checked {{end}}>
-    <label for="historic" id="request-label-historic" onclick="showForm('request-form-options', 'request-historic')">Historic</label>
+    <label for="historic" id="request-label-historic" onclick="showForm(event, 'request-form-options', 'request-historic')">Historic</label>
 
     <input type="radio" id="saved" class="request-tag" 
-        name="{{ .Constants.SidebarRequest.Type }}" 
+        name="{{ .Constants.SidebarRequest.TypeView }}" 
         value="{{ .Constants.SidebarRequest.TagSaved }}" 
         {{if eq .RequestType .Constants.SidebarRequest.TagSaved }} checked {{end}}>
-    <label for="saved" id="request-label-saved" onclick="showForm('request-form-options', 'request-saved')">Saved</label>
+    <label for="saved" id="request-label-saved" onclick="showForm(event, 'request-form-options', 'request-saved')">Saved</label>
 </div>
 <div>
     <div id="request-form-options">

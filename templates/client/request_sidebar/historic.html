@@ -1,11 +1,18 @@
 <div  id="request-container">
     <div class="request-option border-bottom">
-        <a href="/client">New</a>
+        <a onclick="goto('/client', {
+            'queries': {'{{ $.Constants.SidebarRequest.TypeView }}': '{{ $.Constants.SidebarRequest.TagHistoric }}',
+            'clean': true
+        })">New</a>
     </div>
     <div  id="historic-container">
         {{range .RequestsHistoric}}
             <div class="request-preview">
-                <a href="/client/{{ .Id }}?{{ $.Constants.SidebarRequest.Type }}={{ $.Constants.SidebarRequest.TagHistoric }}" class="request-link" title="{{ .Uri }}">
+                <a class="request-link" title="{{ .Uri }}"
+                    onclick="goto('/client', {
+                        'paths': ['{{ .Id }}'], 
+                        'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagHistoric }}'}
+                    })">
                     <div class="request-sign">
                         <span class="request-sign-method">{{ .Method }}</span>
                         <span class="request-sign-url">{{ .Uri }}</span>
