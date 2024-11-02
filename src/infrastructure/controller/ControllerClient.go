@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/commons"
+	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	core_repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
@@ -32,7 +33,8 @@ func NewControllerClient(router *router.Router, builder *templates.BuilderManage
 		repositoryPersisted: repositoryPersisted,
 	}
 
-	instance.router.
+	router.
+		GroupContextualizer("/client", instance.clientContext).
 		Route(http.MethodGet, instance.home, "/").
 		Route(http.MethodGet, instance.client, "/client").
 		Route(http.MethodPost, instance.request, "/client").
@@ -142,7 +144,6 @@ func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context 
 	context.Merge(map[string]any{
 		"Request":     request,
 		"Response":    response,
-		"RequestType": requestType,
 	})
 
 	return c.client(w, r, context)
@@ -209,3 +210,9 @@ func (c *ControllerClient) update(w http.ResponseWriter, r *http.Request, contex
 	return c.client(w, r, context)
 }
 
+func (c *ControllerClient) clientContext(w http.ResponseWriter, r *http.Request) (router.Context, error) {
+	requestType := r.URL.Query().Get(constants.SidebarRequest.TypeView)
+	return collection.FromMap(map[string]any{
+		"RequestType": requestType,
+	}), nil
+}

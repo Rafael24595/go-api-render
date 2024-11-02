@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
 )
@@ -13,28 +14,38 @@ type requestHandler = func(http.ResponseWriter, *http.Request, Context) error
 type errorHandler = func(http.ResponseWriter, *http.Request, Context, error)
 
 type Router struct {
-	contextualizer collection.CollectionMap[string, contextHandler]
-	errors collection.CollectionMap[string, errorHandler]
-	routes collection.CollectionMap[string, requestHandler]
+	contextualizer       collection.CollectionMap[string, contextHandler]
+	groupContextualizers collection.CollectionMap[string, collection.CollectionList[contextHandler]]
+	errors               collection.CollectionMap[string, errorHandler]
+	routes               collection.CollectionMap[string, requestHandler]
 }
 
 func NewRouter() *Router {
-	return &Router {
-		contextualizer: *collection.EmptyMap[string, contextHandler](),
-		errors: *collection.EmptyMap[string, errorHandler](),
-		routes: *collection.EmptyMap[string, requestHandler](),
+	return &Router{
+		contextualizer:       *collection.EmptyMap[string, contextHandler](),
+		groupContextualizers: *collection.EmptyMap[string, collection.CollectionList[contextHandler]](),
+		errors:               *collection.EmptyMap[string, errorHandler](),
+		routes:               *collection.EmptyMap[string, requestHandler](),
 	}
 }
 
 func (r *Router) ResourcesPath(path string) *Router {
 	fs := http.FileServer(http.Dir(path))
 	route := fmt.Sprintf("/%s/", path)
-    http.Handle(fmt.Sprintf("GET %s", route), http.StripPrefix(route, fs))
+	http.Handle(fmt.Sprintf("GET %s", route), http.StripPrefix(route, fs))
 	return r
 }
 
 func (r *Router) Contextualizer(handler contextHandler) *Router {
 	r.contextualizer.Put("$BASE", handler)
+	return r
+}
+
+func (r *Router) GroupContextualizer(group string, handler contextHandler) *Router {
+	result := r.groupContextualizers.
+		ComputeIfAbsent(group, *collection.EmptyList[contextHandler]()).
+		Append(handler)
+	r.groupContextualizers.Put(group, *result)
 	return r
 }
 
@@ -70,10 +81,6 @@ func (r *Router) Listen(host string) error {
 	return http.ListenAndServe(host, nil)
 }
 
-func (r *Router) gotHandler(wrt http.ResponseWriter, req *http.Request) {
-	go r.handler(wrt, req)
-}
-
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	handler, ok := r.routes.Find(req.Pattern)
 	if !ok {
@@ -92,6 +99,27 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 			panic("//TODO: contextualizer error.")
 		}
 	}
+
+	group := strings.Split(req.Pattern, " ")[1]
+
+	keys := r.groupContextualizers.KeysCollection().Filter(func(key string) bool {
+		return strings.HasPrefix(group, key)
+	})
+
+	keys.ForEach(func(i int, key string) {
+		funcs, ok := r.groupContextualizers.Find(key)
+		if !ok {
+			return
+		}
+		
+		funcs.ForEach(func(i int, f contextHandler) {
+			result, err := f(wrt, req)
+			if err != nil {
+				panic("//TODO: contextualizer error.")
+			}
+			context.Merge(result.Collect())
+		})
+	})
 
 	err := (*handler)(wrt, req, context)
 	if err == nil {
