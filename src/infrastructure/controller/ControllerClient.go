@@ -93,14 +93,8 @@ func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, conte
 		}
 	}
 
-	clientType := r.Form.Get(constants.Client.Type)
-	bodyType := r.Form.Get(constants.Body.Type)
-	authType := r.Form.Get(constants.Auth.Type)
-
-	var requestType string
 	if request.Status == domain.Historic {
 		request, response = c.repositoryHisotric.Insert(*request, response)
-		requestType = constants.SidebarRequest.TagHistoric
 	} else {
 		okHist, _ := c.repositoryHisotric.Exists(request.Id)
 		okPers, _ := c.repositoryPersisted.Exists(request.Id)
@@ -108,16 +102,11 @@ func (c *ControllerClient) request(w http.ResponseWriter, r *http.Request, conte
 			request.Id = ""
 		}
 		request, response = c.repositoryPersisted.Insert(*request, response)
-		requestType = constants.SidebarRequest.TagSaved
 	}
 
 	context.Merge(map[string]any{
-		"Request":     request,
-		"Response":    response,
-		"ClientType":  clientType,
-		"AuthType":    authType,
-		"BodyType":    bodyType,
-		"RequestType": requestType,
+		"Request":  request,
+		"Response": response,
 	})
 
 	return c.client(w, r, context)
@@ -130,8 +119,7 @@ func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context 
 	var response *domain.Response
 	var ok bool
 
-	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
-	if requestType == constants.SidebarRequest.TagSaved {
+	if c.repositoryPersisted.HasPrefix(idRequest) {
 		request, response, ok = c.repositoryPersisted.Find(idRequest)
 	} else {
 		request, response, ok = c.repositoryHisotric.Find(idRequest)
@@ -142,19 +130,16 @@ func (c *ControllerClient) show(w http.ResponseWriter, r *http.Request, context 
 	}
 
 	context.Merge(map[string]any{
-		"Request":     request,
-		"Response":    response,
+		"Request":  request,
+		"Response": response,
 	})
 
 	return c.client(w, r, context)
 }
 
 func (c *ControllerClient) remove(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	constants := configuration.GetConstants()
-
 	idRequest := r.PathValue(ID_REQUEST)
-	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
-	persisted := requestType == constants.SidebarRequest.TagSaved
+	persisted := c.repositoryPersisted.HasPrefix(idRequest)
 
 	var request *domain.Request
 	var ok bool
@@ -178,22 +163,15 @@ func (c *ControllerClient) remove(w http.ResponseWriter, r *http.Request, contex
 		c.repositoryHisotric.Delete(*request)
 	}
 
-	context.Merge(map[string]any{
-		"RequestType": requestType,
-	})
-
 	return c.client(w, r, context)
 }
 
 func (c *ControllerClient) update(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	constants := configuration.GetConstants()
-
 	idRequest := r.PathValue(ID_REQUEST)
-	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
 	name := r.FormValue("name")
 
 	request, _, _ := c.repositoryPersisted.Find(idRequest)
-	
+
 	if request == nil {
 		return commons.ApiErrorFrom(404, "Request not found.")
 	}
@@ -203,16 +181,23 @@ func (c *ControllerClient) update(w http.ResponseWriter, r *http.Request, contex
 	c.repositoryPersisted.Insert(*request, nil)
 
 	context.Merge(map[string]any{
-		"RequestType": requestType,
-		"Request":     request,
+		"Request": request,
 	})
 
 	return c.client(w, r, context)
 }
 
 func (c *ControllerClient) clientContext(w http.ResponseWriter, r *http.Request) (router.Context, error) {
-	requestType := r.URL.Query().Get(constants.SidebarRequest.TypeView)
+	requestType := r.URL.Query().Get(constants.SidebarRequest.Type)
+	clientType := r.URL.Query().Get(constants.Client.Type)
+	bodyType := r.URL.Query().Get(constants.Body.Type)
+	authType := r.URL.Query().Get(constants.Auth.Type)
+	responseType := r.URL.Query().Get(constants.Response.Type)
 	return collection.FromMap(map[string]any{
-		"RequestType": requestType,
+		"RequestType":  requestType,
+		"ResponseType": responseType,
+		"ClientType":   clientType,
+		"AuthType":     authType,
+		"BodyType":     bodyType,
 	}), nil
 }

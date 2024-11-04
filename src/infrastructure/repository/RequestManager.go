@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/Rafael24595/go-api-core/src/commons/collection"
@@ -12,6 +14,7 @@ import (
 
 type RequestManager struct {
 	mu        sync.Mutex
+	prefix    string
 	limit     int
 	qRequest  request.IRepositoryQuery
 	cRequest  request.IRepositoryCommand
@@ -25,12 +28,24 @@ func NewRequestManager(qRequest request.IRepositoryQuery, cRequest request.IRepo
 
 func NewRequestManagerLimited(limit int, qRequest request.IRepositoryQuery, cRequest request.IRepositoryCommand, qResponse response.IRepositoryQuery, cResponse response.IRepositoryCommand) *RequestManager {
 	return &RequestManager{
+		prefix:    "",
 		limit:     limit,
 		qRequest:  qRequest,
 		cRequest:  cRequest,
 		qResponse: qResponse,
 		cResponse: cResponse,
 	}
+}
+
+func (m *RequestManager) HasPrefix(id string) bool {
+	return strings.HasPrefix(id, fmt.Sprintf("%s-", m.prefix))
+}
+
+func (m *RequestManager) SetPrefix(prefix string) *RequestManager {
+	m.prefix = prefix
+	m.qRequest.SetPrefix(prefix)
+	m.qResponse.SetPrefix(prefix)
+	return m
 }
 
 func (m *RequestManager) Exists(key string) (bool, bool) {
@@ -42,7 +57,7 @@ func (m *RequestManager) Exists(key string) (bool, bool) {
 func (m *RequestManager) FindAll() []domain.Request {
 	return m.qRequest.FindAll()
 }
-	
+
 func (m *RequestManager) Find(key string) (*domain.Request, *domain.Response, bool) {
 	request, ok := m.qRequest.Find(key)
 	if !ok {
@@ -87,7 +102,7 @@ func (m *RequestManager) insertResponse(ids []string, request *domain.Request, r
 	response.Id = request.Id
 
 	result := m.cResponse.Insert(*response)
-	
+
 	idCollection := collection.FromList(ids)
 
 	m.cResponse.DeleteOptions(repository.FilterOptions[domain.Response]{

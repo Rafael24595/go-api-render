@@ -1,20 +1,3 @@
-<script>
-    let textEditor
-    document.addEventListener('DOMContentLoaded', function () {
-        textEditor = CodeMirror.fromTextArea(document.getElementById('body-parameter-text'), {
-        lineNumbers: true,
-        mode: "text",
-        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
-        });
-        
-        /*textEditor.on('change', function() {
-            if (changeProcess) {
-                syncronize(textEditor, textEditor.getValue());
-            }
-        });*/
-    });
-</script>
-
 <label for="body-parameter-text">
     <textarea 
         name="{{ .Constants.Body.ValueText }}" 
@@ -23,3 +6,22 @@
         placeholder="Text" 
         onchange="syncronizeBodies(event)">{{ BodyString .Constants.Body.TagText .Request.Body }}</textarea>
 </label>
+
+<script>
+
+    document.textEditor = CodeMirror.fromTextArea(document.getElementById('body-parameter-text'), {
+        lineNumbers: true,
+        mode: "text",
+        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
+    });
+
+    document.textEditor.on("change", () => {
+        const content = document.textEditor.getValue();
+        jsonTextArea().value = content;
+    });
+
+    function jsonTextArea() {
+        return document.getElementById('body-parameter-text');
+    }
+    
+</script>

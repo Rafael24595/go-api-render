@@ -9,6 +9,11 @@ import (
 	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 )
 
+const (
+	PRESIST_PREFIX = "sve"
+	HISTORY_PREFIX = "hst"
+)
+
 var instance *DependencyContainer
 
 type DependencyContainer struct {
@@ -41,36 +46,38 @@ func Initialize() *DependencyContainer {
 
 func loadHistoricMemoryDependencies() *repository.RequestManager {
 	fileRequest := core_repository.NewManagerCsvtFile(domain.NewRequestDefault, request.CSVT_HISTORIC_FILE_PATH)
-	requestQueryHistoric, err := request.InitializeMemoryQuery(fileRequest)
+	requestQuery, err := request.InitializeMemoryQuery(fileRequest)
 	if err != nil {
 		panic(err)
 	}
-	requestCommandHistoric := request.NewMemoryCommand(requestQueryHistoric)
+	requestCommand := request.NewMemoryCommand(requestQuery)
 
 	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, response.CSVT_HISTORIC_FILE_PATH)
-	responseQueryHistoric, err := response.InitializeMemoryQuery(fileResponse)
+	responseQuery, err := response.InitializeMemoryQuery(fileResponse)
 	if err != nil {
 		panic(err)
 	}
-	responseCommandHistoric := response.NewMemoryCommand(responseQueryHistoric)
+	responseCommand := response.NewMemoryCommand(responseQuery)
 
-	return repository.NewRequestManagerLimited(10, requestQueryHistoric, requestCommandHistoric, responseQueryHistoric, responseCommandHistoric)
+	return repository.NewRequestManagerLimited(10, requestQuery, requestCommand, responseQuery, responseCommand).
+		SetPrefix(PRESIST_PREFIX)
 }
 
 func loadPersistedMemoryDependencies() *repository.RequestManager {
 	fileRequest := core_repository.NewManagerCsvtFile(domain.NewRequestDefault, request.CSVT_PERSISTED_FILE_PATH)
-	requestQueryPersisted, err := request.InitializeMemoryQuery(fileRequest)
+	requestQuery, err := request.InitializeMemoryQuery(fileRequest)
 	if err != nil {
 		panic(err)
 	}
-	requestCommandPersisted := request.NewMemoryCommand(requestQueryPersisted)
+	requestCommand := request.NewMemoryCommand(requestQuery)
 
 	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, response.CSVT_PERSISTED_FILE_PATH)
-	responseQueryPersisted, err := response.InitializeMemoryQuery(fileResponse)
+	responseQuery, err := response.InitializeMemoryQuery(fileResponse)
 	if err != nil {
 		panic(err)
 	}
-	responseCommandPersisted := response.NewMemoryCommand(responseQueryPersisted)
+	responseCommand := response.NewMemoryCommand(responseQuery)
 
-	return repository.NewRequestManager(requestQueryPersisted, requestCommandPersisted, responseQueryPersisted, responseCommandPersisted)
+	return repository.NewRequestManager(requestQuery, requestCommand, responseQuery, responseCommand).
+		SetPrefix(PRESIST_PREFIX)
 }

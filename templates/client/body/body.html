@@ -6,20 +6,22 @@
             name="{{ .Constants.Body.Type }}" 
             value="{{ .Constants.Body.TagText }}"
             {{if or (Not .BodyType) (eq .BodyType .Constants.Body.TagText) }} checked {{end}}>
-        <label for="text" onclick="showBodyForm('body-text-form')">Text</label>
+        <label for="text" onclick="showForm(event, 'body-type-form', 'body-text-form')">Text</label>
         <input 
             type="radio" 
             id="json" 
             name="{{ .Constants.Body.Type }}" 
             value="{{ .Constants.Body.TagJson }}"
             {{if eq .BodyType .Constants.Body.TagJson }} checked {{end}}>
-        <label for="json" onclick="showBodyForm('body-json-form')">Json</label>
+        <label for="json" onclick="showForm(event, 'body-type-form', 'body-json-form')">Json</label>
     </div>
     <div id="body-type-form">
-        <div id="body-text-form" refresh="text" class="fragment-body-form show">
+        <div id="body-text-form" refresh="refreshRequestBody" target="text" class="fragment-body-form 
+            {{if or (Not .BodyType) (eq .BodyType .Constants.Body.TagText) }} show {{end}}">
             {{ template "text.html" . }}
         </div>
-        <div id="body-json-form" refresh="json" class="fragment-body-form">
+        <div id="body-json-form" refresh="refreshRequestBody" target="json" class="fragment-body-form
+            {{if eq .BodyType .Constants.Body.TagJson }} show {{end}}">
             {{ template "json.html" . }}
         </div>
     </div>

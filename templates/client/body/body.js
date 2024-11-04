@@ -1,38 +1,26 @@
-const BODY_FORM = "body-type-form";
-const BODY_FRAGMENTS = "body-parameter";
-
-function showBodyForm(form) {
-    for (const element of document.getElementById(BODY_FORM).children) {
-        if (element.id == form) {
-            element.classList.add("show");
-            refreshBody(element.getAttribute("refresh"))
-            continue;
-        }
-        element.classList.remove("show");
-    }
-}
-
 function syncronizeBodies(event) {
     const content = event.target.value;
-    for (const element of document.getElementsByClassName(BODY_FRAGMENTS)) {
+    for (const element of document.getElementsByClassName("body-parameter")) {
         element.value = content;
     }
 }
 
-function refreshBody(type) {
-    switch (type.toUpperCase()) {
+function refreshRequestBody(element) {
+    let target = element.getAttribute("target")
+    switch (target.toUpperCase()) {
         case "JSON":
-            jsonEditor.refresh()
+            document.jsonEditor.refresh()
             break;
         case "TEXT":
-            textEditor.refresh()
+            document.textEditor.refresh()
+            break;
         default:
-            console.log(`Type ${type} not recognized.`)
+            console.log(`Type ${target} not recognized.`)
             break;
     }
 }
 
 function refreshBodies() {
-    jsonEditor.refresh()
-    textEditor.refresh()
+    document.jsonEditor.refresh()
+    document.textEditor.refresh()
 }

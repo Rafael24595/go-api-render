@@ -26,7 +26,7 @@
             <label for="request-cookie" id="reponse-label-cookie" onclick="showForm(event, 'response-payload', 'cookie-container')">Cookie ({{ len .Response.Cookies.Cookies }})</label>
         </div>
         <div id="response-payload">
-            <div id="payload-container" class="fragment-form  
+            <div id="payload-container" refresh="refreshResponseBody" target="{{ .Response.Body.ContentType }}" class="fragment-form  
                 {{if or (Not .ResponseType) (eq .ResponseType .Constants.Response.TagPayload) }} show {{end}}">
                 {{ template "resp_payload.html" . }}
             </div>

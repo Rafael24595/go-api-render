@@ -1,9 +1,9 @@
 <div  id="request-container">
     <div class="request-option border-bottom">
         <a onclick="goto('/client', {
-            'queries': {'{{ $.Constants.SidebarRequest.TypeView }}': '{{ $.Constants.SidebarRequest.TagHistoric }}',
+            'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagHistoric }}',
             'clean': true
-        })">New</a>
+        }})">New</a>
     </div>
     <div  id="historic-container">
         {{range .RequestsHistoric}}

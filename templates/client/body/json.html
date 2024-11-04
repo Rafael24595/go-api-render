@@ -1,17 +1,3 @@
-<script>
-    let jsonEditor
-    document.addEventListener('DOMContentLoaded', function () {
-        jsonEditor = CodeMirror.fromTextArea(document.getElementById('body-parameter-json'), {
-        lineNumbers: true,
-        mode: "javascript",
-        matchBrackets: true,
-        autoCloseBrackets: true,
-        lint: true,
-        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
-        });
-    });
-</script>
-
 <label for="body-parameter-json">
     <textarea 
         name="{{ .Constants.Body.ValueJson }}" 
@@ -20,3 +6,25 @@
         placeholder="Json" 
         onchange="syncronizeBodies(event)">{{ BodyString .Constants.Body.TagJson .Request.Body }}</textarea>
 </label>
+
+<script>
+
+    document.jsonEditor = CodeMirror.fromTextArea(jsonTextArea(), {
+        lineNumbers: true,
+        mode: "javascript",
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        lint: true,
+        gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers"]
+    });
+
+    document.jsonEditor.on("change", () => {
+        const content = document.jsonEditor.getValue();
+        jsonTextArea().value = content;
+    });
+
+    function jsonTextArea() {
+        return document.getElementById('body-parameter-json');
+    }
+
+</script>

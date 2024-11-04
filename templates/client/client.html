@@ -9,11 +9,10 @@
 </div>
 <div id="c-body">
     <form id="client-form"
-        {{if Not .Request.Id }} 
-            action="/client" 
-        {{else}}
-            action="/client/{{ .Request.Id }}?{{ .Constants.SidebarRequest.Type }}={{ .RequestType }}" 
-        {{end}}
+        action="/client"
+        onsubmit="submitForm(event, {
+            'paths': ['{{ .Request.Id }}']
+        })"
         method="post">
         <input name="{{ .Constants.Client.Id }}" id="id" type="hidden" value="{{ .Request.Id }}">
         <input name="{{ .Constants.Client.Name }}" id="name" type="hidden" value="{{ .Request.Name }}">
@@ -41,7 +40,7 @@
                     name="{{ .Constants.Client.Type }}" 
                     value="{{ .Constants.Client.TagQuery }}" 
                     {{if or (Not .ClientType) (eq .ClientType .Constants.Client.TagQuery) }} checked {{end}}>
-                <label for="query" id="client-label-query" onclick="event, 'client-form-options', 'query-form')">Query</label>
+                <label for="query" id="client-label-query" onclick="showForm(event, 'client-form-options', 'query-form')">Query</label>
 
                 <input type="radio" id="header" class="client-tag" 
                     name="{{ .Constants.Client.Type }}" 

@@ -1,7 +1,5 @@
-const AUTH_FORM = "auth-type-form";
-
 function showAuthForm(form) {
-    for (const element of document.getElementById(AUTH_FORM).children) {
+    for (const element of document.getElementById("auth-type-form").children) {
         if (element.id == form) {
             element.classList.add("show");
             continue;

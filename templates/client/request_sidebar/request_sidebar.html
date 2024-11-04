@@ -6,13 +6,13 @@
 
 <div class="radio-button-group cover border-bottom">
     <input type="radio" id="historic" class="request-tag" 
-        name="{{ .Constants.SidebarRequest.TypeView }}" 
+        name="{{ .Constants.SidebarRequest.Type }}" 
         value="{{ .Constants.SidebarRequest.TagHistoric }}" 
         {{if or (Not .RequestType) (eq .RequestType .Constants.SidebarRequest.TagHistoric) }} checked {{end}}>
     <label for="historic" id="request-label-historic" onclick="showForm(event, 'request-form-options', 'request-historic')">Historic</label>
 
     <input type="radio" id="saved" class="request-tag" 
-        name="{{ .Constants.SidebarRequest.TypeView }}" 
+        name="{{ .Constants.SidebarRequest.Type }}" 
         value="{{ .Constants.SidebarRequest.TagSaved }}" 
         {{if eq .RequestType .Constants.SidebarRequest.TagSaved }} checked {{end}}>
     <label for="saved" id="request-label-saved" onclick="showForm(event, 'request-form-options', 'request-saved')">Saved</label>

@@ -1,12 +1,9 @@
 <script>
-    let textViewer
-    document.addEventListener('DOMContentLoaded', function () {
-        textViewer = CodeMirror(document.getElementById('response-payload-bytes'), {
+    document.textViewer = CodeMirror(document.getElementById('response-payload-bytes'), {
         value: "{{ String .Response.Body.Bytes }}",
         lineNumbers: true,
         lineWrapping: true,
         mode: "text",
         readOnly: true
-        });
     });
 </script>

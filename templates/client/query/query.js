@@ -1,9 +1,8 @@
-const QUERY_TEMPLATE_NAME = "query-parameter-template";
-const QUERY_REMOVE_BUTTON = "key-value-form-remove-button";
-const QUERY_ID_SEPARATOR = "#";
 
 function newQueryRow() {
-    const template = document.getElementById(QUERY_TEMPLATE_NAME)
+    const QUERY_ID_SEPARATOR = "#";
+    
+    const template = document.getElementById("query-parameter-template")
     template.insertAdjacentElement("afterend", template.cloneNode(true))
     template.id = ""
 
@@ -20,7 +19,7 @@ function newQueryRow() {
         }
     }
     
-    for(const button of template.getElementsByClassName(QUERY_REMOVE_BUTTON)) {
+    for(const button of template.getElementsByClassName("key-value-form-remove-button")) {
         button.classList.add("show")
         button.disabled = false;
     }

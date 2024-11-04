@@ -1,9 +1,8 @@
-const HEADER_TEMPLATE_NAME = "header-parameter-template";
-const HEADER_REMOVE_BUTTON = "key-value-form-remove-button";
-const HEADER_ID_SEPARATOR = "#";
 
 function newHeaderRow() {
-    const template = document.getElementById(HEADER_TEMPLATE_NAME)
+    const HEADER_ID_SEPARATOR = "#";
+    
+    const template = document.getElementById("header-parameter-template")
     template.insertAdjacentElement("afterend", template.cloneNode(true))
     template.id = ""
 
@@ -20,7 +19,7 @@ function newHeaderRow() {
         }
     }
     
-    for(const button of template.getElementsByClassName(HEADER_REMOVE_BUTTON)) {
+    for(const button of template.getElementsByClassName("key-value-form-remove-button")) {
         button.classList.add("show")
         button.disabled = false;
     }
