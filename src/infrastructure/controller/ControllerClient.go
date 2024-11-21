@@ -51,18 +51,29 @@ func (c *ControllerClient) home(w http.ResponseWriter, r *http.Request, context 
 }
 
 func (c *ControllerClient) client(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	requestsHistoric := c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
-		Sort: func(i, j domain.Request) bool {
-			return i.Timestamp > j.Timestamp
-		},
-		To: 10,
-	})
+	source := r.URL.Query().Get(constants.SidebarRequest.Type)
 
-	requestsPersisted := c.repositoryPersisted.FindOptions(core_repository.FilterOptions[domain.Request]{
-		Sort: func(i, j domain.Request) bool {
-			return i.Timestamp > j.Timestamp
-		},
-	})
+	requestsHistoric := []domain.Request{}
+	requestsPersisted := []domain.Request{}
+
+	switch source {
+	case constants.SidebarRequest.TagHistoric:
+		requestsHistoric = c.repositoryHisotric.FindOptions(core_repository.FilterOptions[domain.Request]{
+			Sort: func(i, j domain.Request) bool {
+				return i.Timestamp > j.Timestamp
+			},
+			To: 10,
+		})
+	case constants.SidebarRequest.TagSaved:
+		requestsPersisted = c.repositoryPersisted.FindOptions(core_repository.FilterOptions[domain.Request]{
+			Sort: func(i, j domain.Request) bool {
+				return i.Timestamp > j.Timestamp
+			},
+		})
+	case constants.SidebarRequest.TagCollection:
+		
+	}
+
 
 	context.Merge(map[string]any{
 		"BodyTemplate":      "client.html",

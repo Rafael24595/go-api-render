@@ -9,13 +9,29 @@
         name="{{ .Constants.SidebarRequest.Type }}" 
         value="{{ .Constants.SidebarRequest.TagHistoric }}" 
         {{if or (Not .RequestType) (eq .RequestType .Constants.SidebarRequest.TagHistoric) }} checked {{end}}>
-    <label for="historic" id="request-label-historic" onclick="showForm(event, 'request-form-options', 'request-historic')">Historic</label>
+    <label for="historic" id="request-label-historic" onclick="goto('/client', {
+        'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagHistoric }}'}})">
+        Historic
+    </label>
 
     <input type="radio" id="saved" class="request-tag" 
         name="{{ .Constants.SidebarRequest.Type }}" 
         value="{{ .Constants.SidebarRequest.TagSaved }}" 
         {{if eq .RequestType .Constants.SidebarRequest.TagSaved }} checked {{end}}>
-    <label for="saved" id="request-label-saved" onclick="showForm(event, 'request-form-options', 'request-saved')">Saved</label>
+    <label for="saved" id="request-label-saved" onclick="goto('/client', {
+        'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagSaved }}'}})">
+        Saved
+    </label>
+
+    <input type="radio" id="collection" class="request-tag" 
+        name="{{ .Constants.SidebarRequest.Type }}" 
+        value="{{ .Constants.SidebarRequest.TagCollection }}" 
+        {{if eq .RequestType .Constants.SidebarRequest.TagCollection }} checked {{end}}>
+    <label for="collection" id="request-label-collection" 
+        onclick="goto('/client', {
+            'queries': {'{{ $.Constants.SidebarRequest.Type }}': '{{ $.Constants.SidebarRequest.TagCollection }}'}})">
+        Collection
+    </label>
 </div>
 <div>
     <div id="request-form-options">
@@ -27,6 +43,11 @@
         <div id="request-saved" class="fragment-form  
             {{if eq .RequestType .Constants.SidebarRequest.TagSaved }} show {{end}}">
             {{ template "persisted.html" . }}
+        </div>
+
+        <div id="request-collection" class="fragment-form  
+            {{if eq .RequestType .Constants.SidebarRequest.TagCollection }} show {{end}}">
+            {{ template "collection.html" . }}
         </div>
     </div>
 </div>

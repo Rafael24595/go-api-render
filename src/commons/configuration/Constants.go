@@ -97,9 +97,10 @@ type Bearer struct {
 }
 
 type SidebarRequest struct {
-	Type        string
-	TagHistoric string
-	TagSaved    string
+	Type          string
+	TagHistoric   string
+	TagSaved      string
+	TagCollection string
 }
 
 type Response struct {
@@ -177,9 +178,10 @@ func getConstants() Constants {
 			},
 		},
 		SidebarRequest: SidebarRequest{
-			Type:        "request-type",
-			TagHistoric: "historic",
-			TagSaved:    "saved",
+			Type:          "request-type",
+			TagHistoric:   "historic",
+			TagSaved:      "saved",
+			TagCollection: "collection",
 		},
 		Response: Response{
 			Type:       "request-container",

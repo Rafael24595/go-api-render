@@ -31,7 +31,7 @@ func NewControllerCollection(router *router.Router, builder *templates.BuilderMa
 
 func (c *ControllerCollection) collection(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	context.Merge(map[string]any{
-		"BodyTemplate": "collection.html",
+		"BodyTemplate": "collection_form.html",
 		"VariableTypes": domain.VariableTypes(),
 	}).PutIfAbsent("Collection", domain.NewCollectionDefault())
 
