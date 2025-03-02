@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/datalist"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
 type builderTemplate interface {
@@ -75,15 +75,21 @@ func (builder *BuilderManager) Make() TemplateManager {
 
 func (builder *BuilderManager) makeTemplate() *template.Template {
 	templates := template.New("").Funcs(builder.functions)
-	_, err := templates.ParseFiles(builder.files()...)
+	files := builder.files()
+	if len(files) == 0 {
+		return templates
+	}
+	
+	_, err := templates.ParseFiles(files...)
 	if err != nil {
 		panic(err.Error())
 	}
+
 	return templates
 }
 
 func (builder *BuilderManager) files() []string {
-	files := collection.EmptyMap[string, bool]()
+	files := collection.DictionaryEmpty[string, bool]()
 	for _, t := range builder.templates {
 		err := filepath.WalkDir(t, func(path string, d os.DirEntry, err error) error {
 			if err != nil {

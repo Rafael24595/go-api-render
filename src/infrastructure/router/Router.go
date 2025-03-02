@@ -5,27 +5,27 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Rafael24595/go-api-core/src/commons/collection"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
-type Context = *collection.CollectionMap[string, any]
+type Context = collection.IDictionary[string, any]
 type contextHandler = func(http.ResponseWriter, *http.Request) (Context, error)
 type requestHandler = func(http.ResponseWriter, *http.Request, Context) error
 type errorHandler = func(http.ResponseWriter, *http.Request, Context, error)
 
 type Router struct {
-	contextualizer       collection.CollectionMap[string, contextHandler]
-	groupContextualizers collection.CollectionMap[string, collection.CollectionList[contextHandler]]
-	errors               collection.CollectionMap[string, errorHandler]
-	routes               collection.CollectionMap[string, requestHandler]
+	contextualizer       collection.IDictionary[string, contextHandler]
+	groupContextualizers collection.IDictionary[string, collection.Vector[contextHandler]]
+	errors               collection.IDictionary[string, errorHandler]
+	routes               collection.IDictionary[string, requestHandler]
 }
 
 func NewRouter() *Router {
 	return &Router{
-		contextualizer:       *collection.EmptyMap[string, contextHandler](),
-		groupContextualizers: *collection.EmptyMap[string, collection.CollectionList[contextHandler]](),
-		errors:               *collection.EmptyMap[string, errorHandler](),
-		routes:               *collection.EmptyMap[string, requestHandler](),
+		contextualizer:       collection.DictionaryEmpty[string, contextHandler](),
+		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[contextHandler]](),
+		errors:               collection.DictionaryEmpty[string, errorHandler](),
+		routes:               collection.DictionaryEmpty[string, requestHandler](),
 	}
 }
 
@@ -42,9 +42,9 @@ func (r *Router) Contextualizer(handler contextHandler) *Router {
 }
 
 func (r *Router) GroupContextualizer(group string, handler contextHandler) *Router {
-	result := r.groupContextualizers.
-		ComputeIfAbsent(group, *collection.EmptyList[contextHandler]()).
-		Append(handler)
+	result, _ := r.groupContextualizers.
+		PutIfAbsent(group, *collection.VectorEmpty[contextHandler]())
+	result.Append(handler)
 	r.groupContextualizers.Put(group, *result)
 	return r
 }
@@ -82,16 +82,17 @@ func (r *Router) Listen(host string) error {
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
-	handler, ok := r.routes.Find(req.Pattern)
+	handler, ok := r.routes.Get(req.Pattern)
 	if !ok {
 		panic("//TODO: handler not found.")
 	}
-	contextualizer, ok := r.contextualizer.Find(req.Pattern)
+	contextualizer, ok := r.contextualizer.Get(req.Pattern)
 	if !ok {
-		contextualizer, ok = r.contextualizer.Find("$BASE")
+		contextualizer, ok = r.contextualizer.Get("$BASE")
 	}
 
-	context := collection.EmptyMap[string, any]()
+	var context Context
+	context = collection.DictionaryEmpty[string, any]()
 	if ok {
 		var err error
 		context, err = (*contextualizer)(wrt, req)
@@ -102,12 +103,12 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 
 	group := strings.Split(req.Pattern, " ")[1]
 
-	keys := r.groupContextualizers.KeysCollection().Filter(func(key string) bool {
+	keys := r.groupContextualizers.KeysVector().Filter(func(key string) bool {
 		return strings.HasPrefix(group, key)
 	})
 
 	keys.ForEach(func(i int, key string) {
-		funcs, ok := r.groupContextualizers.Find(key)
+		funcs, ok := r.groupContextualizers.Get(key)
 		if !ok {
 			return
 		}
@@ -117,7 +118,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				panic("//TODO: contextualizer error.")
 			}
-			context.Merge(result.Collect())
+			context.Merge(result)
 		})
 	})
 
@@ -126,9 +127,9 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	errorHandler, ok := r.errors.Find(req.Pattern)
+	errorHandler, ok := r.errors.Get(req.Pattern)
 	if !ok {
-		errorHandler, ok = r.errors.Find("$BASE")
+		errorHandler, ok = r.errors.Get("$BASE")
 	}
 
 	if ok {

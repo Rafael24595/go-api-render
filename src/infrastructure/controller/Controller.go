@@ -3,11 +3,10 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/commons/collection"
-	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
 type Controller struct {
@@ -15,47 +14,25 @@ type Controller struct {
 	manager templates.TemplateManager
 }
 
-func NewController(router *router.Router, repositoryHisotric *repository.RequestManager, repositoryPersisted *repository.RequestManager) Controller {
-	builder := templates.NewBuilder().
-		AddFunctions(map[string]any{
-			"FormatBytes": FormatBytes,
-			"ParseCookie": ParseCookie,
-			"BodyString":  BodyString,
-			"FormatXml":   FormatXml,
-			"FormatHtml":  FormatHtml,
-			"FormatJson":  FormatJson,
-		}).
-		AddPath("templates")
-
-	builder.ListManager().
-		PutStatic("headers-list", httpHeaders)
-
+func NewController(router *router.Router, repository *repository.RequestManager) Controller {
 	instance := Controller{
 		router:  router,
-		manager: builder.Make(),
+		manager: templates.NewBuilder().Make(),
 	}
 
-	router.ResourcesPath("templates").
+	router.
 		Contextualizer(instance.contextualizer).
 		ErrorHandler(instance.error)
 
-	NewControllerClient(router, builder, repositoryHisotric, repositoryPersisted)
-	NewControllerCollection(router, builder)
+	NewControllerApiClient(router, repository)
 
 	return instance
 }
 
 func (c *Controller) contextualizer(w http.ResponseWriter, r *http.Request) (router.Context, error) {
-	return collection.FromMap(map[string]any{
-		"Constants": configuration.GetConstants(),
-	}), nil
+	return collection.DictionaryEmpty[string, any](), nil
 }
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
-	context.Merge(map[string]any{
-		"BodyTemplate": "error.html",
-		"Error":        err,
-	})
-
-	c.manager.Render(w, "home.html", context)
+	w.WriteHeader(http.StatusInternalServerError)
 }

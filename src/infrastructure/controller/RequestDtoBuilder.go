@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/Rafael24595/go-api-core/src/commons"
-	"github.com/Rafael24595/go-api-core/src/commons/collection"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/auth"
 	"github.com/Rafael24595/go-api-core/src/domain/body"
 	"github.com/Rafael24595/go-api-core/src/domain/header"
 	"github.com/Rafael24595/go-api-core/src/domain/query"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
 var constants = configuration.GetConstants()
@@ -83,12 +83,12 @@ func proccessUrl(r *http.Request) (string, error) {
 func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 	form := r.Form
 
-	uuids := collection.FromMap(form).
-		KeysCollection().
+	uuids := collection.DictionaryFromMap(form).
+		KeysVector().
 		Filter(func(k string) bool {
 			return strings.Contains(k, constants.Format.FormatKey(constants.Query.Name, ""))
 		}).
-		MapSelf(func(k string) string {
+		Map(func(i int, k string) string {
 			parts := strings.Split(k, constants.Format.KeySeparator)
 			return parts[len(parts)-1]
 		}).
@@ -113,12 +113,12 @@ func proccessQueryParams(r *http.Request) (*query.Queries, error) {
 func proccessHeaders(r *http.Request) (*header.Headers, error) {
 	form := r.Form
 
-	uuids := collection.FromMap(form).
-	KeysCollection().
+	uuids := collection.DictionaryFromMap(form).
+	KeysVector().
 		Filter(func(k string) bool {
 			return strings.Contains(k, constants.Format.FormatKey(constants.Header.Name, ""))
 		}).
-		MapSelf(func(k string) string {
+		Map(func(i int, k string) string {
 			parts := strings.Split(k, constants.Format.KeySeparator)
 			return parts[len(parts)-1]
 		}).

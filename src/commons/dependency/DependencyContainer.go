@@ -3,10 +3,10 @@ package dependency
 import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
-	core_repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/response"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
 const (
@@ -17,13 +17,12 @@ const (
 var instance *DependencyContainer
 
 type DependencyContainer struct {
-	RepositoryHisotric  *repository.RequestManager
-	RepositoryPersisted *repository.RequestManager
+	RepositoryActions  *repository.RequestManager
 }
 
 func Initialize() *DependencyContainer {
 	if instance != nil {
-		panic("//TODO: Yet instanced")
+		panic("//TODO: Already instanced")
 	}
 
 	_, err := core_infrastructure.WarmUp()
@@ -31,12 +30,10 @@ func Initialize() *DependencyContainer {
 		println(err.Error())
 	}
 
-	repositoryHisotric := loadHistoricMemoryDependencies()
-	repositoryPersisted := loadPersistedMemoryDependencies()
+	repositoryActions := loadRepositoryActions()
 
 	container := &DependencyContainer{
-		RepositoryHisotric:  repositoryHisotric,
-		RepositoryPersisted: repositoryPersisted,
+		RepositoryActions:  repositoryActions,
 	}
 
 	instance = container
@@ -44,40 +41,26 @@ func Initialize() *DependencyContainer {
 	return instance
 }
 
-func loadHistoricMemoryDependencies() *repository.RequestManager {
-	fileRequest := core_repository.NewManagerCsvtFile(domain.NewRequestDefault, request.CSVT_HISTORIC_FILE_PATH)
-	requestQuery, err := request.InitializeMemoryQuery(fileRequest)
+func loadRepositoryActions() *repository.RequestManager {
+	fileRequest := repository.NewManagerCsvtFile(domain.NewRequestDefault, request.CSVT_FILE_PATH_REQUEST)
+	implRequest := collection.DictionarySyncEmpty[string, domain.Request]()
+	repositoryRequest, err := request.InitializeRepositoryMemory(implRequest, fileRequest)
 	if err != nil {
 		panic(err)
 	}
-	requestCommand := request.NewMemoryCommand(requestQuery)
 
-	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, response.CSVT_HISTORIC_FILE_PATH)
-	responseQuery, err := response.InitializeMemoryQuery(fileResponse)
+	fileResponse := repository.NewManagerCsvtFile(domain.NewResponseDefault, request.CSVT_FILE_PATH_RESPONSE)
+	implResponse := collection.DictionarySyncEmpty[string, domain.Response]()
+	repositoryResponse, err := response.InitializeRepositoryMemory(implResponse, fileResponse)
 	if err != nil {
 		panic(err)
 	}
-	responseCommand := response.NewMemoryCommand(responseQuery)
 
-	return repository.NewRequestManagerLimited(10, requestQuery, requestCommand, responseQuery, responseCommand).
-		SetPrefix(PRESIST_PREFIX)
+	return repository.NewRequestManager(repositoryRequest, repositoryResponse).
+		SetInsertPolicy(fixHistoricSize)
 }
 
-func loadPersistedMemoryDependencies() *repository.RequestManager {
-	fileRequest := core_repository.NewManagerCsvtFile(domain.NewRequestDefault, request.CSVT_PERSISTED_FILE_PATH)
-	requestQuery, err := request.InitializeMemoryQuery(fileRequest)
-	if err != nil {
-		panic(err)
-	}
-	requestCommand := request.NewMemoryCommand(requestQuery)
-
-	fileResponse := core_repository.NewManagerCsvtFile(domain.NewResponseDefault, response.CSVT_PERSISTED_FILE_PATH)
-	responseQuery, err := response.InitializeMemoryQuery(fileResponse)
-	if err != nil {
-		panic(err)
-	}
-	responseCommand := response.NewMemoryCommand(responseQuery)
-
-	return repository.NewRequestManager(requestQuery, requestCommand, responseQuery, responseCommand).
-		SetPrefix(PRESIST_PREFIX)
+func fixHistoricSize(request *domain.Request, repositoryRequest repository.IRepositoryRequest, repositoryResponse repository.IRepositoryResponse) error {
+	//TODO: Implement
+	return nil
 }
