@@ -14,17 +14,23 @@ type Controller struct {
 	manager templates.TemplateManager
 }
 
-func NewController(router *router.Router, repository *repository.RequestManager) Controller {
+func NewController(route *router.Router, repository *repository.RequestManager) Controller {
 	instance := Controller{
-		router:  router,
+		router:  route,
 		manager: templates.NewBuilder().Make(),
 	}
 
-	router.
-		Contextualizer(instance.contextualizer).
-		ErrorHandler(instance.error)
+	cors := router.EmptyCors().
+		AllowedOrigins([]string{"*"}).
+		AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}).
+		AllowedHeaders([]string{"Content-Type", "Authorization"})
 
-	NewControllerApiClient(router, repository)
+	route.
+		Contextualizer(instance.contextualizer).
+		ErrorHandler(instance.error).
+		Cors(cors)
+
+	NewControllerApiClient(route, repository)
 
 	return instance
 }

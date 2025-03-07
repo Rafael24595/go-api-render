@@ -41,7 +41,7 @@ func (c *ControllerApiClient) doAction(w http.ResponseWriter, r *http.Request, c
 		return err
 	}
 
-	actionRequest, actionResponse = c.repository.Insert(*actionRequest, actionResponse)
+	//actionRequest, actionResponse = c.repository.Insert(*actionRequest, actionResponse)
 
 	response := responseAction{
 		Request:  *actionRequest,

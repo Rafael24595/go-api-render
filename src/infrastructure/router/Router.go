@@ -18,6 +18,7 @@ type Router struct {
 	groupContextualizers collection.IDictionary[string, collection.Vector[contextHandler]]
 	errors               collection.IDictionary[string, errorHandler]
 	routes               collection.IDictionary[string, requestHandler]
+	cors                 *Cors
 }
 
 func NewRouter() *Router {
@@ -26,6 +27,7 @@ func NewRouter() *Router {
 		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[contextHandler]](),
 		errors:               collection.DictionaryEmpty[string, errorHandler](),
 		routes:               collection.DictionaryEmpty[string, requestHandler](),
+		cors:                 EmptyCors(),
 	}
 }
 
@@ -72,13 +74,33 @@ func (r *Router) Route(method string, handler requestHandler, pattern string, pa
 	return r
 }
 
+func (r *Router) Cors(cors *Cors) *Router {
+	r.cors = cors
+	return r
+}
+
+func (r *Router) corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", strings.Join(r.cors.allowedOrigins, ", "))
+		w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
+		w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
+
+		if req.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, req)
+	})
+}
+
 func (r Router) patternKey(method, pattern string, params ...any) string {
 	return fmt.Sprintf("%s %s", method, fmt.Sprintf(pattern, params...))
 }
 
 func (r *Router) Listen(host string) error {
 	println(fmt.Sprintf("Listen at: %s", host))
-	return http.ListenAndServe(host, nil)
+	return http.ListenAndServe(host, r.corsMiddleware(http.DefaultServeMux))
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
@@ -112,7 +134,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		if !ok {
 			return
 		}
-		
+
 		funcs.ForEach(func(i int, f contextHandler) {
 			result, err := f(wrt, req)
 			if err != nil {
