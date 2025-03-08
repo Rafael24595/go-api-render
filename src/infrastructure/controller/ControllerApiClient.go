@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/domain"
+	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 )
 
 const ID_REQUEST = "id_request"
@@ -31,7 +32,7 @@ func NewControllerApiClient(router *router.Router, repository *repository.Reques
 }
 
 func (c *ControllerApiClient) doAction(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	actionRequest, err := proccessRequest(r)
+	actionRequest, err := jsonDeserialize[domain.Request](r)
 	if err != nil {
 		return err
 	}
@@ -82,4 +83,13 @@ func (c *ControllerApiClient) action(w http.ResponseWriter, r *http.Request, con
 	json.NewEncoder(w).Encode(response)
 
 	return nil
+}
+
+func jsonDeserialize[T any](r *http.Request) (*T, error) {
+	var item T
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
