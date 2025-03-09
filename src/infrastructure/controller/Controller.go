@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
@@ -14,7 +15,7 @@ type Controller struct {
 	manager templates.TemplateManager
 }
 
-func NewController(route *router.Router, repository *repository.RequestManager) Controller {
+func NewController(route *router.Router, repositoryManager *repository.RequestManager, repositoryHisotric repository.IRepositoryHistoric) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),
@@ -30,7 +31,8 @@ func NewController(route *router.Router, repository *repository.RequestManager) 
 		ErrorHandler(instance.error).
 		Cors(cors)
 
-	NewControllerApiClient(route, repository)
+	NewControllerActions(route, repositoryManager)
+	NewControllerStorage(route, repositoryManager, repositoryHisotric)
 
 	return instance
 }
@@ -41,4 +43,13 @@ func (c *Controller) contextualizer(w http.ResponseWriter, r *http.Request) (rou
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func jsonDeserialize[T any](r *http.Request) (*T, error) {
+	var item T
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }

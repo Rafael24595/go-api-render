@@ -12,13 +12,13 @@ import (
 
 const ID_REQUEST = "id_request"
 
-type ControllerApiClient struct {
+type ControllerActions struct {
 	router     *router.Router
 	repository *repository.RequestManager
 }
 
-func NewControllerApiClient(router *router.Router, repository *repository.RequestManager) ControllerApiClient {
-	instance := ControllerApiClient{
+func NewControllerActions(router *router.Router, repository *repository.RequestManager) ControllerActions {
+	instance := ControllerActions{
 		router:     router,
 		repository: repository,
 	}
@@ -31,7 +31,7 @@ func NewControllerApiClient(router *router.Router, repository *repository.Reques
 	return instance
 }
 
-func (c *ControllerApiClient) doAction(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerActions) doAction(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	actionRequest, err := jsonDeserialize[domain.Request](r)
 	if err != nil {
 		return err
@@ -41,8 +41,6 @@ func (c *ControllerApiClient) doAction(w http.ResponseWriter, r *http.Request, c
 	if err != nil {
 		return err
 	}
-
-	//actionRequest, actionResponse = c.repository.Insert(*actionRequest, actionResponse)
 
 	response := responseAction{
 		Request:  *actionRequest,
@@ -54,7 +52,7 @@ func (c *ControllerApiClient) doAction(w http.ResponseWriter, r *http.Request, c
 	return nil
 }
 
-func (c *ControllerApiClient) actions(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerActions) actions(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	actions := c.repository.FindAll()
 
 	response := responseActionRequests{
@@ -66,7 +64,7 @@ func (c *ControllerApiClient) actions(w http.ResponseWriter, r *http.Request, co
 	return nil
 }
 
-func (c *ControllerApiClient) action(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, context router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse, ok := c.repository.Find(idRequest)
@@ -83,13 +81,4 @@ func (c *ControllerApiClient) action(w http.ResponseWriter, r *http.Request, con
 	json.NewEncoder(w).Encode(response)
 
 	return nil
-}
-
-func jsonDeserialize[T any](r *http.Request) (*T, error) {
-	var item T
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		return nil, err
-	}
-	return &item, nil
 }
