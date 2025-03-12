@@ -31,6 +31,7 @@ func NewControllerStorage(
 	router.
 		Route(http.MethodPost, instance.storage, "/api/v1/storage/{%s}", USER).
 		Route(http.MethodGet, instance.findAll, "/api/v1/storage/{%s}", USER).
+		Route(http.MethodDelete, instance.delete, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
 		Route(http.MethodGet, instance.find, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
 		Route(http.MethodPost, instance.historic, "/api/v1/historic/{%s}", USER).
 		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic/{%s}", USER)
@@ -106,6 +107,21 @@ func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, cont
 
 	response := responseActionRequests{
 		Requests: actions,
+	}
+
+	json.NewEncoder(w).Encode(response)
+
+	return nil
+}
+
+func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	idRequest := r.PathValue(ID_REQUEST)
+
+	actionRequest, actionResponse := c.repositoryActions.DeleteById(idRequest)
+	
+	response := responseAction{
+		Request:  *actionRequest,
+		Response: *actionResponse,
 	}
 
 	json.NewEncoder(w).Encode(response)
