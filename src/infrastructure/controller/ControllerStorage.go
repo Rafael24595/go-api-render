@@ -103,13 +103,13 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, con
 }
 
 func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	actions := c.repositoryActions.FindAll()
-
-	response := responseActionRequests{
-		Requests: actions,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	actions := c.repositoryActions.FindOptions(repository.FilterOptions[domain.Request]{
+		Predicate: func(r domain.Request) bool {
+			return r.Status == domain.FINAL
+		},
+	})
+	
+	json.NewEncoder(w).Encode(actions)
 
 	return nil
 }
