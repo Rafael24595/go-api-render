@@ -1,9 +1,0 @@
-<script>
-    document.jsonViewer = CodeMirror(document.getElementById('response-payload-bytes'), {
-        value: "{{ FormatJson (String .Response.Body.Bytes) }}",
-        lineNumbers: true,
-        lineWrapping: true,
-        mode: "javascript",
-        readOnly: true
-    });
-</script>
