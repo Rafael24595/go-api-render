@@ -51,7 +51,11 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, cont
 	}
 
 	action.Request.Owner = user
+
 	action.Request.Status = domain.FINAL
+	if action.Request.Status == domain.DRAFT {
+		action.Request.Id = ""
+	}
 
 	actionRequest, actionResponse := c.repositoryActions.Insert(action.Request, &action.Response)
 
