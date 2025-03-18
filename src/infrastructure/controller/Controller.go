@@ -15,7 +15,7 @@ type Controller struct {
 	manager templates.TemplateManager
 }
 
-func NewController(route *router.Router, repositoryManager *repository.RequestManager, repositoryHisotric repository.IRepositoryHistoric) Controller {
+func NewController(route *router.Router, repositoryContext repository.IRepositoryContext, repositoryManager *repository.RequestManager, repositoryHisotric repository.IRepositoryHistoric) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),
@@ -32,7 +32,7 @@ func NewController(route *router.Router, repositoryManager *repository.RequestMa
 		Cors(cors)
 
 	NewControllerActions(route, repositoryManager)
-	NewControllerStorage(route, repositoryManager, repositoryHisotric)
+	NewControllerStorage(route, repositoryContext, repositoryManager, repositoryHisotric)
 
 	return instance
 }

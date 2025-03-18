@@ -2,8 +2,11 @@ package dependency
 
 import (
 	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/context"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	repository_context "github.com/Rafael24595/go-api-core/src/infrastructure/repository/context"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/historic"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/response"
@@ -18,6 +21,7 @@ const (
 var instance *DependencyContainer
 
 type DependencyContainer struct {
+	RepositoryContext repository.IRepositoryContext
 	RepositoryActions  *repository.RequestManager
 	RepositoryHistoric repository.IRepositoryHistoric
 }
@@ -32,10 +36,12 @@ func Initialize() *DependencyContainer {
 		println(err.Error())
 	}
 
+	repositoryContext := loadRepositoryContext()
 	repositoryActions := loadRepositoryActions()
 	repositoryHistoric := loadRepositoryHisotric()
 
 	container := &DependencyContainer{
+		RepositoryContext: repositoryContext,
 		RepositoryActions:  repositoryActions,
 		RepositoryHistoric: repositoryHistoric,
 	}
@@ -43,6 +49,17 @@ func Initialize() *DependencyContainer {
 	instance = container
 
 	return instance
+}
+
+func loadRepositoryContext() repository.IRepositoryContext {
+	fileResponse := repository.NewManagerCsvtFile(dto.NewDtoContextDefault, repository.CSVT_FILE_PATH_CONTEXT)
+	implResponse := collection.DictionarySyncEmpty[string, context.Context]()
+	repositoryResponse, err := repository_context.InitializeRepositoryMemory(implResponse, fileResponse)
+	if err != nil {
+		panic(err)
+	}
+
+	return repositoryResponse
 }
 
 func loadRepositoryActions() *repository.RequestManager {

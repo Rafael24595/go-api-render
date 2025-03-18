@@ -6,6 +6,7 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 )
 
@@ -13,22 +14,27 @@ const USER = "user"
 
 type ControllerStorage struct {
 	router             *router.Router
+	repositoryContext  repository.IRepositoryContext
 	repositoryActions  *repository.RequestManager
 	repositoryHisotric repository.IRepositoryHistoric
 }
 
 func NewControllerStorage(
-		router *router.Router, 
-		repository *repository.RequestManager, 
-		repositoryHisotric repository.IRepositoryHistoric) ControllerStorage {
+	router *router.Router,
+	repositoryContext repository.IRepositoryContext,
+	repository *repository.RequestManager,
+	repositoryHisotric repository.IRepositoryHistoric) ControllerStorage {
 	instance := ControllerStorage{
-		router:     router,
-		repositoryActions: repository,
+		router:             router,
+		repositoryContext:  repositoryContext,
+		repositoryActions:  repository,
 		repositoryHisotric: repositoryHisotric,
 	}
 
 	//TODO: Extract users from token.
 	router.
+		Route(http.MethodGet, instance.findContext, "/api/v1/context/{%s}", USER).
+		Route(http.MethodPost, instance.insertContext, "/api/v1/context/{%s}", USER).
 		Route(http.MethodPost, instance.storage, "/api/v1/storage/{%s}", USER).
 		Route(http.MethodGet, instance.findAll, "/api/v1/storage/{%s}", USER).
 		Route(http.MethodDelete, instance.delete, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
@@ -39,7 +45,47 @@ func NewControllerStorage(
 	return instance
 }
 
-func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) findContext(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := r.PathValue(USER)
+	if user == "" {
+		user = domain.ANONYMOUS_OWNER
+	}
+
+	context, ok := c.repositoryContext.FindByOwner(user)
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return nil
+	}
+
+	dtoContext := dto.FromContext(context)
+
+	json.NewEncoder(w).Encode(dtoContext)
+
+	return nil
+}
+
+func (c *ControllerStorage) insertContext(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := r.PathValue(USER)
+	if user == "" {
+		user = domain.ANONYMOUS_OWNER
+	}
+
+	dtoContext, err := jsonDeserialize[dto.DtoContext](r)
+	if err != nil {
+		return err
+	}
+
+	context := dto.ToContext(dtoContext)
+	context = c.repositoryContext.Insert(user, context)
+
+	dtoContext = dto.FromContext(context)
+
+	json.NewEncoder(w).Encode(dtoContext)
+
+	return nil
+}
+
+func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := r.PathValue(USER)
 	if user == "" {
 		user = domain.ANONYMOUS_OWNER
@@ -57,7 +103,7 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, cont
 		action.Request.Id = ""
 	}
 
-	actionRequest, actionResponse := c.repositoryActions.Insert(action.Request, &action.Response)
+	actionRequest, actionResponse := c.repositoryActions.Insert(user, &action.Request, &action.Response)
 
 	response := responseAction{
 		Request:  *actionRequest,
@@ -69,7 +115,7 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, cont
 	return nil
 }
 
-func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := r.PathValue(USER)
 	if user == "" {
 		user = domain.ANONYMOUS_OWNER
@@ -90,7 +136,7 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, con
 
 	action.Request.Owner = user
 
-	actionRequest, actionResponse := c.repositoryActions.Insert(action.Request, &action.Response)
+	actionRequest, actionResponse := c.repositoryActions.Insert(user, &action.Request, &action.Response)
 
 	step := domain.NewHistoric(actionRequest.Id, user)
 	c.repositoryHisotric.Insert(*step)
@@ -106,23 +152,23 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, con
 	return nil
 }
 
-func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	actions := c.repositoryActions.FindOptions(repository.FilterOptions[domain.Request]{
 		Predicate: func(r domain.Request) bool {
 			return r.Status == domain.FINAL
 		},
 	})
-	
+
 	json.NewEncoder(w).Encode(actions)
 
 	return nil
 }
 
-func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse := c.repositoryActions.DeleteById(idRequest)
-	
+
 	response := responseAction{
 		Request:  *actionRequest,
 		Response: *actionResponse,
@@ -133,7 +179,7 @@ func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, conte
 	return nil
 }
 
-func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse, ok := c.repositoryActions.Find(idRequest)
@@ -152,7 +198,7 @@ func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, context
 	return nil
 }
 
-func (c *ControllerStorage) findHistoric(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *ControllerStorage) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := r.PathValue(USER)
 	if user == "" {
 		user = domain.ANONYMOUS_OWNER
