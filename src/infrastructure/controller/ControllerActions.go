@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
@@ -24,24 +23,24 @@ func NewControllerActions(router *router.Router, repository *repository.RequestM
 	}
 
 	router.
-		Route(http.MethodPost, instance.doAction, "/api/v1/action")
+		Route(http.MethodPost, instance.action, "/api/v1/action")
 
 	return instance
 }
 
-func (c *ControllerActions) doAction(w http.ResponseWriter, r *http.Request, context router.Context) error {
-	actionRequest, err := jsonDeserialize[domain.Request](r)
+func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, context router.Context) error {
+	actionRequest, err := jsonDeserialize[RequestExecuteAction](r)
 	if err != nil {
 		return err
 	}
 
-	actionResponse, err := core_infrastructure.Client().Fetch(*actionRequest)
+	actionResponse, err := core_infrastructure.Client().Fetch(actionRequest.Request)
 	if err != nil {
 		return err
 	}
 
 	response := responseAction{
-		Request:  *actionRequest,
+		Request:  actionRequest.Request,
 		Response: *actionResponse,
 	}
 
