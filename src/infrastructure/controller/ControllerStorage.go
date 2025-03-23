@@ -98,8 +98,8 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx 
 
 	action.Request.Owner = user
 
-	action.Request.Status = domain.FINAL
 	if action.Request.Status == domain.DRAFT {
+		action.Request.Status = domain.FINAL
 		action.Request.Id = ""
 	}
 
