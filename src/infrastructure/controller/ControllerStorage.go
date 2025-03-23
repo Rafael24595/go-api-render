@@ -103,11 +103,11 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx 
 		action.Request.Id = ""
 	}
 
-	actionRequest, actionResponse := c.repositoryActions.Insert(user, &action.Request, &action.Response)
+	actionRequest, actionResponse := c.repositoryActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	response := responseAction{
-		Request:  *actionRequest,
-		Response: *actionResponse,
+		Request:  *dto.FromRequest(actionRequest),
+		Response: *dto.FromResponse(actionResponse),
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -136,15 +136,15 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, ctx
 
 	action.Request.Owner = user
 
-	actionRequest, actionResponse := c.repositoryActions.Insert(user, &action.Request, &action.Response)
+	actionRequest, actionResponse := c.repositoryActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	step := domain.NewHistoric(actionRequest.Id, user)
 	c.repositoryHisotric.Insert(*step)
 	//TODO: Implement delete old steps
 
 	response := responseAction{
-		Request:  *actionRequest,
-		Response: *actionResponse,
+		Request:  *dto.FromRequest(actionRequest),
+		Response: *dto.FromResponse(actionResponse),
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -170,8 +170,8 @@ func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, ctx r
 	actionRequest, actionResponse := c.repositoryActions.DeleteById(idRequest)
 
 	response := responseAction{
-		Request:  *actionRequest,
-		Response: *actionResponse,
+		Request:  *dto.FromRequest(actionRequest),
+		Response: *dto.FromResponse(actionResponse),
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -189,8 +189,8 @@ func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, ctx rou
 	}
 
 	response := responseAction{
-		Request:  *actionRequest,
-		Response: *actionResponse,
+		Request:  *dto.FromRequest(actionRequest),
+		Response: *dto.FromResponse(actionResponse),
 	}
 
 	json.NewEncoder(w).Encode(response)

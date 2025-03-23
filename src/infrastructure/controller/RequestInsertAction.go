@@ -1,8 +1,10 @@
 package controller
 
-import "github.com/Rafael24595/go-api-core/src/domain"
+import (
+	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
+)
 
 type RequestInsertAction struct {
-	Request  domain.Request
-	Response domain.Response
+	Request  dto.DtoRequest
+	Response dto.DtoResponse
 }

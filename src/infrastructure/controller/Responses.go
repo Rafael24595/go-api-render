@@ -1,12 +1,10 @@
 package controller
 
-import "github.com/Rafael24595/go-api-core/src/domain"
-
-type responseActionRequests struct {
-	Requests []domain.Request `json:"requests"`
-}
+import (
+	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
+)
 
 type responseAction struct {
-	Request  domain.Request  `json:"request"`
-	Response domain.Response `json:"response"`
+	Request  dto.DtoRequest  `json:"request"`
+	Response dto.DtoResponse `json:"response"`
 }

@@ -45,8 +45,8 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx r
 	}
 
 	response := responseAction{
-		Request:  *actionRequest,
-		Response: *actionResponse,
+		Request:  *dto.FromRequest(actionRequest),
+		Response: *dto.FromResponse(actionResponse),
 	}
 
 	json.NewEncoder(w).Encode(response)
