@@ -43,6 +43,7 @@ func (c *Controller) contextualizer(w http.ResponseWriter, r *http.Request) (rou
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(err.Error()))
 }
 
 func jsonDeserialize[T any](r *http.Request) (*T, error) {
