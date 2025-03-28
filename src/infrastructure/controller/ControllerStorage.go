@@ -3,10 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/Rafael24595/go-api-core/src/domain"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 )
 
@@ -101,6 +102,8 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx 
 	if action.Request.Status == domain.DRAFT {
 		action.Request.Status = domain.FINAL
 		action.Request.Id = ""
+		action.Request.Timestamp = time.Now().UnixMilli()
+		action.Request.Modified = action.Request.Timestamp
 	}
 
 	actionRequest, actionResponse := c.repositoryActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
