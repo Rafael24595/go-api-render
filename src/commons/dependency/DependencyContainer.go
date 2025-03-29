@@ -6,6 +6,7 @@ import (
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	repository_collection "github.com/Rafael24595/go-api-core/src/infrastructure/repository/collection"
 	repository_context "github.com/Rafael24595/go-api-core/src/infrastructure/repository/context"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/historic"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository/request"
@@ -21,9 +22,10 @@ const (
 var instance *DependencyContainer
 
 type DependencyContainer struct {
-	RepositoryContext repository.IRepositoryContext
-	RepositoryActions  *repository.RequestManager
-	RepositoryHistoric repository.IRepositoryHistoric
+	RepositoryContext    repository.IRepositoryContext
+	RepositoryActions    *repository.RequestManager
+	RepositoryHistoric   repository.IRepositoryHistoric
+	RepositoryCollection repository.IRepositoryCollection
 }
 
 func Initialize() *DependencyContainer {
@@ -36,30 +38,21 @@ func Initialize() *DependencyContainer {
 		println(err.Error())
 	}
 
-	repositoryContext := loadRepositoryContext()
 	repositoryActions := loadRepositoryActions()
 	repositoryHistoric := loadRepositoryHisotric()
+	repositoryContext := loadRepositoryContext()
+	repositoryCollection := loadRepositoryCollection(repositoryContext)
 
 	container := &DependencyContainer{
-		RepositoryContext: repositoryContext,
-		RepositoryActions:  repositoryActions,
-		RepositoryHistoric: repositoryHistoric,
+		RepositoryContext:    repositoryContext,
+		RepositoryActions:    repositoryActions,
+		RepositoryHistoric:   repositoryHistoric,
+		RepositoryCollection: repositoryCollection,
 	}
 
 	instance = container
 
 	return instance
-}
-
-func loadRepositoryContext() repository.IRepositoryContext {
-	fileResponse := repository.NewManagerCsvtFile(dto.NewDtoContextDefault, repository.CSVT_FILE_PATH_CONTEXT)
-	implResponse := collection.DictionarySyncEmpty[string, context.Context]()
-	repositoryResponse, err := repository_context.InitializeRepositoryMemory(implResponse, fileResponse)
-	if err != nil {
-		panic(err)
-	}
-
-	return repositoryResponse
 }
 
 func loadRepositoryActions() *repository.RequestManager {
@@ -82,14 +75,36 @@ func loadRepositoryActions() *repository.RequestManager {
 }
 
 func loadRepositoryHisotric() repository.IRepositoryHistoric {
-	fileResponse := repository.NewManagerCsvtFile(domain.NewHistoricDefault, repository.CSVT_FILE_PATH_HISTORIC)
-	implResponse := collection.DictionarySyncEmpty[string, domain.Historic]()
-	repositoryResponse, err := historic.InitializeRepositoryMemory(implResponse, fileResponse)
+	file := repository.NewManagerCsvtFile(domain.NewHistoricDefault, repository.CSVT_FILE_PATH_HISTORIC)
+	impl := collection.DictionarySyncEmpty[string, domain.Historic]()
+	repository, err := historic.InitializeRepositoryMemory(impl, file)
 	if err != nil {
 		panic(err)
 	}
 
-	return repositoryResponse
+	return repository
+}
+
+func loadRepositoryContext() repository.IRepositoryContext {
+	file := repository.NewManagerCsvtFile(dto.NewDtoContextDefault, repository.CSVT_FILE_PATH_CONTEXT)
+	impl := collection.DictionarySyncEmpty[string, context.Context]()
+	repository, err := repository_context.InitializeRepositoryMemory(impl, file)
+	if err != nil {
+		panic(err)
+	}
+
+	return repository
+}
+
+func loadRepositoryCollection(context repository.IRepositoryContext) repository.IRepositoryCollection {
+	file := repository.NewManagerCsvtFile(domain.NewCollectionDefault, repository.CSVT_FILE_PATH_COLLECTION)
+	impl := collection.DictionarySyncEmpty[string, domain.Collection]()
+	repository, err := repository_collection.InitializeRepositoryMemory(impl, file, context)
+	if err != nil {
+		panic(err)
+	}
+
+	return repository
 }
 
 func fixHistoricSize(request *domain.Request, repositoryRequest repository.IRepositoryRequest, repositoryResponse repository.IRepositoryResponse) error {

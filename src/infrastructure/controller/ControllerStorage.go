@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
@@ -12,24 +11,28 @@ import (
 )
 
 const USER = "user"
+const COLLECTION = "collection"
 
 type ControllerStorage struct {
-	router             *router.Router
-	repositoryContext  repository.IRepositoryContext
-	repositoryActions  *repository.RequestManager
-	repositoryHisotric repository.IRepositoryHistoric
+	router               *router.Router
+	repositoryContext    repository.IRepositoryContext
+	repositoryActions    *repository.RequestManager
+	repositoryHisotric   repository.IRepositoryHistoric
+	repositoryCollection repository.IRepositoryCollection
 }
 
 func NewControllerStorage(
 	router *router.Router,
 	repositoryContext repository.IRepositoryContext,
 	repository *repository.RequestManager,
-	repositoryHisotric repository.IRepositoryHistoric) ControllerStorage {
+	repositoryHisotric repository.IRepositoryHistoric,
+	repositoryCollection repository.IRepositoryCollection) ControllerStorage {
 	instance := ControllerStorage{
 		router:             router,
 		repositoryContext:  repositoryContext,
 		repositoryActions:  repository,
 		repositoryHisotric: repositoryHisotric,
+		repositoryCollection: repositoryCollection,
 	}
 
 	//TODO: Extract users from token.
@@ -41,7 +44,9 @@ func NewControllerStorage(
 		Route(http.MethodDelete, instance.delete, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
 		Route(http.MethodGet, instance.find, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
 		Route(http.MethodPost, instance.historic, "/api/v1/historic/{%s}", USER).
-		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic/{%s}", USER)
+		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic/{%s}", USER).
+		Route(http.MethodGet, instance.findCollection, "/api/v1/collection/{%s}", USER).
+		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection/{%s}", USER)
 
 	return instance
 }
@@ -97,16 +102,7 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx 
 		return err
 	}
 
-	action.Request.Owner = user
-
-	if action.Request.Status == domain.DRAFT {
-		action.Request.Status = domain.FINAL
-		action.Request.Id = ""
-		action.Request.Timestamp = time.Now().UnixMilli()
-		action.Request.Modified = action.Request.Timestamp
-	}
-
-	actionRequest, actionResponse := c.repositoryActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
+	actionRequest, actionResponse := c.repositoryActions.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	response := responseAction{
 		Request:  *dto.FromRequest(actionRequest),
@@ -129,15 +125,9 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, ctx
 		return err
 	}
 
-	if _, err := domain.StatusFromString(string(action.Request.Status)); err != nil {
-		action.Request.Status = domain.DRAFT
-	}
-
 	if action.Request.Status != domain.DRAFT {
 		return nil
 	}
-
-	action.Request.Owner = user
 
 	actionRequest, actionResponse := c.repositoryActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
@@ -211,6 +201,54 @@ func (c *ControllerStorage) findHistoric(w http.ResponseWriter, r *http.Request,
 	requests := c.repositoryActions.FindSteps(steps)
 
 	json.NewEncoder(w).Encode(requests)
+
+	return nil
+}
+
+func (c *ControllerStorage) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := r.PathValue(USER)
+	if user == "" {
+		user = domain.ANONYMOUS_OWNER
+	}
+
+	collections := c.repositoryCollection.FindByOwner(user)
+
+	dtos := make([]dto.DtoCollection, len(collections))
+	for i, v := range collections {
+		requests := c.repositoryActions.FindNodes(v.Nodes)
+		context, _ := c.repositoryContext.FindByCollection(v.Owner, v.Name)
+		dtoContext := dto.FromContext(context)
+		dtos[i] = dto.DtoCollection{
+			Id: v.Id,
+			Name: v.Name,
+			Timestamp: v.Timestamp,
+			Context: *dtoContext,
+			Nodes: requests,
+			Owner: v.Owner,
+			Modified: v.Modified,
+		}
+	}
+
+
+	json.NewEncoder(w).Encode(dtos)
+
+	return nil
+}
+
+func (c *ControllerStorage) insertCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := r.PathValue(USER)
+	if user == "" {
+		user = domain.ANONYMOUS_OWNER
+	}
+
+	collection, err := jsonDeserialize[domain.Collection](r)
+	if err != nil {
+		return err
+	}
+
+	collection = c.repositoryCollection.Insert(user, collection)
+
+	json.NewEncoder(w).Encode(collection)
 
 	return nil
 }
