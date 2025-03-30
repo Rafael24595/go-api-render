@@ -16,21 +16,21 @@ const COLLECTION = "collection"
 type ControllerStorage struct {
 	router               *router.Router
 	repositoryContext    repository.IRepositoryContext
-	repositoryActions    *repository.RequestManager
+	repositoryActions    *repository.ManagerRequest
 	repositoryHisotric   repository.IRepositoryHistoric
-	repositoryCollection repository.IRepositoryCollection
+	repositoryCollection *repository.ManagerCollection
 }
 
 func NewControllerStorage(
 	router *router.Router,
 	repositoryContext repository.IRepositoryContext,
-	repository *repository.RequestManager,
+	repositoryActions *repository.ManagerRequest,
 	repositoryHisotric repository.IRepositoryHistoric,
-	repositoryCollection repository.IRepositoryCollection) ControllerStorage {
+	repositoryCollection *repository.ManagerCollection) ControllerStorage {
 	instance := ControllerStorage{
 		router:             router,
 		repositoryContext:  repositoryContext,
-		repositoryActions:  repository,
+		repositoryActions:  repositoryActions,
 		repositoryHisotric: repositoryHisotric,
 		repositoryCollection: repositoryCollection,
 	}
@@ -39,14 +39,15 @@ func NewControllerStorage(
 	router.
 		Route(http.MethodGet, instance.findContext, "/api/v1/context/{%s}", USER).
 		Route(http.MethodPost, instance.insertContext, "/api/v1/context/{%s}", USER).
-		Route(http.MethodPost, instance.storage, "/api/v1/storage/{%s}", USER).
-		Route(http.MethodGet, instance.findAll, "/api/v1/storage/{%s}", USER).
-		Route(http.MethodDelete, instance.delete, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
-		Route(http.MethodGet, instance.find, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
-		Route(http.MethodPost, instance.historic, "/api/v1/historic/{%s}", USER).
+		Route(http.MethodPost, instance.insertAction, "/api/v1/storage/{%s}", USER).
+		Route(http.MethodGet, instance.findRequests, "/api/v1/storage/{%s}", USER).
+		Route(http.MethodDelete, instance.deleteAction, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
+		Route(http.MethodGet, instance.findAction, "/api/v1/storage/{%s}/{%s}", USER, ID_REQUEST).
+		Route(http.MethodPost, instance.insertHistoric, "/api/v1/historic/{%s}", USER).
 		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic/{%s}", USER).
 		Route(http.MethodGet, instance.findCollection, "/api/v1/collection/{%s}", USER).
-		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection/{%s}", USER)
+		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection/{%s}", USER).
+		Route(http.MethodPut, instance.pushToCollection, "/api/v1/collection/{%s}", USER)
 
 	return instance
 }
@@ -91,7 +92,7 @@ func (c *ControllerStorage) insertContext(w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := r.PathValue(USER)
 	if user == "" {
 		user = domain.ANONYMOUS_OWNER
@@ -114,7 +115,7 @@ func (c *ControllerStorage) storage(w http.ResponseWriter, r *http.Request, ctx 
 	return nil
 }
 
-func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) insertHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := r.PathValue(USER)
 	if user == "" {
 		user = domain.ANONYMOUS_OWNER
@@ -145,7 +146,7 @@ func (c *ControllerStorage) historic(w http.ResponseWriter, r *http.Request, ctx
 	return nil
 }
 
-func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	actions := c.repositoryActions.FindOptions(repository.FilterOptions[domain.Request]{
 		Predicate: func(r domain.Request) bool {
 			return r.Status == domain.FINAL
@@ -157,7 +158,7 @@ func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, ctx 
 	return nil
 }
 
-func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse := c.repositoryActions.DeleteById(idRequest)
@@ -172,7 +173,7 @@ func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, ctx r
 	return nil
 }
 
-func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse, ok := c.repositoryActions.Find(idRequest)
@@ -247,6 +248,26 @@ func (c *ControllerStorage) insertCollection(w http.ResponseWriter, r *http.Requ
 	}
 
 	collection = c.repositoryCollection.Insert(user, collection)
+
+	json.NewEncoder(w).Encode(collection)
+
+	return nil
+}
+
+func (c *ControllerStorage) pushToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := r.PathValue(USER)
+	if user == "" {
+		user = domain.ANONYMOUS_OWNER
+	}
+
+	payload, err := jsonDeserialize[RequestPushToCollection](r)
+	if err != nil {
+		return err
+	}
+
+	request := dto.ToRequest(&payload.Request)
+
+	collection := c.repositoryCollection.PushToCollection(user, payload.CollectionId, payload.CollectionName, request, payload.RequestName)
 
 	json.NewEncoder(w).Encode(collection)
 

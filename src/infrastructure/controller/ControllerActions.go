@@ -15,10 +15,10 @@ const ID_REQUEST = "id_request"
 
 type ControllerActions struct {
 	router     *router.Router
-	repository *repository.RequestManager
+	repository *repository.ManagerRequest
 }
 
-func NewControllerActions(router *router.Router, repository *repository.RequestManager) ControllerActions {
+func NewControllerActions(router *router.Router, repository *repository.ManagerRequest) ControllerActions {
 	instance := ControllerActions{
 		router:     router,
 		repository: repository,

@@ -18,9 +18,9 @@ type Controller struct {
 func NewController(
 		route *router.Router, 
 		repositoryContext repository.IRepositoryContext, 
-		repositoryManager *repository.RequestManager, 
+		repositoryManager *repository.ManagerRequest, 
 		repositoryHisotric repository.IRepositoryHistoric,
-		repositoryCollection repository.IRepositoryCollection) Controller {
+		repositoryCollection *repository.ManagerCollection) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),

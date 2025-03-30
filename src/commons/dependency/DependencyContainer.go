@@ -22,10 +22,10 @@ const (
 var instance *DependencyContainer
 
 type DependencyContainer struct {
-	RepositoryContext    repository.IRepositoryContext
-	RepositoryActions    *repository.RequestManager
-	RepositoryHistoric   repository.IRepositoryHistoric
-	RepositoryCollection repository.IRepositoryCollection
+	RepositoryContext  repository.IRepositoryContext
+	RepositoryHistoric repository.IRepositoryHistoric
+	ManagerActions     *repository.ManagerRequest
+	ManagerCollection  *repository.ManagerCollection
 }
 
 func Initialize() *DependencyContainer {
@@ -38,16 +38,21 @@ func Initialize() *DependencyContainer {
 		println(err.Error())
 	}
 
-	repositoryActions := loadRepositoryActions()
+	repositoryRequest := loadRepositoryRequest()
+	repositoryResponse := loadRepositoryResponse()
+
 	repositoryHistoric := loadRepositoryHisotric()
 	repositoryContext := loadRepositoryContext()
-	repositoryCollection := loadRepositoryCollection(repositoryContext)
+	repositoryCollection := loadRepositoryCollection()
+
+	managerRequest := loadManagerRequest(repositoryRequest, repositoryResponse)
+	managerCollection := loadManagerCollection(repositoryCollection, repositoryContext, repositoryRequest, repositoryResponse)
 
 	container := &DependencyContainer{
-		RepositoryContext:    repositoryContext,
-		RepositoryActions:    repositoryActions,
-		RepositoryHistoric:   repositoryHistoric,
-		RepositoryCollection: repositoryCollection,
+		RepositoryContext:  repositoryContext,
+		RepositoryHistoric: repositoryHistoric,
+		ManagerActions:     managerRequest,
+		ManagerCollection:  managerCollection,
 	}
 
 	instance = container
@@ -55,23 +60,26 @@ func Initialize() *DependencyContainer {
 	return instance
 }
 
-func loadRepositoryActions() *repository.RequestManager {
-	fileRequest := repository.NewManagerCsvtFile(domain.NewRequestDefault, repository.CSVT_FILE_PATH_REQUEST)
-	implRequest := collection.DictionarySyncEmpty[string, domain.Request]()
-	repositoryRequest, err := request.InitializeRepositoryMemory(implRequest, fileRequest)
+func loadRepositoryRequest() repository.IRepositoryRequest {
+	file := repository.NewManagerCsvtFile(domain.NewRequestDefault, repository.CSVT_FILE_PATH_REQUEST)
+	impl := collection.DictionarySyncEmpty[string, domain.Request]()
+	repository, err := request.InitializeRepositoryMemory(impl, file)
 	if err != nil {
 		panic(err)
 	}
 
-	fileResponse := repository.NewManagerCsvtFile(domain.NewResponseDefault, repository.CSVT_FILE_PATH_RESPONSE)
-	implResponse := collection.DictionarySyncEmpty[string, domain.Response]()
-	repositoryResponse, err := response.InitializeRepositoryMemory(implResponse, fileResponse)
+	return repository
+}
+
+func loadRepositoryResponse() repository.IRepositoryResponse {
+	file := repository.NewManagerCsvtFile(domain.NewResponseDefault, repository.CSVT_FILE_PATH_RESPONSE)
+	impl := collection.DictionarySyncEmpty[string, domain.Response]()
+	repository, err := response.InitializeRepositoryMemory(impl, file)
 	if err != nil {
 		panic(err)
 	}
 
-	return repository.NewRequestManager(repositoryRequest, repositoryResponse).
-		SetInsertPolicy(fixHistoricSize)
+	return repository
 }
 
 func loadRepositoryHisotric() repository.IRepositoryHistoric {
@@ -96,15 +104,24 @@ func loadRepositoryContext() repository.IRepositoryContext {
 	return repository
 }
 
-func loadRepositoryCollection(context repository.IRepositoryContext) repository.IRepositoryCollection {
+func loadRepositoryCollection() repository.IRepositoryCollection {
 	file := repository.NewManagerCsvtFile(domain.NewCollectionDefault, repository.CSVT_FILE_PATH_COLLECTION)
 	impl := collection.DictionarySyncEmpty[string, domain.Collection]()
-	repository, err := repository_collection.InitializeRepositoryMemory(impl, file, context)
+	repository, err := repository_collection.InitializeRepositoryMemory(impl, file)
 	if err != nil {
 		panic(err)
 	}
 
 	return repository
+}
+
+func loadManagerRequest(request repository.IRepositoryRequest, response repository.IRepositoryResponse) *repository.ManagerRequest {
+	return repository.NewManagerRequest(request, response).
+		SetInsertPolicy(fixHistoricSize)
+}
+
+func loadManagerCollection(collection repository.IRepositoryCollection, context repository.IRepositoryContext, request repository.IRepositoryRequest, response repository.IRepositoryResponse) *repository.ManagerCollection {
+	return repository.NewManagerCollection(collection, context, request, response)
 }
 
 func fixHistoricSize(request *domain.Request, repositoryRequest repository.IRepositoryRequest, repositoryResponse repository.IRepositoryResponse) error {
