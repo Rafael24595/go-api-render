@@ -83,7 +83,7 @@ func (c *ControllerStorage) insertContext(w http.ResponseWriter, r *http.Request
 	}
 
 	context := dto.ToContext(dtoContext)
-	context = c.repositoryContext.Insert(user, context)
+	context = c.repositoryContext.InsertFromOwner(user, context)
 
 	dtoContext = dto.FromContext(context)
 
@@ -217,7 +217,7 @@ func (c *ControllerStorage) findCollection(w http.ResponseWriter, r *http.Reques
 	dtos := make([]dto.DtoCollection, len(collections))
 	for i, v := range collections {
 		requests := c.repositoryActions.FindNodes(v.Nodes)
-		context, _ := c.repositoryContext.FindByCollection(v.Owner, v.Name)
+		context, _ := c.repositoryContext.Find(v.Context)
 		dtoContext := dto.FromContext(context)
 		dtos[i] = dto.DtoCollection{
 			Id: v.Id,
@@ -229,8 +229,7 @@ func (c *ControllerStorage) findCollection(w http.ResponseWriter, r *http.Reques
 			Modified: v.Modified,
 		}
 	}
-
-
+	
 	json.NewEncoder(w).Encode(dtos)
 
 	return nil
