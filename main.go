@@ -13,6 +13,10 @@ func main() {
 	configuration.Initialize(configuration.ReadEnv(".env"))
 	container := dependency.Initialize()
 	router := router.NewRouter()
-	controller.NewController(router, container.RepositoryContext, container.ManagerActions, container.RepositoryHistoric, container.ManagerCollection)
+	controller.NewController(router, 
+		container.ManagerActions, 
+		container.ManagerCollection, 
+		container.RepositoryContext, 
+		container.RepositoryHistoric)
 	log.Fatalln(router.Listen(":8080"))
 }

@@ -7,21 +7,18 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/context"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 )
 
 const ID_REQUEST = "id_request"
 
 type ControllerActions struct {
-	router     *router.Router
-	repository *repository.ManagerRequest
+	router *router.Router
 }
 
-func NewControllerActions(router *router.Router, repository *repository.ManagerRequest) ControllerActions {
+func NewControllerActions(router *router.Router) ControllerActions {
 	instance := ControllerActions{
-		router:     router,
-		repository: repository,
+		router: router,
 	}
 
 	router.

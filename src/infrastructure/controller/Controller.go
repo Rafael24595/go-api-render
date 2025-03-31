@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 	"github.com/Rafael24595/go-collections/collection"
 )
+
+const USER = "user"
 
 type Controller struct {
 	router  *router.Router
@@ -17,10 +20,10 @@ type Controller struct {
 
 func NewController(
 		route *router.Router, 
+		managerActions *repository.ManagerRequest, 
+		managerCollection *repository.ManagerCollection,
 		repositoryContext repository.IRepositoryContext, 
-		repositoryManager *repository.ManagerRequest, 
-		repositoryHisotric repository.IRepositoryHistoric,
-		repositoryCollection *repository.ManagerCollection) Controller {
+		repositoryHisotric repository.IRepositoryHistoric) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),
@@ -36,19 +39,41 @@ func NewController(
 		ErrorHandler(instance.error).
 		Cors(cors)
 
-	NewControllerActions(route, repositoryManager)
-	NewControllerStorage(route, repositoryContext, repositoryManager, repositoryHisotric, repositoryCollection)
+	NewControllerActions(route)
+	NewControllerStorage(route, managerActions)
+	NewControllerHistoric(route, managerActions, repositoryHisotric)
+	NewControllerContext(route, repositoryContext)
+	NewControllerCollection(route, managerCollection, managerActions, repositoryContext)
 
 	return instance
 }
 
 func (c *Controller) contextualizer(w http.ResponseWriter, r *http.Request) (router.Context, error) {
-	return collection.DictionaryEmpty[string, any](), nil
+	return collection.DictionaryFromMap(
+		map[string]any{
+			//TODO: Extract users from token.
+			"user": "anonymous",
+		},
+	), nil
 }
 
 func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte(err.Error()))
+}
+
+func findUser(ctx router.Context) string {
+	userInterface, exists := ctx.Get(USER)
+	if !exists {
+		return domain.ANONYMOUS_OWNER
+	}
+
+	user, ok := (*userInterface).(string)
+	if !ok {
+		panic("//TODO: Manage error.")
+	}
+
+	return user
 }
 
 func jsonDeserialize[T any](r *http.Request) (*T, error) {
