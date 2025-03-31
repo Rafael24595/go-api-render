@@ -24,12 +24,24 @@ func NewControllerStorage(
 	}
 	
 	router.
-		Route(http.MethodPost, instance.insertAction, "/api/v1/storage").
 		Route(http.MethodGet, instance.findRequests, "/api/v1/storage").
+		Route(http.MethodPost, instance.insertAction, "/api/v1/storage").
+		Route(http.MethodPut, instance.updateRequest, "/api/v1/storage").
 		Route(http.MethodDelete, instance.deleteAction, "/api/v1/storage/{%s}", ID_REQUEST).
 		Route(http.MethodGet, instance.findAction, "/api/v1/storage/{%s}", ID_REQUEST)
 
 	return instance
+}
+
+func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := findUser(ctx)
+	status := domain.FINAL
+
+	actions := c.managerActions.FindOwner(user, &status)
+
+	json.NewEncoder(w).Encode(actions)
+
+	return nil
 }
 
 func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
@@ -52,13 +64,17 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 	return nil
 }
 
-func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := findUser(ctx)
-	status := domain.FINAL
 
-	actions := c.managerActions.FindOwner(user, &status)
+	dtoRequest, err := jsonDeserialize[dto.DtoRequest](r)
+	if err != nil {
+		return err
+	}
 
-	json.NewEncoder(w).Encode(actions)
+	request := c.managerActions.Update(user, dto.ToRequest(dtoRequest))
+
+	json.NewEncoder(w).Encode(request)
 
 	return nil
 }
