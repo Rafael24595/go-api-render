@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/domain"
@@ -34,6 +35,7 @@ func NewControllerCollection(
 	}
 
 	instance.router.
+		Route(http.MethodPost, instance.openapi, "/api/v1/openapi").
 		Route(http.MethodGet, instance.findCollection, "/api/v1/collection").
 		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection").
 		Route(http.MethodPut, instance.pushToCollection, "/api/v1/collection").
@@ -43,6 +45,32 @@ func NewControllerCollection(
 		Route(http.MethodPut, instance.takeFromCollection, "/api/v1/collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST)
 
 	return instance
+}
+
+func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := findUser(ctx)
+
+	r.ParseMultipartForm(10 << 20)
+
+	file, _, err := r.FormFile("uploadFile")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	collection, err := c.managerCollection.InsertOpenApi(user, data)
+	if err != nil {
+		return err
+	}
+
+	json.NewEncoder(w).Encode(collection)
+
+	return nil
 }
 
 func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
