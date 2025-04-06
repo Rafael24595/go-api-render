@@ -74,7 +74,7 @@ func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request
 
 	request := c.managerActions.Update(user, dto.ToRequest(dtoRequest))
 
-	json.NewEncoder(w).Encode(request)
+	json.NewEncoder(w).Encode(dto.FromRequest(request))
 
 	return nil
 }
