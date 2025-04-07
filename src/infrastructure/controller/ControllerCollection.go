@@ -52,7 +52,7 @@ func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, c
 
 	r.ParseMultipartForm(10 << 20)
 
-	file, _, err := r.FormFile("uploadFile")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		return err
 	}
