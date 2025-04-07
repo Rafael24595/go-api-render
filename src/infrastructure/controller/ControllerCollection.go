@@ -35,7 +35,8 @@ func NewControllerCollection(
 	}
 
 	instance.router.
-		Route(http.MethodPost, instance.openapi, "/api/v1/openapi").
+		Route(http.MethodPost, instance.openapi, "/api/v1/import/openapi").
+		Route(http.MethodPost, instance.importCollection, "/api/v1/import/collection").
 		Route(http.MethodGet, instance.findCollection, "/api/v1/collection").
 		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection").
 		Route(http.MethodPut, instance.pushToCollection, "/api/v1/collection").
@@ -45,6 +46,24 @@ func NewControllerCollection(
 		Route(http.MethodPut, instance.takeFromCollection, "/api/v1/collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST)
 
 	return instance
+}
+
+func (c *ControllerCollection) importCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := findUser(ctx)
+
+	dtos, err := jsonDeserialize[[]dto.DtoCollection](r)
+	if err != nil {
+		return err
+	}
+
+	collection, err := c.managerCollection.ImportDtoCollections(user, *dtos)
+	if err != nil {
+		return err
+	}
+
+	json.NewEncoder(w).Encode(collection)
+
+	return nil
 }
 
 func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
