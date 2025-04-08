@@ -25,6 +25,7 @@ type DependencyContainer struct {
 	RepositoryContext  repository.IRepositoryContext
 	RepositoryHistoric repository.IRepositoryHistoric
 	ManagerActions     *repository.ManagerRequest
+	ManagerContext     *repository.ManagerContext
 	ManagerCollection  *repository.ManagerCollection
 }
 
@@ -46,12 +47,14 @@ func Initialize() *DependencyContainer {
 	repositoryCollection := loadRepositoryCollection()
 
 	managerRequest := loadManagerRequest(repositoryRequest, repositoryResponse)
+	managerContext := loadManagerContext(repositoryContext)
 	managerCollection := loadManagerCollection(repositoryCollection, repositoryContext, repositoryRequest, repositoryResponse)
 
 	container := &DependencyContainer{
 		RepositoryContext:  repositoryContext,
 		RepositoryHistoric: repositoryHistoric,
 		ManagerActions:     managerRequest,
+		ManagerContext:     managerContext,
 		ManagerCollection:  managerCollection,
 	}
 
@@ -118,6 +121,10 @@ func loadRepositoryCollection() repository.IRepositoryCollection {
 func loadManagerRequest(request repository.IRepositoryRequest, response repository.IRepositoryResponse) *repository.ManagerRequest {
 	return repository.NewManagerRequest(request, response).
 		SetInsertPolicy(fixHistoricSize)
+}
+
+func loadManagerContext(context repository.IRepositoryContext) *repository.ManagerContext {
+	return repository.NewManagerContext(context)
 }
 
 func loadManagerCollection(collection repository.IRepositoryCollection, context repository.IRepositoryContext, request repository.IRepositoryRequest, response repository.IRepositoryResponse) *repository.ManagerCollection {

@@ -21,6 +21,7 @@ type Controller struct {
 func NewController(
 		route *router.Router, 
 		managerActions *repository.ManagerRequest, 
+		managerContext *repository.ManagerContext,
 		managerCollection *repository.ManagerCollection,
 		repositoryContext repository.IRepositoryContext, 
 		repositoryHisotric repository.IRepositoryHistoric) Controller {
@@ -42,7 +43,7 @@ func NewController(
 	NewControllerActions(route)
 	NewControllerStorage(route, managerActions)
 	NewControllerHistoric(route, managerActions, repositoryHisotric)
-	NewControllerContext(route, repositoryContext)
+	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerActions, repositoryContext)
 
 	return instance

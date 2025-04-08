@@ -15,6 +15,7 @@ func main() {
 	router := router.NewRouter()
 	controller.NewController(router, 
 		container.ManagerActions, 
+		container.ManagerContext,
 		container.ManagerCollection, 
 		container.RepositoryContext, 
 		container.RepositoryHistoric)
