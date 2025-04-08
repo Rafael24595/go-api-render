@@ -24,13 +24,29 @@ func NewControllerStorage(
 	}
 	
 	router.
-		Route(http.MethodGet, instance.findRequests, "/api/v1/storage").
-		Route(http.MethodPost, instance.insertAction, "/api/v1/storage").
-		Route(http.MethodPut, instance.updateRequest, "/api/v1/storage").
-		Route(http.MethodDelete, instance.deleteAction, "/api/v1/storage/{%s}", ID_REQUEST).
-		Route(http.MethodGet, instance.findAction, "/api/v1/storage/{%s}", ID_REQUEST)
+		Route(http.MethodPost, instance.importRequests, "/api/v1/import/request").
+		Route(http.MethodGet, instance.findRequests, "/api/v1/request").
+		Route(http.MethodPost, instance.insertAction, "/api/v1/request").
+		Route(http.MethodPut, instance.updateRequest, "/api/v1/request").
+		Route(http.MethodDelete, instance.deleteAction, "/api/v1/request/{%s}", ID_REQUEST).
+		Route(http.MethodGet, instance.findAction, "/api/v1/request/{%s}", ID_REQUEST)
 
 	return instance
+}
+
+func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	user := findUser(ctx)
+
+	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
+	if err != nil {
+		return err
+	}
+
+	requests := c.managerActions.ImportDtoRequests(user, *dtos)
+
+	json.NewEncoder(w).Encode(requests)
+
+	return nil
 }
 
 func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
