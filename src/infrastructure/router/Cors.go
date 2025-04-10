@@ -14,17 +14,17 @@ func EmptyCors() *Cors {
 	}
 }
 
-func (c *Cors) AllowedOrigins(allowedOrigins []string) *Cors {
+func (c *Cors) AllowedOrigins(allowedOrigins ...string) *Cors {
 	c.allowedOrigins = allowedOrigins
 	return c
 }
 
-func (c *Cors) AllowedMethods(allowedMethods []string) *Cors {
+func (c *Cors) AllowedMethods(allowedMethods ...string) *Cors {
 	c.allowedMethods = allowedMethods
 	return c
 }
 
-func (c *Cors) AllowedHeaders(allowedHeaders []string) *Cors {
+func (c *Cors) AllowedHeaders(allowedHeaders ...string) *Cors {
 	c.allowedHeaders = allowedHeaders
 	return c
 }

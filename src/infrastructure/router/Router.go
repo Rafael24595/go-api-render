@@ -15,7 +15,7 @@ type errorHandler = func(http.ResponseWriter, *http.Request, Context, error)
 
 type Router struct {
 	contextualizer       collection.IDictionary[string, contextHandler]
-	groupContextualizers collection.IDictionary[string, collection.Vector[contextHandler]]
+	groupContextualizers collection.IDictionary[string, collection.Vector[requestHandler]]
 	errors               collection.IDictionary[string, errorHandler]
 	routes               collection.IDictionary[string, requestHandler]
 	cors                 *Cors
@@ -24,7 +24,7 @@ type Router struct {
 func NewRouter() *Router {
 	return &Router{
 		contextualizer:       collection.DictionaryEmpty[string, contextHandler](),
-		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[contextHandler]](),
+		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[requestHandler]](),
 		errors:               collection.DictionaryEmpty[string, errorHandler](),
 		routes:               collection.DictionaryEmpty[string, requestHandler](),
 		cors:                 EmptyCors(),
@@ -43,11 +43,13 @@ func (r *Router) Contextualizer(handler contextHandler) *Router {
 	return r
 }
 
-func (r *Router) GroupContextualizer(group string, handler contextHandler) *Router {
-	result, _ := r.groupContextualizers.
-		PutIfAbsent(group, *collection.VectorEmpty[contextHandler]())
-	result.Append(handler)
-	r.groupContextualizers.Put(group, *result)
+func (r *Router) GroupContextualizer(handler requestHandler, group ...string,) *Router {
+	for _, v := range group {
+		result, _ := r.groupContextualizers.
+			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
+		result.Append(handler)
+		r.groupContextualizers.Put(v, *result)
+	}
 	return r
 }
 
@@ -135,12 +137,11 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		funcs.ForEach(func(i int, f contextHandler) {
-			result, err := f(wrt, req)
+		funcs.ForEach(func(i int, f requestHandler) {
+			err := f(wrt, req, context)
 			if err != nil {
 				panic("//TODO: contextualizer error.")
 			}
-			context.Merge(result)
 		})
 	})
 
