@@ -34,7 +34,8 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx r
 	}
 
 	actionContext := dto.ToContext(&actionData.Context)
-	actionRequest := context.ProcessRequest(&actionData.Request, actionContext)
+	actionRequest := dto.ToRequest(&actionData.Request)
+	actionRequest = context.ProcessRequest(actionRequest, actionContext)
 
 	actionResponse, err := core_infrastructure.Client().Fetch(*actionRequest)
 	if err != nil {
