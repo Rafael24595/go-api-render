@@ -11,18 +11,25 @@ import (
 var instance *Configuration
 
 type Configuration struct {
-	debug bool
-	kargs map[string]string
+	debug  bool
+	secret []byte
+	kargs  map[string]string
 }
 
 func Initialize(kargs map[string]string) Configuration {
 	if instance != nil {
 		panic("")
 	}
-	
+
+	secret, ok := kargs["DEBUG"]
+	if !ok {
+		panic("Secret is not defined")
+	}
+
 	instance = &Configuration{
-		debug : strings.ToLower(kargs["DEBUG"]) == "true",
-		kargs: kargs,
+		debug:  strings.ToLower(kargs["DEBUG"]) == "true",
+		secret: []byte(secret),
+		kargs:  kargs,
 	}
 
 	return *instance
@@ -35,8 +42,12 @@ func Instance() Configuration {
 	return *instance
 }
 
-func (i Configuration) Debug() bool {
-	return i.debug;
+func (c Configuration) Debug() bool {
+	return c.debug
+}
+
+func (c Configuration) Secret() []byte {
+	return c.secret
 }
 
 func ReadEnv(file string) map[string]string {
