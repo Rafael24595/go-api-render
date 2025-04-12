@@ -36,7 +36,7 @@ func NewControllerHistoric(
 func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := findUser(ctx)
 
-	action, err := jsonDeserialize[RequestInsertAction](r)
+	action, err := jsonDeserialize[requestInsertAction](r)
 	if err != nil {
 		return err
 	}

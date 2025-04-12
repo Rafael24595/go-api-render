@@ -28,7 +28,7 @@ func NewControllerActions(router *router.Router) ControllerActions {
 }
 
 func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
-	actionData, err := jsonDeserialize[RequestExecuteAction](r)
+	actionData, err := jsonDeserialize[requestExecuteAction](r)
 	if err != nil {
 		return err
 	}

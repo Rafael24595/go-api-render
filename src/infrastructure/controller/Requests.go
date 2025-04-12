@@ -5,7 +5,31 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 )
 
-type RequestPushToCollection struct {
+type requestCloneCollection struct {
+	CollectionName string `json:"collection_name"`
+}
+
+type requestExecuteAction struct {
+	Request dto.DtoRequest `json:"request"`
+	Context dto.DtoContext `json:"context"`
+}
+
+type requestImportContext struct {
+	Target dto.DtoContext `json:"target"`
+	Source dto.DtoContext `json:"source"`
+}
+
+type requestInsertAction struct {
+	Request  dto.DtoRequest
+	Response dto.DtoResponse
+}
+
+type requestLogin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type requestPushToCollection struct {
 	SourceId    string              `json:"source_id"`
 	TargetId    string              `json:"target_id"`
 	TargetName  string              `json:"target_name"`
@@ -14,7 +38,7 @@ type RequestPushToCollection struct {
 	Movement    repository.Movement `json:"move"`
 }
 
-func RequestPushToCollectionToPayload(payload *RequestPushToCollection) repository.PayloadPushToCollection {
+func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadPushToCollection {
 	request := dto.ToRequest(&payload.Request)
 	return repository.PayloadPushToCollection{
 		SourceId:    payload.SourceId,

@@ -160,12 +160,12 @@ func (c *ControllerCollection) insertCollection(w http.ResponseWriter, r *http.R
 func (c *ControllerCollection) pushToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := findUser(ctx)
 
-	request, err := jsonDeserialize[RequestPushToCollection](r)
+	request, err := jsonDeserialize[requestPushToCollection](r)
 	if err != nil {
 		return err
 	}
 
-	payload := RequestPushToCollectionToPayload(request)
+	payload := requestPushToCollectionToPayload(request)
 
 	collection := c.managerCollection.PushToCollection(user, payload)
 
@@ -197,7 +197,7 @@ func (c *ControllerCollection) cloneCollection(w http.ResponseWriter, r *http.Re
 		return nil
 	}
 
-	payload, err := jsonDeserialize[RequestCloneCollection](r)
+	payload, err := jsonDeserialize[requestCloneCollection](r)
 	if err != nil {
 		return err
 	}

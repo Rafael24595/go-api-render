@@ -36,7 +36,7 @@ func NewControllerContext(
 func (c *ControllerContext) importContext(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := findUser(ctx)
 
-	dtos, err := jsonDeserialize[RequestImportContext](r)
+	dtos, err := jsonDeserialize[requestImportContext](r)
 	if err != nil {
 		return err
 	}

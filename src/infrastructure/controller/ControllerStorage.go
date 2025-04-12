@@ -63,7 +63,7 @@ func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request,
 func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
 	user := findUser(ctx)
 
-	action, err := jsonDeserialize[RequestInsertAction](r)
+	action, err := jsonDeserialize[requestInsertAction](r)
 	if err != nil {
 		return err
 	}
