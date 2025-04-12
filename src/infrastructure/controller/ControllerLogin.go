@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -22,13 +23,14 @@ func NewControllerLogin(
 	}
 
 	router.
-		Route(http.MethodPost, instance.login, "/api/v1/login")
+		Route(http.MethodPost, instance.login, "/api/v1/login").
+		Route(http.MethodGet, instance.user, "/api/v1/user")
 
 	return instance
 }
 
 func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
-	login, err := jsonDeserialize[RequestLogin](r)
+	login, err := jsonDeserialize[requestLogin](r)
 	if err != nil {
 		return err
 	}
@@ -44,6 +46,27 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 	}
 
 	defineSession(w, login.Username)
+
+	return nil
+}
+
+func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+	username := findUser(ctx)
+
+	sessions := repository.InstanceManagerSession()
+
+	user, exists := sessions.Find(username)
+	if !exists {
+		return errors.New("user not found")
+	}
+
+	response := responseUserData{
+		Username: user.Username,
+		Timestamp: user.Timestamp,
+		Context: user.Context,
+	}
+
+	json.NewEncoder(w).Encode(response)
 
 	return nil
 }

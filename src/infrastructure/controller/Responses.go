@@ -8,3 +8,9 @@ type responseAction struct {
 	Request  dto.DtoRequest  `json:"request"`
 	Response dto.DtoResponse `json:"response"`
 }
+
+type responseUserData struct {
+	Username  string `json:"username"`
+	Timestamp int64  `json:"timestamp"`
+	Context   string `json:"context"`
+}

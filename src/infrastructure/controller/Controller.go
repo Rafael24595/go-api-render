@@ -39,6 +39,7 @@ func NewController(
 
 	route.
 		GroupContextualizer(instance.auth,
+			"/api/v1/user",
 			"/api/v1/action",
 			"/api/v1/import/",
 			"/api/v1/context",
