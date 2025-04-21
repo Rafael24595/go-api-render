@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
 const COOKIE_NAME = "Go-Api-Client"
@@ -24,51 +25,67 @@ func NewControllerLogin(
 
 	router.
 		Route(http.MethodPost, instance.login, "/api/v1/login").
-		Route(http.MethodGet, instance.user, "/api/v1/user")
+		Route(http.MethodGet, instance.user, "/api/v1/user").
+		Route(http.MethodGet, instance.identify, "/api/v1/identify")
 
 	return instance
 }
 
-func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	login, err := jsonDeserialize[requestLogin](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	sessions := repository.InstanceManagerSession()
 	session, err := sessions.Authorize(login.Username, login.Password)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnauthorized, err)
 	}
 
 	if session == nil {
-		return errors.New("unautorized")
+		return result.Err(http.StatusUnprocessableEntity, nil)
 	}
 
 	defineSession(w, login.Username)
 
-	return nil
+	return result.Ok(nil)
 }
 
-func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	username := findUser(ctx)
 
 	sessions := repository.InstanceManagerSession()
 
 	user, exists := sessions.Find(username)
 	if !exists {
-		return errors.New("user not found")
+		err := errors.New("user not found")
+		return result.Err(http.StatusNotFound, err)
 	}
 
 	response := responseUserData{
-		Username: user.Username,
+		Username:  user.Username,
 		Timestamp: user.Timestamp,
-		Context: user.Context,
+		Context:   user.Context,
 	}
 
-	json.NewEncoder(w).Encode(response)
+	return result.Ok(response)
+}
 
-	return nil
+func (c *ControllerLogin) identify(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return result.Err(http.StatusInternalServerError, err)
+	}
+
+	parsedIP := net.ParseIP(ip)
+
+	response := responseClientIdentity{
+		Ip:     ip,
+		IsHost: parsedIP.IsLoopback(),
+	}
+
+	return result.Ok(response)
 }
 
 func defineSession(w http.ResponseWriter, username string) error {

@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
 type ControllerHistoric struct {
@@ -33,17 +33,23 @@ func NewControllerHistoric(
 	return instance
 }
 
-func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	action, err := jsonDeserialize[requestInsertAction](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	if action.Request.Status != domain.DRAFT {
-		c.managerActions.InsertResponse(user, dto.ToResponse(&action.Response))
-		return nil
+		response := c.managerActions.InsertResponse(user, dto.ToResponse(&action.Response))
+
+		dto := responseAction{
+			Request:  action.Request,
+			Response: *dto.FromResponse(response),
+		}
+
+		return result.Ok(dto)
 	}
 
 	actionRequest, actionResponse := c.managerActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
@@ -57,18 +63,19 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	json.NewEncoder(w).Encode(response)
-
-	return nil
+	return result.Ok(response)
 }
 
-func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	steps := c.repositoryHisotric.FindByOwner(user)
 	requests := c.managerActions.FindSteps(steps)
 
-	json.NewEncoder(w).Encode(requests)
+	dtos := make([]dto.DtoRequest, len(requests))
+	for i, v := range requests {
+		dtos[i] = *dto.FromRequest(&v)
+	}
 
-	return nil
+	return result.Ok(dtos)
 }

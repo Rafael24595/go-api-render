@@ -1,28 +1,28 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
 type ControllerStorage struct {
-	router             *router.Router
-	managerActions     *repository.ManagerRequest
+	router         *router.Router
+	managerActions *repository.ManagerRequest
 }
 
 func NewControllerStorage(
 	router *router.Router,
 	managerActions *repository.ManagerRequest) ControllerStorage {
 	instance := ControllerStorage{
-		router:             router,
-		managerActions:     managerActions,
+		router:         router,
+		managerActions: managerActions,
 	}
-	
+
 	router.
 		Route(http.MethodPost, instance.importRequests, "/api/v1/import/request").
 		Route(http.MethodGet, instance.findRequests, "/api/v1/request").
@@ -34,38 +34,39 @@ func NewControllerStorage(
 	return instance
 }
 
-func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	requests := c.managerActions.ImportDtoRequests(user, *dtos)
 
-	json.NewEncoder(w).Encode(requests)
-
-	return nil
+	return result.Ok(requests)
 }
 
-func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	status := domain.FINAL
 
-	actions := c.managerActions.FindOwner(user, &status)
+	requests := c.managerActions.FindOwner(user, &status)
 
-	json.NewEncoder(w).Encode(actions)
+	dtos := make([]dto.DtoRequest, len(requests))
+	for i, v := range requests {
+		dtos[i] = *dto.FromRequest(&v)
+	}
 
-	return nil
+	return result.Ok(dtos)
 }
 
-func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	action, err := jsonDeserialize[requestInsertAction](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	actionRequest, actionResponse := c.managerActions.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
@@ -75,27 +76,25 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	json.NewEncoder(w).Encode(response)
-
-	return nil
+	return result.Ok(response)
 }
 
-func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtoRequest, err := jsonDeserialize[dto.DtoRequest](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	request := c.managerActions.Update(user, dto.ToRequest(dtoRequest))
 
-	json.NewEncoder(w).Encode(dto.FromRequest(request))
+	dto := dto.FromRequest(request)
 
-	return nil
+	return result.Ok(dto)
 }
 
-func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
@@ -106,19 +105,16 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	json.NewEncoder(w).Encode(response)
-
-	return nil
+	return result.Ok(response)
 }
 
-func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
 	actionRequest, actionResponse, ok := c.managerActions.Find(user, idRequest)
 	if !ok {
-		w.WriteHeader(http.StatusNotFound)
-		return nil
+		return result.Err(http.StatusNotFound, nil)
 	}
 
 	response := responseAction{
@@ -126,7 +122,5 @@ func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, c
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	json.NewEncoder(w).Encode(response)
-
-	return nil
+	return result.Ok(response)
 }

@@ -9,7 +9,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 )
 
@@ -47,8 +49,11 @@ func NewController(
 			"/api/v1/request",
 			"/api/v1/collection",
 		).
-		ErrorHandler(instance.error).
 		Cors(cors)
+
+	if configuration.Instance().Front() {
+		NewControllerFront(route)
+	}
 
 	NewControllerLogin(route)
 	NewControllerActions(route)
@@ -60,18 +65,18 @@ func NewController(
 	return instance
 }
 
-func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router.Context) error {
+func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
 	user := "anonymous"
 
 	token, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
 		context.Put(USER, user)
-		return nil
+		return result.Ok(context)
 	}
 
 	claims, err := auth.ValidateJWT(token.Value)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnauthorized, err)
 	}
 
 	user = claims.Username
@@ -80,7 +85,8 @@ func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router
 
 	_, exists := sessions.Find(user)
 	if !exists {
-		return errors.New("user not exists")
+		err = errors.New("user not exists")
+		return result.Err(http.StatusNotFound, err)
 	}
 
 	context.Put(USER, user)
@@ -90,12 +96,7 @@ func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router
 		defineSession(w, user)
 	}
 
-	return nil
-}
-
-func (c *Controller) error(w http.ResponseWriter, r *http.Request, context router.Context, err error) {
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(err.Error()))
+	return result.Ok(context)
 }
 
 func findUser(ctx router.Context) string {

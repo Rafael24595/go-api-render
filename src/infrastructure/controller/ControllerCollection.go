@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
 const COLLECTION = "collection"
@@ -49,74 +49,68 @@ func NewControllerCollection(
 	return instance
 }
 
-func (c *ControllerCollection) importCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
-	user := findUser(ctx)
-
-	dtos, err := jsonDeserialize[[]dto.DtoCollection](r)
-	if err != nil {
-		return err
-	}
-
-	collection, err := c.managerCollection.ImportDtoCollections(user, *dtos)
-	if err != nil {
-		return err
-	}
-
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
-}
-
-func (c *ControllerCollection) importToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
-	user := findUser(ctx)
-
-	idCollection := r.PathValue(COLLECTION)
-	if idCollection == "" {
-		return nil
-	}
-
-	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
-	if err != nil {
-		return err
-	}
-
-	collection, err := c.managerCollection.ImportDtoRequests(user, idCollection, *dtos)
-	if err != nil {
-		return err
-	}
-
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
-}
-
-func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	r.ParseMultipartForm(10 << 20)
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	collection, err := c.managerCollection.ImportOpenApi(user, data)
 	if err != nil {
-		return err
+		return result.Err(http.StatusBadRequest, err)
 	}
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) importCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	dtos, err := jsonDeserialize[[]dto.DtoCollection](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	collection, err := c.managerCollection.ImportDtoCollections(user, *dtos)
+	if err != nil {
+		return result.Err(http.StatusBadRequest, err)
+	}
+
+	return result.Ok(collection)
+}
+
+func (c *ControllerCollection) importToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	idCollection := r.PathValue(COLLECTION)
+	if idCollection == "" {
+		return result.Ok(nil)
+	}
+
+	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	collection, err := c.managerCollection.ImportDtoRequests(user, idCollection, *dtos)
+	if err != nil {
+		return result.Err(http.StatusBadRequest, err)
+	}
+
+	return result.Ok(collection)
+}
+
+func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	collections := c.managerCollection.FindByOwner(user)
@@ -137,114 +131,100 @@ func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	json.NewEncoder(w).Encode(dtos)
-
-	return nil
+	return result.Ok(dtos)
 }
 
-func (c *ControllerCollection) insertCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) insertCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	collection, err := jsonDeserialize[domain.Collection](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	collection = c.managerCollection.Insert(user, collection)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) pushToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) pushToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	request, err := jsonDeserialize[requestPushToCollection](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	payload := requestPushToCollectionToPayload(request)
 
 	collection := c.managerCollection.PushToCollection(user, payload)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) deleteCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) deleteCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(COLLECTION)
 	if idCollection == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	collection := c.managerCollection.Delete(user, idCollection)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) cloneCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) cloneCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(COLLECTION)
 	if idCollection == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	payload, err := jsonDeserialize[requestCloneCollection](r)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
 	collection := c.managerCollection.CloneCollection(user, idCollection, payload.CollectionName)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) deleteFromCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) deleteFromCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(COLLECTION)
 	if idCollection == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	idRequest := r.PathValue(ID_REQUEST)
 	if idRequest == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	collection, _ := c.managerCollection.RemoveFromCollection(user, idCollection, idRequest)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) takeFromCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) error {
+func (c *ControllerCollection) takeFromCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(COLLECTION)
 	if idCollection == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	idRequest := r.PathValue(ID_REQUEST)
 	if idRequest == "" {
-		return nil
+		return result.Ok(nil)
 	}
 
 	collection, _ := c.managerCollection.TakeFromCollection(user, idCollection, idRequest)
 
-	json.NewEncoder(w).Encode(collection)
-
-	return nil
+	return result.Ok(collection)
 }

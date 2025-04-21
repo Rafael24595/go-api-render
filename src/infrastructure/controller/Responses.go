@@ -14,3 +14,8 @@ type responseUserData struct {
 	Timestamp int64  `json:"timestamp"`
 	Context   string `json:"context"`
 }
+
+type responseClientIdentity struct {
+	Ip     string `json:"ip"`
+	IsHost bool   `json:"is_host"`
+}

@@ -1,17 +1,19 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 	"github.com/Rafael24595/go-collections/collection"
 )
 
 type Context = collection.IDictionary[string, any]
 type contextHandler = func(http.ResponseWriter, *http.Request) (Context, error)
-type requestHandler = func(http.ResponseWriter, *http.Request, Context) error
-type errorHandler = func(http.ResponseWriter, *http.Request, Context, error)
+type requestHandler = func(http.ResponseWriter, *http.Request, Context) result.Result
+type errorHandler = func(http.ResponseWriter, *http.Request, Context, result.Result)
 
 type Router struct {
 	contextualizer       collection.IDictionary[string, contextHandler]
@@ -43,7 +45,7 @@ func (r *Router) Contextualizer(handler contextHandler) *Router {
 	return r
 }
 
-func (r *Router) GroupContextualizer(handler requestHandler, group ...string,) *Router {
+func (r *Router) GroupContextualizer(handler requestHandler, group ...string) *Router {
 	for _, v := range group {
 		result, _ := r.groupContextualizers.
 			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
@@ -131,22 +133,31 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		return strings.HasPrefix(group, key)
 	})
 
-	keys.ForEach(func(i int, key string) {
+	for _, key := range keys.Collect() {
 		funcs, ok := r.groupContextualizers.Get(key)
 		if !ok {
 			return
 		}
 
-		funcs.ForEach(func(i int, f requestHandler) {
-			err := f(wrt, req, context)
-			if err != nil {
-				panic("//TODO: contextualizer error.")
-			}
-		})
-	})
+		for _, f := range funcs.Collect() {
+			result := f(wrt, req, context)
+			if err, ok := result.Err(); ok {
+				if err == nil {
+					wrt.WriteHeader(result.Status())
+					return
+				}
 
-	err := (*handler)(wrt, req, context)
-	if err == nil {
+				http.Error(wrt, err.Error(), result.Status())
+				return
+			}
+		}
+	}
+
+	result := (*handler)(wrt, req, context)
+	if response, ok := result.Ok(); ok {
+		if response != nil {
+			json.NewEncoder(wrt).Encode(response)
+		}
 		return
 	}
 
@@ -156,9 +167,14 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	}
 
 	if ok {
-		(*errorHandler)(wrt, req, context, err)
+		(*errorHandler)(wrt, req, context, result)
 		return
 	}
 
-	http.Error(wrt, err.Error(), http.StatusInternalServerError)
+	if err, ok := result.Err(); ok && err != nil {
+		http.Error(wrt, err.Error(), result.Status())
+		return
+	}
+
+	wrt.WriteHeader(result.Status())
 }
