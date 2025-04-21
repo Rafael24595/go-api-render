@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Rafael24595/go-api-render/src/commons"
@@ -9,7 +10,7 @@ import (
 )
 
 func main() {
-	_, container := commons.Initialize()
+	config, container := commons.Initialize()
 	router := router.NewRouter()
 	controller.NewController(router,
 		container.ManagerActions,
@@ -17,5 +18,6 @@ func main() {
 		container.ManagerCollection,
 		container.RepositoryContext,
 		container.RepositoryHistoric)
-	log.Fatalln(router.Listen(":8080"))
+	port := fmt.Sprintf(":%d", config.Port())
+	log.Fatalln(router.Listen(port))
 }

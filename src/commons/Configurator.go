@@ -7,9 +7,9 @@ import (
 )
 
 func Initialize() (*configuration.Configuration, *dependency.DependencyContainer) {
-	kargs := configuration.ReadEnv(".env")
-	_, container := core_commons.Initialize(kargs)
-	config := configuration.Initialize(kargs)
+	kargs := core_commons.ReadEnv(".env")
+	core, container := core_commons.Initialize(kargs)
+	config := configuration.Initialize(core, kargs)
 	return &config, container
 }
 

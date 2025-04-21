@@ -1,35 +1,46 @@
 package configuration
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
-	"github.com/joho/godotenv"
+	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
+	"github.com/Rafael24595/go-api-core/src/commons/utils"
 )
 
 var instance *Configuration
 
 type Configuration struct {
-	debug  bool
-	secret []byte
-	kargs  map[string]string
+	core_configuration.Configuration
+	debug bool
+	port  int
+	front bool
 }
 
-func Initialize(kargs map[string]string) Configuration {
+func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any) Configuration {
 	if instance != nil {
 		panic("")
 	}
 
-	secret, ok := kargs["DEBUG"]
+	debug, ok := kargs["GO_API_DEBUG"].Bool()
 	if !ok {
-		panic("Secret is not defined")
+		debug = false
+	}
+
+	port, ok := kargs["GO_API_SERVER_PORT"].Int()
+	if !ok {
+		//TODO: log
+		port = 8080
+	}
+
+	front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
+	if !ok {
+		//TODO: log
+		front = false
 	}
 
 	instance = &Configuration{
-		debug:  strings.ToLower(kargs["DEBUG"]) == "true",
-		secret: []byte(secret),
-		kargs:  kargs,
+		Configuration: *core,
+		debug:         debug,
+		port:          port,
+		front:         front,
 	}
 
 	return *instance
@@ -46,33 +57,10 @@ func (c Configuration) Debug() bool {
 	return c.debug
 }
 
-func (c Configuration) Secret() []byte {
-	return c.secret
+func (c Configuration) Port() int {
+	return c.port
 }
 
-func ReadEnv(file string) map[string]string {
-	if len(file) > 0 {
-		if err := godotenv.Load(".env"); err != nil {
-			panic(fmt.Sprintf("Error loading %s file", file))
-		}
-	}
-
-	envs := make(map[string]string)
-	for _, env := range os.Environ() {
-		pair := splitEnv(env)
-		envs[pair[0]] = pair[1]
-	}
-
-	return envs
-}
-
-func splitEnv(env string) []string {
-	var pair []string
-	for i, char := range env {
-		if char == '=' {
-			pair = append(pair, env[:i], env[i+1:])
-			break
-		}
-	}
-	return pair
+func (c Configuration) Front() bool {
+	return c.front
 }
