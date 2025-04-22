@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
@@ -95,6 +96,7 @@ func (r *Router) corsMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
 		w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
+		w.Header().Set("Access-Control-Allow-Credentials", strconv.FormatBool(r.cors.allowCredentials))
 
 		if req.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)

@@ -37,7 +37,8 @@ func NewController(
 	cors := router.EmptyCors().
 		AllowedOrigins("*").
 		AllowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").
-		AllowedHeaders("Content-Type", "Authorization")
+		AllowedHeaders("Content-Type", "Authorization").
+		AllowCredentials()
 
 	route.
 		GroupContextualizer(instance.auth,
@@ -66,7 +67,7 @@ func NewController(
 }
 
 func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
-	user := "anonymous"
+	user := domain.ANONYMOUS_OWNER
 
 	token, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
