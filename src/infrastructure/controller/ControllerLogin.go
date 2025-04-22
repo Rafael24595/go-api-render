@@ -4,7 +4,9 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"time"
 
+	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
@@ -25,6 +27,7 @@ func NewControllerLogin(
 
 	router.
 		Route(http.MethodPost, instance.login, "/api/v1/login").
+		Route(http.MethodDelete, instance.logout, "/api/v1/login").
 		Route(http.MethodGet, instance.user, "/api/v1/user").
 		Route(http.MethodGet, instance.identify, "/api/v1/identify")
 
@@ -49,7 +52,15 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 
 	defineSession(w, login.Username)
 
-	return result.Ok(nil)
+	ctx.Put(USER, login.Username)
+
+	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	closeSession(w)
+	ctx.Put(USER, domain.ANONYMOUS_OWNER)
+	return c.user(w, r, ctx)
 }
 
 func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -98,6 +109,21 @@ func defineSession(w http.ResponseWriter, username string) error {
 		Name:     COOKIE_NAME,
 		Value:    token,
 		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	return nil
+}
+
+func closeSession(w http.ResponseWriter) error {
+	http.SetCookie(w, &http.Cookie{
+		Name:     COOKIE_NAME,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
