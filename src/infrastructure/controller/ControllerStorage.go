@@ -117,6 +117,10 @@ func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, c
 		return result.Err(http.StatusNotFound, nil)
 	}
 
+	if actionRequest == nil {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
 	response := responseAction{
 		Request:  *dto.FromRequest(actionRequest),
 		Response: *dto.FromResponse(actionResponse),
