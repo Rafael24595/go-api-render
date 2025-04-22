@@ -85,7 +85,14 @@ func (r *Router) Cors(cors *Cors) *Router {
 
 func (r *Router) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", strings.Join(r.cors.allowedOrigins, ", "))
+		origin := strings.Join(r.cors.allowedOrigins, ", ")
+
+		if origin == "*" {
+			origin = req.Header.Get("Origin")
+			w.Header().Set("Vary", "Origin")
+		}
+		
+		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
 		w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
 
