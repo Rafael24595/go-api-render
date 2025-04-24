@@ -10,9 +10,12 @@ type responseAction struct {
 }
 
 type responseUserData struct {
-	Username  string `json:"username"`
-	Timestamp int64  `json:"timestamp"`
-	Context   string `json:"context"`
+	Username    string `json:"username"`
+	Timestamp   int64  `json:"timestamp"`
+	Context     string `json:"context"`
+	IsProtected bool   `json:"is_protected"`
+	IsAdmin     bool   `json:"is_admin"`
+	FirstTime   bool   `json:"first_time"`
 }
 
 type responseClientIdentity struct {
