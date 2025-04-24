@@ -41,8 +41,11 @@ func NewController(
 		AllowCredentials()
 
 	route.
-		GroupContextualizer(instance.auth,
+		GroupContextualizer(instance.authSoft,
 			"/api/v1/user",
+			"/api/v1/user/verify",
+		).
+		GroupContextualizer(instance.authHard,
 			"/api/v1/action",
 			"/api/v1/import/",
 			"/api/v1/context",
@@ -66,7 +69,7 @@ func NewController(
 	return instance
 }
 
-func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
+func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
 	user := domain.ANONYMOUS_OWNER
 
 	token, err := r.Cookie(COOKIE_NAME)
@@ -96,6 +99,38 @@ func (c *Controller) auth(w http.ResponseWriter, r *http.Request, context router
 	if timeLeft < 10*time.Minute {
 		defineSession(w, user)
 	}
+
+	return result.Ok(context)
+}
+
+func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
+	res := c.authSoft(w, r, context)
+	if _, ok := res.Err(); ok {
+		return res
+	}
+
+	userInterface, ok := context.Get(USER)
+	if !ok {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
+	username, ok := (*userInterface).(string)
+	if !ok {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
+	sessions := repository.InstanceManagerSession()
+
+	session, exists := sessions.Find(username)
+	if !exists {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
+	if session.IsNotVerified() {
+		return result.Err(http.StatusNotAcceptable, errors.New("password update required"))
+	}
+
+	sessions.Visited(session)
 
 	return result.Ok(context)
 }

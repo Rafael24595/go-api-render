@@ -29,6 +29,19 @@ type requestLogin struct {
 	Password string `json:"password"`
 }
 
+type requestVerify struct {
+	OldPassword  string `json:"old_password"`
+	NewPassword1 string `json:"new_password_1"`
+	NewPassword2 string `json:"new_password_2"`
+}
+
+type requestSigninUser struct {
+	Username  string `json:"username"`
+	Password1 string `json:"password_1"`
+	Password2 string `json:"password_2"`
+	IsAdmin   bool   `json:"is_admin"`
+}
+
 type requestPushToCollection struct {
 	SourceId    string              `json:"source_id"`
 	TargetId    string              `json:"target_id"`

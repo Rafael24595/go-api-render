@@ -29,6 +29,9 @@ func NewControllerLogin(
 		Route(http.MethodPost, instance.login, "/api/v1/login").
 		Route(http.MethodDelete, instance.logout, "/api/v1/login").
 		Route(http.MethodGet, instance.user, "/api/v1/user").
+		Route(http.MethodPost, instance.signin, "/api/v1/user").
+		Route(http.MethodDelete, instance.delete, "/api/v1/user").
+		Route(http.MethodPut, instance.verify, "/api/v1/user/verify").
 		Route(http.MethodGet, instance.identify, "/api/v1/identify")
 
 	return instance
@@ -75,12 +78,88 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 	}
 
 	response := responseUserData{
-		Username:  user.Username,
-		Timestamp: user.Timestamp,
-		Context:   user.Context,
+		Username:    user.Username,
+		Timestamp:   user.Timestamp,
+		Context:     user.Context,
+		IsProtected: user.IsProtected,
+		IsAdmin:     user.IsAdmin,
+		FirstTime:   user.Count < 0,
 	}
 
 	return result.Ok(response)
+}
+
+func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	username := findUser(ctx)
+
+	request, err := jsonDeserialize[requestSigninUser](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	sessions := repository.InstanceManagerSession()
+
+	user, exists := sessions.Find(username)
+	if !exists {
+		err := errors.New("user not found")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	session, err := sessions.Insert(user, request.Username, request.Password1, request.IsAdmin)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	ctx.Put(USER, session.Username)
+
+	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	username := findUser(ctx)
+
+	verify, err := jsonDeserialize[requestVerify](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	sessions := repository.InstanceManagerSession()
+	session, err := sessions.Verify(username, verify.OldPassword, verify.NewPassword1, verify.NewPassword2)
+	if err != nil {
+		return result.Err(http.StatusUnauthorized, err)
+	}
+
+	if session == nil {
+		return result.Err(http.StatusInternalServerError, nil)
+	}
+
+	defineSession(w, session.Username)
+
+	ctx.Put(USER, session.Username)
+
+	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	username := findUser(ctx)
+
+	sessions := repository.InstanceManagerSession()
+
+	user, exists := sessions.Find(username)
+	if !exists {
+		err := errors.New("user not found")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	if _, err := sessions.Delete(user); err != nil {
+		return result.Err(http.StatusForbidden, err)
+	}
+
+	closeSession(w)
+
+	ctx.Put(USER, domain.ANONYMOUS_OWNER)
+
+	return c.user(w, r, ctx)
 }
 
 func (c *ControllerLogin) identify(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
