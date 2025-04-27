@@ -11,24 +11,25 @@ import (
 )
 
 type ControllerHistoric struct {
-	router             *router.Router
-	managerActions     *repository.ManagerRequest
-	repositoryHisotric repository.IRepositoryHistoric
+	router          *router.Router
+	managerRequest  *repository.ManagerRequest
+	managerHistoric *repository.ManagerHistoric
 }
 
 func NewControllerHistoric(
 	router *router.Router,
-	managerActions *repository.ManagerRequest,
-	repositoryHisotric repository.IRepositoryHistoric) ControllerHistoric {
+	managerRequest *repository.ManagerRequest,
+	managerHistoric *repository.ManagerHistoric) ControllerHistoric {
 	instance := ControllerHistoric{
-		router:             router,
-		managerActions:     managerActions,
-		repositoryHisotric: repositoryHisotric,
+		router:          router,
+		managerRequest:  managerRequest,
+		managerHistoric: managerHistoric,
 	}
 
 	router.
+		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic").
 		Route(http.MethodPost, instance.insertHistoric, "/api/v1/historic").
-		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic")
+		Route(http.MethodDelete, instance.deleteHistoric, "/api/v1/historic/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -42,7 +43,7 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 	}
 
 	if action.Request.Status != domain.DRAFT {
-		response := c.managerActions.InsertResponse(user, dto.ToResponse(&action.Response))
+		response := c.managerRequest.InsertResponse(user, dto.ToResponse(&action.Response))
 
 		dto := responseAction{
 			Request:  action.Request,
@@ -52,11 +53,48 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 		return result.Ok(dto)
 	}
 
-	actionRequest, actionResponse := c.managerActions.Insert(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
+	collection, resultStatus := c.findHistoricCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
 
-	step := domain.NewHistoric(actionRequest.Id, user)
-	c.repositoryHisotric.Insert(*step)
-	//TODO: Implement delete old steps
+	_, request, response := c.managerHistoric.Insert(user, collection, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
+
+	resultResponse := responseAction{
+		Request:  *dto.FromRequest(request),
+		Response: *dto.FromResponse(response),
+	}
+
+	return result.Ok(resultResponse)
+}
+
+func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	collection, resultStatus := c.findHistoricCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	dtos := c.managerHistoric.Find(user, collection)
+
+	return result.Ok(dtos)
+}
+
+func (c *ControllerHistoric) deleteHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+	idRequest := r.PathValue(ID_REQUEST)
+
+	collection, resultStatus := c.findHistoricCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, actionRequest, actionResponse := c.managerHistoric.Delete(user, collection, idRequest)
+
+	if actionRequest == nil && actionResponse == nil {
+		return result.Err(http.StatusNotFound, nil)
+	}
 
 	response := responseAction{
 		Request:  *dto.FromRequest(actionRequest),
@@ -66,16 +104,12 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 	return result.Ok(response)
 }
 
-func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	user := findUser(ctx)
-
-	steps := c.repositoryHisotric.FindByOwner(user)
-	requests := c.managerActions.FindSteps(steps)
-
-	dtos := make([]dto.DtoRequest, len(requests))
-	for i, v := range requests {
-		dtos[i] = *dto.FromRequest(&v)
+func (c *ControllerHistoric) findHistoricCollection(user string) (*domain.Collection, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	collection, err := sessions.FindUserHistoric(user)
+	if err != nil {
+		result := result.Err(http.StatusInternalServerError, err)
+		return nil, &result
 	}
-
-	return result.Ok(dtos)
+	return collection, nil
 }

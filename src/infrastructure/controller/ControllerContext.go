@@ -27,7 +27,7 @@ func NewControllerContext(
 	instance.router.
 		Route(http.MethodPost, instance.importContext, "/api/v1/import/context").
 		Route(http.MethodGet, instance.findUserContext, "/api/v1/context").
-		Route(http.MethodPost, instance.insertContext, "/api/v1/context").
+		Route(http.MethodPut, instance.updateContext, "/api/v1/context").
 		Route(http.MethodGet, instance.findContext, "/api/v1/context/{%s}", ID_CONTEXT)
 
 	return instance
@@ -50,7 +50,14 @@ func (c *ControllerContext) importContext(w http.ResponseWriter, r *http.Request
 func (c *ControllerContext) findUserContext(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	context, ok := c.managerContext.FindByOwner(user)
+	sessions := repository.InstanceManagerSession()
+
+	collection, err := sessions.FindUserCollection(user)
+	if err != nil {
+		return result.Err(http.StatusInternalServerError, err)
+	}
+
+	context, ok := c.managerContext.Find(user, collection.Context)
 	if !ok {
 		return result.Err(http.StatusNotFound, nil)
 	}
@@ -60,7 +67,7 @@ func (c *ControllerContext) findUserContext(w http.ResponseWriter, r *http.Reque
 	return result.Ok(dtoContext)
 }
 
-func (c *ControllerContext) insertContext(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerContext) updateContext(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtoContext, err := jsonDeserialize[dto.DtoContext](r)
@@ -69,7 +76,7 @@ func (c *ControllerContext) insertContext(w http.ResponseWriter, r *http.Request
 	}
 
 	context := dto.ToContext(dtoContext)
-	context = c.managerContext.InsertFromOwner(user, context)
+	context, _ = c.managerContext.Update(user, context)
 
 	dtoContext = dto.FromContext(context)
 

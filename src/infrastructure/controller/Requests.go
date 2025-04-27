@@ -51,14 +51,36 @@ type requestPushToCollection struct {
 	Movement    repository.Movement `json:"move"`
 }
 
-func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadPushToCollection {
+type requestSortCollection struct {
+	Nodes []requestCollectionNode `json:"nodes"`
+}
+
+type requestCollectionNode struct {
+	Order   int    `json:"order"`
+	Request string `json:"request"`
+}
+
+func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadCollectRequest {
 	request := dto.ToRequest(&payload.Request)
-	return repository.PayloadPushToCollection{
+	return repository.PayloadCollectRequest{
 		SourceId:    payload.SourceId,
 		TargetId:    payload.TargetId,
 		TargetName:  payload.TargetName,
 		Request:     *request,
 		RequestName: payload.RequestName,
 		Movement:    payload.Movement,
+	}
+}
+
+func requestSortCollectionToPayload(payload *requestSortCollection) repository.PayloadSortCollection {
+	nodes := make([]repository.PayloadCollectionNode, len(payload.Nodes))
+	for i, v := range payload.Nodes {
+		nodes[i] = repository.PayloadCollectionNode{
+			Order: v.Order,
+			Request: v.Request,
+		}
+	}
+	return repository.PayloadSortCollection{
+		Nodes: nodes,
 	}
 }

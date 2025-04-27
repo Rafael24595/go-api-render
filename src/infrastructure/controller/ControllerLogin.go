@@ -77,10 +77,17 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 		return result.Err(http.StatusNotFound, err)
 	}
 
+	collection, err := sessions.FindUserCollection(user.Username)
+	if err != nil {
+		return result.Err(http.StatusInternalServerError, err)
+	}
+
 	response := responseUserData{
 		Username:    user.Username,
 		Timestamp:   user.Timestamp,
-		Context:     user.Context,
+		History:     user.History,
+		Collection:  user.Collection,
+		Context:     collection.Context,
 		IsProtected: user.IsProtected,
 		IsAdmin:     user.IsAdmin,
 		FirstTime:   user.Count < 0,

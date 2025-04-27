@@ -11,25 +11,29 @@ import (
 )
 
 type ControllerStorage struct {
-	router         *router.Router
-	managerActions *repository.ManagerRequest
+	router            *router.Router
+	managerRequest    *repository.ManagerRequest
+	managerCollection *repository.ManagerCollection
 }
 
 func NewControllerStorage(
 	router *router.Router,
-	managerActions *repository.ManagerRequest) ControllerStorage {
+	managerRequest *repository.ManagerRequest,
+	managerCollection *repository.ManagerCollection) ControllerStorage {
 	instance := ControllerStorage{
-		router:         router,
-		managerActions: managerActions,
+		router:            router,
+		managerRequest:    managerRequest,
+		managerCollection: managerCollection,
 	}
 
 	router.
 		Route(http.MethodPost, instance.importRequests, "/api/v1/import/request").
+		Route(http.MethodPut, instance.sortRequests, "/api/v1/sort/request").
 		Route(http.MethodGet, instance.findRequests, "/api/v1/request").
 		Route(http.MethodPost, instance.insertAction, "/api/v1/request").
 		Route(http.MethodPut, instance.updateRequest, "/api/v1/request").
-		Route(http.MethodDelete, instance.deleteAction, "/api/v1/request/{%s}", ID_REQUEST).
-		Route(http.MethodGet, instance.findAction, "/api/v1/request/{%s}", ID_REQUEST)
+		Route(http.MethodGet, instance.findAction, "/api/v1/request/{%s}", ID_REQUEST).
+		Route(http.MethodDelete, instance.deleteAction, "/api/v1/request/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -42,21 +46,46 @@ func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Reques
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	requests := c.managerActions.ImportDtoRequests(user, *dtos)
+	collection, resultStatus := c.findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
 
-	return result.Ok(requests)
+	collection = c.managerCollection.ImportDtoRequests(user, collection, *dtos)
+	nodes := c.managerCollection.FindNodes(user, collection)
+
+	return result.Ok(nodes)
+}
+
+func (c *ControllerStorage) sortRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	dto, err := jsonDeserialize[requestSortCollection](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	collection, resultStatus := c.findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	payload := requestSortCollectionToPayload(dto)
+
+	collection = c.managerCollection.SortCollectionRequest(user, collection, payload)
+
+	return result.Ok(collection)
 }
 
 func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
-	status := domain.FINAL
 
-	requests := c.managerActions.FindOwner(user, &status)
-
-	dtos := make([]dto.DtoRequest, len(requests))
-	for i, v := range requests {
-		dtos[i] = *dto.FromRequest(&v)
+	collection, resultStatus := c.findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
 	}
+
+	dtos := c.managerCollection.FindNodes(user, collection)
 
 	return result.Ok(dtos)
 }
@@ -68,15 +97,23 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
+	
+	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
-	actionRequest, actionResponse := c.managerActions.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
-
-	response := responseAction{
-		Request:  *dto.FromRequest(actionRequest),
-		Response: *dto.FromResponse(actionResponse),
+	if request.Status == domain.FINAL {
+		collection, resultStatus := c.findUserCollection(user)
+		if resultStatus != nil {
+			return *resultStatus
+		}
+		c.managerCollection.ResolveRequests(user, collection, *request)
 	}
 
-	return result.Ok(response)
+	dto := responseAction{
+		Request:  *dto.FromRequest(request),
+		Response: *dto.FromResponse(response),
+	}
+
+	return result.Ok(dto)
 }
 
 func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -87,9 +124,37 @@ func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	request := c.managerActions.Update(user, dto.ToRequest(dtoRequest))
+	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
+	if request.Status == domain.FINAL {
+		collection, resultStatus := c.findUserCollection(user)
+		if resultStatus != nil {
+			return *resultStatus
+		}
+		c.managerCollection.ResolveRequests(user, collection, *request)
+	}
 
 	dto := dto.FromRequest(request)
+
+	return result.Ok(dto)
+}
+
+func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+	idRequest := r.PathValue(ID_REQUEST)
+
+	request, response, ok := c.managerRequest.Find(user, idRequest)
+	if !ok {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
+	if request == nil {
+		return result.Err(http.StatusNotFound, nil)
+	}
+
+	dto := responseAction{
+		Request:  *dto.FromRequest(request),
+		Response: *dto.FromResponse(response),
+	}
 
 	return result.Ok(dto)
 }
@@ -98,7 +163,16 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	actionRequest, actionResponse := c.managerActions.DeleteById(user, idRequest)
+	collection, resultStatus := c.findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, actionRequest, actionResponse := c.managerCollection.RemoveRequestFromCollection(user, collection, idRequest)
+
+	if actionRequest == nil && actionResponse == nil {
+		return result.Err(http.StatusNotFound, nil)
+	}
 
 	response := responseAction{
 		Request:  *dto.FromRequest(actionRequest),
@@ -108,23 +182,13 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 	return result.Ok(response)
 }
 
-func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	user := findUser(ctx)
-	idRequest := r.PathValue(ID_REQUEST)
-
-	actionRequest, actionResponse, ok := c.managerActions.Find(user, idRequest)
-	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+func (c *ControllerStorage) findUserCollection(user string) (*domain.Collection, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	collection, err := sessions.FindUserCollection(user)
+	if err != nil {
+		result := result.Err(http.StatusInternalServerError, err)
+		return nil, &result
 	}
 
-	if actionRequest == nil {
-		return result.Err(http.StatusNotFound, nil)
-	}
-
-	response := responseAction{
-		Request:  *dto.FromRequest(actionRequest),
-		Response: *dto.FromResponse(actionResponse),
-	}
-
-	return result.Ok(response)
+	return collection, nil
 }

@@ -24,11 +24,10 @@ type Controller struct {
 
 func NewController(
 	route *router.Router,
-	managerActions *repository.ManagerRequest,
+	managerRequest *repository.ManagerRequest,
 	managerContext *repository.ManagerContext,
 	managerCollection *repository.ManagerCollection,
-	repositoryContext repository.IRepositoryContext,
-	repositoryHisotric repository.IRepositoryHistoric) Controller {
+	managerHisotric *repository.ManagerHistoric) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),
@@ -61,10 +60,10 @@ func NewController(
 
 	NewControllerLogin(route)
 	NewControllerActions(route)
-	NewControllerStorage(route, managerActions)
-	NewControllerHistoric(route, managerActions, repositoryHisotric)
+	NewControllerStorage(route, managerRequest, managerCollection)
+	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
-	NewControllerCollection(route, managerCollection, managerActions, repositoryContext)
+	NewControllerCollection(route, managerCollection, managerRequest, managerContext)
 
 	return instance
 }

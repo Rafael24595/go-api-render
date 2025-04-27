@@ -13,11 +13,10 @@ func main() {
 	config, container := commons.Initialize()
 	router := router.NewRouter()
 	controller.NewController(router,
-		container.ManagerActions,
+		container.ManagerRequest,
 		container.ManagerContext,
 		container.ManagerCollection,
-		container.RepositoryContext,
-		container.RepositoryHistoric)
+		container.ManagerHistoric)
 	port := fmt.Sprintf(":%d", config.Port())
 	log.Fatalln(router.Listen(port))
 }

@@ -12,6 +12,8 @@ type responseAction struct {
 type responseUserData struct {
 	Username    string `json:"username"`
 	Timestamp   int64  `json:"timestamp"`
+	History     string `json:"history"`
+	Collection  string `json:"collection"`
 	Context     string `json:"context"`
 	IsProtected bool   `json:"is_protected"`
 	IsAdmin     bool   `json:"is_admin"`
