@@ -53,7 +53,7 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 		return result.Ok(dto)
 	}
 
-	collection, resultStatus := c.findHistoricCollection(user)
+	collection, resultStatus := findHistoricCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -71,7 +71,7 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := c.findHistoricCollection(user)
+	collection, resultStatus := findHistoricCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -85,7 +85,7 @@ func (c *ControllerHistoric) deleteHistoric(w http.ResponseWriter, r *http.Reque
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := c.findHistoricCollection(user)
+	collection, resultStatus := findHistoricCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -102,14 +102,4 @@ func (c *ControllerHistoric) deleteHistoric(w http.ResponseWriter, r *http.Reque
 	}
 
 	return result.Ok(response)
-}
-
-func (c *ControllerHistoric) findHistoricCollection(user string) (*domain.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserHistoric(user)
-	if err != nil {
-		result := result.Err(http.StatusInternalServerError, err)
-		return nil, &result
-	}
-	return collection, nil
 }

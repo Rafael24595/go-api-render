@@ -27,7 +27,8 @@ func NewController(
 	managerRequest *repository.ManagerRequest,
 	managerContext *repository.ManagerContext,
 	managerCollection *repository.ManagerCollection,
-	managerHisotric *repository.ManagerHistoric) Controller {
+	managerHisotric *repository.ManagerHistoric,
+	managerGroup *repository.ManagerGroup) Controller {
 	instance := Controller{
 		router:  route,
 		manager: templates.NewBuilder().Make(),
@@ -63,7 +64,7 @@ func NewController(
 	NewControllerStorage(route, managerRequest, managerCollection)
 	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
-	NewControllerCollection(route, managerCollection, managerRequest, managerContext)
+	NewControllerCollection(route, managerCollection, managerGroup)
 
 	return instance
 }
@@ -155,4 +156,36 @@ func jsonDeserialize[T any](r *http.Request) (*T, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	collection, err := sessions.FindUserHistoric(user)
+	if err != nil {
+		result := result.Err(http.StatusInternalServerError, err)
+		return nil, &result
+	}
+	return collection, nil
+}
+
+func findUserCollection(user string) (*domain.Collection, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	collection, err := sessions.FindUserCollection(user)
+	if err != nil {
+		result := result.Err(http.StatusInternalServerError, err)
+		return nil, &result
+	}
+
+	return collection, nil
+}
+
+func findUserGroup(user string) (*domain.Group, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	group, err := sessions.FindUserGroup(user)
+	if err != nil {
+		result := result.Err(http.StatusInternalServerError, err)
+		return nil, &result
+	}
+
+	return group, nil
 }

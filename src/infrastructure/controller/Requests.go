@@ -51,13 +51,13 @@ type requestPushToCollection struct {
 	Movement    repository.Movement `json:"move"`
 }
 
-type requestSortCollection struct {
-	Nodes []requestCollectionNode `json:"nodes"`
+type requestSortNodes struct {
+	Nodes []requestNode `json:"nodes"`
 }
 
-type requestCollectionNode struct {
-	Order   int    `json:"order"`
-	Request string `json:"request"`
+type requestNode struct {
+	Order int    `json:"order"`
+	Item  string `json:"item"`
 }
 
 func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadCollectRequest {
@@ -72,15 +72,15 @@ func requestPushToCollectionToPayload(payload *requestPushToCollection) reposito
 	}
 }
 
-func requestSortCollectionToPayload(payload *requestSortCollection) repository.PayloadSortCollection {
+func requestSortCollectionToPayload(payload *requestSortNodes) repository.PayloadSortNodes {
 	nodes := make([]repository.PayloadCollectionNode, len(payload.Nodes))
 	for i, v := range payload.Nodes {
 		nodes[i] = repository.PayloadCollectionNode{
 			Order: v.Order,
-			Request: v.Request,
+			Item:  v.Item,
 		}
 	}
-	return repository.PayloadSortCollection{
+	return repository.PayloadSortNodes{
 		Nodes: nodes,
 	}
 }

@@ -50,11 +50,9 @@ func (c *ControllerContext) importContext(w http.ResponseWriter, r *http.Request
 func (c *ControllerContext) findUserContext(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	sessions := repository.InstanceManagerSession()
-
-	collection, err := sessions.FindUserCollection(user)
-	if err != nil {
-		return result.Err(http.StatusInternalServerError, err)
+	collection, resultStatus := findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
 	}
 
 	context, ok := c.managerContext.Find(user, collection.Context)

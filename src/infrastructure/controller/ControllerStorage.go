@@ -46,13 +46,13 @@ func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Reques
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection, resultStatus := c.findUserCollection(user)
+	collection, resultStatus := findUserCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
 
 	collection = c.managerCollection.ImportDtoRequests(user, collection, *dtos)
-	nodes := c.managerCollection.FindNodes(user, collection)
+	nodes := c.managerCollection.FindRequestNodes(user, collection)
 
 	return result.Ok(nodes)
 }
@@ -60,12 +60,12 @@ func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Reques
 func (c *ControllerStorage) sortRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dto, err := jsonDeserialize[requestSortCollection](r)
+	dto, err := jsonDeserialize[requestSortNodes](r)
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection, resultStatus := c.findUserCollection(user)
+	collection, resultStatus := findUserCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -80,12 +80,12 @@ func (c *ControllerStorage) sortRequests(w http.ResponseWriter, r *http.Request,
 func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := c.findUserCollection(user)
+	collection, resultStatus := findUserCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
 
-	dtos := c.managerCollection.FindNodes(user, collection)
+	dtos := c.managerCollection.FindRequestNodes(user, collection)
 
 	return result.Ok(dtos)
 }
@@ -101,11 +101,11 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	if request.Status == domain.FINAL {
-		collection, resultStatus := c.findUserCollection(user)
+		collection, resultStatus := findUserCollection(user)
 		if resultStatus != nil {
 			return *resultStatus
 		}
-		c.managerCollection.ResolveRequests(user, collection, *request)
+		c.managerCollection.ResolveRequestReferences(user, collection, *request)
 	}
 
 	dto := responseAction{
@@ -126,11 +126,11 @@ func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request
 
 	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
 	if request.Status == domain.FINAL {
-		collection, resultStatus := c.findUserCollection(user)
+		collection, resultStatus := findUserCollection(user)
 		if resultStatus != nil {
 			return *resultStatus
 		}
-		c.managerCollection.ResolveRequests(user, collection, *request)
+		c.managerCollection.ResolveRequestReferences(user, collection, *request)
 	}
 
 	dto := dto.FromRequest(request)
@@ -163,7 +163,7 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := c.findUserCollection(user)
+	collection, resultStatus := findUserCollection(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -180,15 +180,4 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 	}
 
 	return result.Ok(response)
-}
-
-func (c *ControllerStorage) findUserCollection(user string) (*domain.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserCollection(user)
-	if err != nil {
-		result := result.Err(http.StatusInternalServerError, err)
-		return nil, &result
-	}
-
-	return collection, nil
 }

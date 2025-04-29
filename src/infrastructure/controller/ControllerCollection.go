@@ -18,26 +18,25 @@ const TARGET = "target"
 type ControllerCollection struct {
 	router            *router.Router
 	managerCollection *repository.ManagerCollection
-	managerRequest    *repository.ManagerRequest
-	managerContext    *repository.ManagerContext
+	managerGroup      *repository.ManagerGroup
 }
 
 func NewControllerCollection(
 	router *router.Router,
 	managerCollection *repository.ManagerCollection,
-	managerRequest *repository.ManagerRequest,
-	managerContext *repository.ManagerContext) ControllerCollection {
+	managerGroup *repository.ManagerGroup) ControllerCollection {
 	instance := ControllerCollection{
 		router:            router,
 		managerCollection: managerCollection,
-		managerRequest:    managerRequest,
-		managerContext:    managerContext,
+		managerGroup:      managerGroup,
 	}
 
 	instance.router.
 		Route(http.MethodPost, instance.openapi, "/api/v1/import/openapi").
 		Route(http.MethodPost, instance.importCollection, "/api/v1/import/collection").
 		Route(http.MethodPost, instance.importToCollection, "/api/v1/import/collection/{%s}", COLLECTION).
+		Route(http.MethodPut, instance.sortCollections, "/api/v1/sort/collection").
+		Route(http.MethodPut, instance.sortRequests, "/api/v1/sort/collection/{%s}/request", COLLECTION).
 		Route(http.MethodGet, instance.findCollection, "/api/v1/collection").
 		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection").
 		Route(http.MethodPut, instance.collectRequest, "/api/v1/collection").
@@ -65,7 +64,12 @@ func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, c
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection, err := c.managerCollection.ImportOpenApi(user, data)
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, collection, err := c.managerGroup.ImportOpenApi(user, group, data)
 	if err != nil {
 		return result.Err(http.StatusBadRequest, err)
 	}
@@ -81,19 +85,24 @@ func (c *ControllerCollection) importCollection(w http.ResponseWriter, r *http.R
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection, err := c.managerCollection.ImportDtoCollections(user, *dtos)
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, collections, err := c.managerGroup.ImportDtoCollections(user, group, *dtos...)
 	if err != nil {
 		return result.Err(http.StatusBadRequest, err)
 	}
 
-	return result.Ok(collection)
+	return result.Ok(collections)
 }
 
 func (c *ControllerCollection) importToCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	idCollection := r.PathValue(COLLECTION)
-	if idCollection == "" {
+	id := r.PathValue(COLLECTION)
+	if id == "" {
 		return result.Ok(nil)
 	}
 
@@ -102,7 +111,53 @@ func (c *ControllerCollection) importToCollection(w http.ResponseWriter, r *http
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection := c.managerCollection.ImportDtoRequestsById(user, idCollection, *dtos)
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, collection := c.managerGroup.ImportDtoRequestsById(user, group, id, *dtos)
+
+	return result.Ok(collection)
+}
+
+func (c *ControllerCollection) sortCollections(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	dto, err := jsonDeserialize[requestSortNodes](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+	payload := requestSortCollectionToPayload(dto)
+
+	group = c.managerGroup.SortCollections(user, group, payload)
+	
+	dtos := c.managerCollection.FindCollectionNodes(user, group.Nodes)
+
+	return result.Ok(dtos)
+}
+
+func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	id := r.PathValue(COLLECTION)
+	if id == "" {
+		return result.Ok(nil)
+	}
+
+	dto, err := jsonDeserialize[requestSortNodes](r)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	payload := requestSortCollectionToPayload(dto)
+
+	collection := c.managerCollection.SortCollectionRequestById(user, id, payload)
 
 	return result.Ok(collection)
 }
@@ -110,23 +165,12 @@ func (c *ControllerCollection) importToCollection(w http.ResponseWriter, r *http
 func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	collections := c.managerCollection.FindFreeByOwner(user)
-
-	dtos := make([]dto.DtoCollection, len(collections))
-	for i, v := range collections {
-		requests := c.managerRequest.FindNodes(v.Nodes)
-		context, _ := c.managerContext.Find(user, v.Context)
-		dtoContext := dto.FromContext(context)
-		dtos[i] = dto.DtoCollection{
-			Id:        v.Id,
-			Name:      v.Name,
-			Timestamp: v.Timestamp,
-			Context:   *dtoContext,
-			Nodes:     requests,
-			Owner:     v.Owner,
-			Modified:  v.Modified,
-		}
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
 	}
+
+	dtos := c.managerCollection.FindCollectionNodes(user, group.Nodes)
 
 	return result.Ok(dtos)
 }
@@ -139,7 +183,12 @@ func (c *ControllerCollection) insertCollection(w http.ResponseWriter, r *http.R
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection = c.managerCollection.Insert(user, collection)
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, collection = c.managerGroup.ImportCollection(user, group, collection)
 
 	return result.Ok(collection)
 }
@@ -152,9 +201,14 @@ func (c *ControllerCollection) collectRequest(w http.ResponseWriter, r *http.Req
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
 	payload := requestPushToCollectionToPayload(request)
 
-	collection, _ := c.managerCollection.CollectRequest(user, payload)
+	_, collection, _ := c.managerGroup.CollectRequest(user, group, payload)
 
 	return result.Ok(collection)
 }
@@ -162,12 +216,17 @@ func (c *ControllerCollection) collectRequest(w http.ResponseWriter, r *http.Req
 func (c *ControllerCollection) deleteCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	idCollection := r.PathValue(COLLECTION)
-	if idCollection == "" {
+	id := r.PathValue(COLLECTION)
+	if id == "" {
 		return result.Ok(nil)
 	}
 
-	collection := c.managerCollection.Delete(user, idCollection)
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	_, collection := c.managerGroup.DeleteCollection(user, group, id)
 
 	return result.Ok(collection)
 }
@@ -180,12 +239,17 @@ func (c *ControllerCollection) cloneCollection(w http.ResponseWriter, r *http.Re
 		return result.Ok(nil)
 	}
 
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
 	payload, err := jsonDeserialize[requestCloneCollection](r)
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
 
-	collection := c.managerCollection.CloneCollection(user, idCollection, payload.CollectionName)
+	_, collection := c.managerGroup.CloneCollection(user, group, idCollection, payload.CollectionName)
 
 	return result.Ok(collection)
 }
@@ -203,12 +267,11 @@ func (c *ControllerCollection) takeFromCollection(w http.ResponseWriter, r *http
 		return result.Ok(nil)
 	}
 
-	sessions := repository.InstanceManagerSession()
-	target, err := sessions.FindUserCollection(user)
-	if err != nil {
-		return result.Err(http.StatusInternalServerError, err)
+	target, resultStatus := findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
 	}
-	
+
 	source, _, _ := c.managerCollection.MoveRequestBetweenCollectionsById(user, sourceId, target.Id, idRequest, repository.MOVE)
 
 	return result.Ok(source)
@@ -227,7 +290,13 @@ func (c *ControllerCollection) deleteFromCollection(w http.ResponseWriter, r *ht
 		return result.Ok(nil)
 	}
 
+	group, resultStatus := findUserGroup(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
 	collection, _, _ := c.managerCollection.RemoveRequestFromCollectionById(user, idCollection, idRequest)
+	c.managerGroup.ResolveCollectionReferences(user, group)
 
 	return result.Ok(collection)
 }

@@ -16,7 +16,8 @@ func main() {
 		container.ManagerRequest,
 		container.ManagerContext,
 		container.ManagerCollection,
-		container.ManagerHistoric)
+		container.ManagerHistoric,
+		container.ManagerGroup)
 	port := fmt.Sprintf(":%d", config.Port())
 	log.Fatalln(router.Listen(port))
 }
