@@ -168,7 +168,7 @@ func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request,
 		return *resultStatus
 	}
 
-	_, actionRequest, actionResponse := c.managerCollection.RemoveRequestFromCollection(user, collection, idRequest)
+	_, actionRequest, actionResponse := c.managerCollection.DeleteRequestFromCollection(user, collection, idRequest)
 
 	if actionRequest == nil && actionResponse == nil {
 		return result.Err(http.StatusNotFound, nil)

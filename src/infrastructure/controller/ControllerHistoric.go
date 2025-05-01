@@ -45,9 +45,14 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 	if action.Request.Status != domain.DRAFT {
 		response := c.managerRequest.InsertResponse(user, dto.ToResponse(&action.Response))
 
+		var dtoResponse *dto.DtoResponse
+		if response != nil {
+			dtoResponse = dto.FromResponse(response)
+		}
+
 		dto := responseAction{
 			Request:  action.Request,
-			Response: *dto.FromResponse(response),
+			Response: *dtoResponse,
 		}
 
 		return result.Ok(dto)

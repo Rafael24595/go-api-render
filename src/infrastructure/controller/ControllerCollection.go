@@ -295,7 +295,7 @@ func (c *ControllerCollection) deleteFromCollection(w http.ResponseWriter, r *ht
 		return *resultStatus
 	}
 
-	collection, _, _ := c.managerCollection.RemoveRequestFromCollectionById(user, idCollection, idRequest)
+	collection, _, _ := c.managerCollection.DeleteRequestFromCollectionById(user, idCollection, idRequest)
 	c.managerGroup.ResolveCollectionReferences(user, group)
 
 	return result.Ok(collection)
