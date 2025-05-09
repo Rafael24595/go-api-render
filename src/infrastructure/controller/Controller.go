@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
@@ -47,6 +48,7 @@ func NewController(
 			"/api/v1/user/verify",
 		).
 		GroupContextualizer(instance.authHard,
+			"/api/v1/system/log",
 			"/api/v1/action",
 			"/api/v1/import/",
 			"/api/v1/context",
@@ -60,6 +62,7 @@ func NewController(
 		NewControllerFront(route)
 	}
 
+	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
 	NewControllerStorage(route, managerRequest, managerCollection)
@@ -157,6 +160,16 @@ func jsonDeserialize[T any](r *http.Request) (*T, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func findSession(user string) (*session.Session, *result.Result) {
+	sessions := repository.InstanceManagerSession()
+	session, ok := sessions.Find(user)
+	if !ok {
+		result := result.Err(http.StatusUnauthorized, nil)
+		return nil, &result
+	}
+	return session, nil
 }
 
 func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
