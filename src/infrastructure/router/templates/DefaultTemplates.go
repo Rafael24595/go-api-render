@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"strings"
 
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/datalist"
 )
 
@@ -19,7 +20,7 @@ func newDefaultTemplates(listManager *datalist.DataListManager) *defaultTemplate
 
 	tmpDataList, err := parseRenderLists(templates)
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err)
 	}
 
 	return &defaultTemplates{
@@ -50,7 +51,7 @@ func (m *defaultTemplates) defineUserTemplate(userTemplates *template.Template) 
 
 func (m *defaultTemplates) userTemplate(name string, data interface{}) (template.HTML, error) {
 	if m.userTemplates == nil {
-		println("Not user templates intance defined.")
+		log.Message("Not user templates intance defined.")
 		return template.HTML(""), nil
 	}
 
@@ -72,7 +73,7 @@ func (m *defaultTemplates) renderLists(names ...string) template.HTML {
 		if dataList, ok := m.listManager.DataList(v); ok {
 			list, err := m.renderList(*dataList)
 			if err != nil {
-				panic(err.Error())
+				log.Panic(err)
 			}
 			lists = append(lists, list)
 		}

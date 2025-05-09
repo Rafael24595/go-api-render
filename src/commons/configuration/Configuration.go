@@ -2,8 +2,11 @@ package configuration
 
 import (
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/commons/utils"
 )
+
+const defaultPort = 8080
 
 var instance *Configuration
 
@@ -16,7 +19,7 @@ type Configuration struct {
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any) Configuration {
 	if instance != nil {
-		panic("")
+		log.Panics("The configuration is alredy initialized")
 	}
 
 	debug, ok := kargs["GO_API_DEBUG"].Bool()
@@ -26,13 +29,13 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 
 	port, ok := kargs["GO_API_SERVER_PORT"].Int()
 	if !ok {
-		//TODO: log
-		port = 8080
+		log.Messagef("Custom port is not defined; using default port %d", defaultPort)
+		port = defaultPort
 	}
 
 	front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
 	if !ok {
-		//TODO: log
+		log.Message("The frontend application will not be displayed")
 		front = false
 	}
 
@@ -48,7 +51,7 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 
 func Instance() Configuration {
 	if instance == nil {
-		panic("")
+		log.Panics("The configuration is not initialized yet")
 	}
 	return *instance
 }

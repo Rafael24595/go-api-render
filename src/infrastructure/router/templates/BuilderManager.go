@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/datalist"
 	"github.com/Rafael24595/go-collections/collection"
 )
@@ -82,7 +83,7 @@ func (builder *BuilderManager) makeTemplate() *template.Template {
 	
 	_, err := templates.ParseFiles(files...)
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err)
 	}
 
 	return templates
@@ -106,7 +107,7 @@ func (builder *BuilderManager) files() []string {
 		})
 
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 	}
 

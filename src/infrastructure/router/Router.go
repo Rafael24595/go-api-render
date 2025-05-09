@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 	"github.com/Rafael24595/go-collections/collection"
 )
@@ -112,14 +113,14 @@ func (r Router) patternKey(method, pattern string, params ...any) string {
 }
 
 func (r *Router) Listen(host string) error {
-	println(fmt.Sprintf("Listen at: %s", host))
+	log.Messagef("The app is listen at: %s", host)
 	return http.ListenAndServe(host, r.corsMiddleware(http.DefaultServeMux))
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	handler, ok := r.routes.Get(req.Pattern)
 	if !ok {
-		panic("//TODO: handler not found.")
+		log.Panics("Request handler not found")
 	}
 	contextualizer, ok := r.contextualizer.Get(req.Pattern)
 	if !ok {
@@ -132,7 +133,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		var err error
 		context, err = (*contextualizer)(wrt, req)
 		if err != nil {
-			panic("//TODO: contextualizer error.")
+			log.Panic(err)
 		}
 	}
 

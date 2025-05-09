@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/datalist"
@@ -33,8 +34,7 @@ func (manager *TemplateManager) Render(w http.ResponseWriter, tmpl string, conte
 
 	err := t.Execute(w, context.Collect())
 	if err != nil {
-		//TODO: Replace with log.
-		println(err.Error())
+		log.Error(err)
 		//http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 

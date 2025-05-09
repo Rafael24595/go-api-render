@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
@@ -143,7 +144,7 @@ func findUser(ctx router.Context) string {
 
 	user, ok := (*userInterface).(string)
 	if !ok {
-		panic("//TODO: Manage error.")
+		log.Panics("The user type must be a string")
 	}
 
 	return user
