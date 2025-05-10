@@ -32,6 +32,7 @@ type responseSystemMetadata struct {
 	SessionTime   int64  `json:"session_time"`
 	CoreName      string `json:"core_name"`
 	CoreVersion   string `json:"core_version"`
+	CoreReplace   bool   `json:"core_replace"`
 	RenderName    string `json:"render_name"`
 	RenderVersion string `json:"render_version"`
 }
@@ -47,6 +48,7 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64, mod configura
 		SessionTime:   timestamp,
 		CoreName:      core.Module,
 		CoreVersion:   core.Version,
+		CoreReplace:   core.Replace != "",
 		RenderName:    mod.Module,
 		RenderVersion: project.Version,
 	}
