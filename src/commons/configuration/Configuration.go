@@ -29,13 +29,13 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 
 	port, ok := kargs["GO_API_SERVER_PORT"].Int()
 	if !ok {
-		log.Messagef("Custom port is not defined; using default port %d", defaultPort)
+		log.Messagef("Custom port flag is not defined; using default port %d", defaultPort)
 		port = defaultPort
 	}
 
 	front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
 	if !ok {
-		log.Message("The frontend application will not be displayed")
+		log.Message("Front flag is not defined; the frontend application will not be displayed")
 		front = false
 	}
 
