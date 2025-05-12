@@ -12,12 +12,12 @@ var instance *Configuration
 
 type Configuration struct {
 	core_configuration.Configuration
+	Front FrontPackage
 	debug bool
 	port  int
-	front bool
 }
 
-func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any) Configuration {
+func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any, frontPackage *FrontPackage) Configuration {
 	if instance != nil {
 		log.Panics("The configuration is alredy initialized")
 	}
@@ -39,11 +39,17 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		front = false
 	}
 
+	frontPackage.Enabled = front
+	if !front {
+		frontPackage.Name = ""
+		frontPackage.Version = ""
+	}
+
 	instance = &Configuration{
 		Configuration: *core,
+		Front:         *frontPackage,
 		debug:         debug,
 		port:          port,
-		front:         front,
 	}
 
 	return *instance
@@ -62,8 +68,4 @@ func (c Configuration) Debug() bool {
 
 func (c Configuration) Port() int {
 	return c.port
-}
-
-func (c Configuration) Front() bool {
-	return c.front
 }

@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/Rafael24595/go-api-core/src/commons/configuration"
+	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 )
 
 type responseAction struct {
@@ -35,9 +36,11 @@ type responseSystemMetadata struct {
 	CoreReplace   bool   `json:"core_replace"`
 	RenderName    string `json:"render_name"`
 	RenderVersion string `json:"render_version"`
+	FrontName     string `json:"front_name"`
+	FrontVersion  string `json:"front_version"`
 }
 
-func makeResponseSystemMetadata(sessionId string, timestamp int64, mod configuration.Mod, project configuration.Project) responseSystemMetadata {
+func makeResponseSystemMetadata(sessionId string, timestamp int64, mod core_configuration.Mod, project core_configuration.Project, front configuration.FrontPackage) responseSystemMetadata {
 	core, ok := mod.Dependencies["github.com/Rafael24595/go-api-core"]
 	if !ok {
 		log.Panics("Core dependency is not defined")
@@ -51,5 +54,7 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64, mod configura
 		CoreReplace:   core.Replace != "",
 		RenderName:    mod.Module,
 		RenderVersion: project.Version,
+		FrontName:     front.Name,
+		FrontVersion:  front.Version,
 	}
 }

@@ -58,7 +58,7 @@ func NewController(
 		).
 		Cors(cors)
 
-	if configuration.Instance().Front() {
+	if configuration.Instance().Front.Enabled {
 		NewControllerFront(route)
 	}
 

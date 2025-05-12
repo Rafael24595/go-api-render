@@ -46,6 +46,7 @@ func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx 
 		conf.SessionId(), 
 		conf.Timestamp(), 
 		conf.Mod, 
-		conf.Project)
+		conf.Project,
+		conf.Front)
 	return result.Ok(response)
 }
