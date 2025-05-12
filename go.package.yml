@@ -3,3 +3,5 @@ version: '1.0'
 project:
   name: 'go-api-render'
   version: 'v0.5.0-beta.1'
+  dependencies:
+    front: v0.5.0-beta.1

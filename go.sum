@@ -1,3 +1,6 @@
+github.com/Rafael24595/go-api-core v0.0.1/go.mod h1:KZmpN1aRgedtA57gzW2/j1hXKNKjuQGAY5GgPDbz4Do=
+github.com/Rafael24595/go-api-core v0.5.0-beta.2 h1:BhzYlhiRZdohcZsy8NQ1DtOPn2PCYPc0HHgv4L1li1w=
+github.com/Rafael24595/go-api-core v0.5.0-beta.2/go.mod h1:yVWNRYOLfEwawJivgdfDO6HKQERe1WmCXtmQZVITmA8=
 github.com/Rafael24595/go-collections v0.2.0 h1:N1wNuxBwjIKFeYEB4c208gC4WZcn5DQeo+6Eg2vRD+c=
 github.com/Rafael24595/go-collections v0.2.0/go.mod h1:XanWz5msL1Wf4gv2PkApCW2EaRLzM/VUVUBCNewo/j8=
 github.com/Rafael24595/go-collections v0.2.2 h1:fgKbftKmdBZMSCkkZt12D+QHg9WVna5aCaQfzYsqntY=
