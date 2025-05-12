@@ -79,6 +79,7 @@ jobs:
           cp go.package.yml release/
           cp .env.template release/
           cp -r frontend/dist/* release/assets/front/
+          cp -r frontend/package.json release/assets/front/
           cp -r frontend/dist/assets release/assets/front/assets
 
       - name: Set up Go
