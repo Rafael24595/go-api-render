@@ -48,6 +48,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
       - name: Read front version from go.package.yml
         id: parse_yaml
         run: |
@@ -77,9 +80,6 @@ jobs:
           cp .env.template release/
           cp -r frontend/dist/* release/assets/front/
           cp -r frontend/dist/assets release/assets/front/assets
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
