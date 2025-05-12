@@ -106,11 +106,11 @@ jobs:
       - name: Build Linux binary
         if: runner.os == 'Linux'
         run: |
-          GOOS=linux GOARCH=amd64 go build -o release/myapp-linux ./...
+          GOOS=linux GOARCH=amd64 go build -o release/go-api-linux .
 
       - name: Build Windows binary
         run: |
-          GOOS=windows GOARCH=amd64 go build -o release/myapp-windows.exe ./...
+          GOOS=windows GOARCH=amd64 go build -o release/go-api-windows.exe .
 
       - name: Zip release artifacts
         run: |
