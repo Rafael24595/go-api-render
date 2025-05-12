@@ -42,9 +42,32 @@ jobs:
             fi
             echo "✅ Valid version: $VERSION"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            
-  build-and-release:
+
+  check-tag:
     needs: validate-version
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch tags and check for existing tag
+        id: check
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          git fetch --tags
+
+          if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION exists."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag $VERSION does not exist."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    needs: [validate-version, check-tag]
     runs-on: ubuntu-latest
 
     steps:
@@ -57,17 +80,17 @@ jobs:
           FRONT_VERSION=$(yq '.project.dependencies.front' go.package.yml)
           echo "FRONT_VERSION=$FRONT_VERSION" >> $GITHUB_ENV
 
-      - name: Clone frontend repo at specific version
+      - name: Clone go-api-front repo at specific version
         run: |
-          git clone --depth 1 --branch $FRONT_VERSION https://github.com/Rafael24595/go-api-front.git frontend
+          git clone --depth 1 --branch $FRONT_VERSION https://github.com/Rafael24595/go-api-front.git
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install frontend dependencies and build
-        working-directory: ./frontend
+      - name: Install go-api-front dependencies and build
+        working-directory: ./go-api-front
         run: |
           npm install
           npm run build
@@ -75,12 +98,13 @@ jobs:
       - name: Prepare release directory
         run: |
           mkdir -p release/assets/front
+          cp README.md release/
           cp go.mod release/
           cp go.package.yml release/
           cp .env.template release/
-          cp -r frontend/dist/* release/assets/front/
-          cp -r frontend/package.json release/assets/front/
-          cp -r frontend/assets/* release/assets/front/assets/
+          cp -r go-api-front/dist/* release/assets/front/
+          cp -r go-api-front/package.json release/assets/front/
+          cp -r go-api-front/assets/* release/assets/front/assets/
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -102,29 +126,33 @@ jobs:
            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
            git push origin $VERSION
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Linux binary
         if: runner.os == 'Linux'
         run: |
-          GOOS=linux GOARCH=amd64 go build -o release/go-api-linux .
+          VERSION=${{ needs.validate-version.outputs.version }}
+          cp -r release "release-linux-$VERSION"
+          GOOS=linux GOARCH=amd64 go build -o "release-linux-$VERSION/go-api-linux" .
 
       - name: Build Windows binary
         run: |
-          GOOS=windows GOARCH=amd64 go build -o release/go-api-windows.exe .
+          VERSION=${{ needs.validate-version.outputs.version }}
+          cp -r release "release-windows-$VERSION"
+          GOOS=windows GOARCH=amd64 go build -o "release-windows-$VERSION/go-api-windows" .
 
       - name: Zip release artifacts
         run: |
-          zip -r release-linux.zip release/
-          mv release release-windows
-          zip -r release-windows.zip release-windows/
+          VERSION=${{ needs.validate-version.outputs.version }}
+          zip -r "release-linux-$VERSION.zip" "release-linux-$VERSION/"
+          zip -r "release-windows-$VERSION.zip" "release-windows-$VERSION/"
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           files: |
-            release-linux.zip
-            release-windows.zip
+            release-linux-${{ steps.get_version.outputs.version }}.zip
+            release-windows-${{ steps.get_version.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
