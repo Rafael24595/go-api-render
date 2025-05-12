@@ -139,7 +139,7 @@ jobs:
         run: |
           VERSION=${{ needs.validate-version.outputs.version }}
           cp -r release "release-windows-$VERSION"
-          GOOS=windows GOARCH=amd64 go build -o "release-windows-$VERSION/go-api-windows" .
+          GOOS=windows GOARCH=amd64 go build -o "release-windows-$VERSION/go-api-windows.exe" .
 
       - name: Zip release artifacts
         run: |
