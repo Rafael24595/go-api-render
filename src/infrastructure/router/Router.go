@@ -1,90 +1,190 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-collections/collection"
 )
 
+type Context = collection.IDictionary[string, any]
+type contextHandler = func(http.ResponseWriter, *http.Request) (Context, error)
+type requestHandler = func(http.ResponseWriter, *http.Request, Context) result.Result
+type errorHandler = func(http.ResponseWriter, *http.Request, Context, result.Result)
+
 type Router struct {
-	routeMap map[string]route
+	contextualizer       collection.IDictionary[string, contextHandler]
+	groupContextualizers collection.IDictionary[string, collection.Vector[requestHandler]]
+	errors               collection.IDictionary[string, errorHandler]
+	routes               collection.IDictionary[string, requestHandler]
+	cors                 *Cors
 }
 
 func NewRouter() *Router {
-	router := &Router {
-		routeMap: map[string]route{},
+	return &Router{
+		contextualizer:       collection.DictionaryEmpty[string, contextHandler](),
+		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[requestHandler]](),
+		errors:               collection.DictionaryEmpty[string, errorHandler](),
+		routes:               collection.DictionaryEmpty[string, requestHandler](),
+		cors:                 EmptyCors(),
 	}
-	http.HandleFunc("/", router.routeHandler)
-	return router
 }
 
-func (router *Router) ResourcesPath(path string) *Router {
+func (r *Router) ResourcesPath(path string) *Router {
 	fs := http.FileServer(http.Dir(path))
 	route := fmt.Sprintf("/%s/", path)
-    http.Handle(route, http.StripPrefix(route, fs))
-	return router
+	http.Handle(fmt.Sprintf("GET %s", route), http.StripPrefix(route, fs))
+	return r
 }
 
-func (router *Router) Route(method string, uri string, handler func(http.ResponseWriter, *Request)) *Router {
-	key := fmt.Sprintf("%s#%s", method, uri)
-	route := route {
-		method: method,
-		route: uri,
-		handler: handler,
+func (r *Router) Contextualizer(handler contextHandler) *Router {
+	r.contextualizer.Put("$BASE", handler)
+	return r
+}
+
+func (r *Router) GroupContextualizer(handler requestHandler, group ...string) *Router {
+	for _, v := range group {
+		result, _ := r.groupContextualizers.
+			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
+		result.Append(handler)
+		r.groupContextualizers.Put(v, *result)
 	}
-	router.routeMap[key] = route
-	return router
+	return r
 }
 
-func (router Router) routeHandler(w http.ResponseWriter, r *http.Request) {
-	for _, v := range router.routeMap {
-		matched, args := v.matches(r.URL.Path)
-		if matched && r.Method == v.method  {
-			v.handler(w, newCustomRequest(args, r))
+func (r *Router) ErrorHandler(handler errorHandler) *Router {
+	r.errors.Put("$BASE", handler)
+	return r
+}
+
+func (r *Router) RouteOptions(method string, handler requestHandler, contextualizer *contextHandler, error *errorHandler, pattern string, params ...any) *Router {
+	route := r.patternKey(method, pattern, params...)
+	if contextualizer != nil {
+		r.contextualizer.Put(route, *contextualizer)
+	}
+	if error != nil {
+		r.errors.Put(route, *error)
+	}
+	return r.Route(method, handler, pattern, params...)
+}
+
+func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
+	route := r.patternKey(method, pattern, params...)
+	r.routes.Put(route, handler)
+	http.HandleFunc(route, r.handler)
+	return r
+}
+
+func (r *Router) Cors(cors *Cors) *Router {
+	r.cors = cors
+	return r
+}
+
+func (r *Router) corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		origin := strings.Join(r.cors.allowedOrigins, ", ")
+
+		if origin == "*" {
+			origin = req.Header.Get("Origin")
+			w.Header().Set("Vary", "Origin")
+		}
+		
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
+		w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
+		w.Header().Set("Access-Control-Allow-Credentials", strconv.FormatBool(r.cors.allowCredentials))
+
+		if req.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
-	}
-	http.Error(w, "Not found", http.StatusNotFound)
+
+		next.ServeHTTP(w, req)
+	})
 }
 
-func (route route) matches(str string) (bool, map[string]string) {
-	regexPattern := route.convertTemplateToRegex(route.route)
+func (r Router) patternKey(method, pattern string, params ...any) string {
+	return fmt.Sprintf("%s %s", method, fmt.Sprintf(pattern, params...))
+}
 
-	re, err := regexp.Compile(regexPattern)
-	if err != nil {
-		fmt.Println("Error compiling regex:", err)
-		return false, map[string]string{}
+func (r *Router) Listen(host string) error {
+	log.Messagef("The app is listen at: %s", host)
+	return http.ListenAndServe(host, r.corsMiddleware(http.DefaultServeMux))
+}
+
+func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
+	handler, ok := r.routes.Get(req.Pattern)
+	if !ok {
+		log.Panics("Request handler not found")
+	}
+	contextualizer, ok := r.contextualizer.Get(req.Pattern)
+	if !ok {
+		contextualizer, ok = r.contextualizer.Get("$BASE")
 	}
 
-	matched := re.MatchString(str)
-
-	matchValues := re.FindStringSubmatch(str)
-	if matchValues == nil {
-		return matched, map[string]string{}
-	}
-
-	matchName := re.FindStringSubmatch(route.route)
-	if matchName == nil {
-		return matched, map[string]string{}
-	}
-
-	params := make(map[string]string)
-	for i, name := range matchName {
-		if i != 0 && i < len(matchName) {
-			params[name[1:]] = matchValues[i]
+	var context Context
+	context = collection.DictionaryEmpty[string, any]()
+	if ok {
+		var err error
+		context, err = (*contextualizer)(wrt, req)
+		if err != nil {
+			log.Panic(err)
 		}
 	}
 
-	return matched, params
-}
+	group := strings.Split(req.Pattern, " ")[1]
 
-func (route route) convertTemplateToRegex(template string) string {
-	escapedTemplate := regexp.QuoteMeta(template)
+	keys := r.groupContextualizers.KeysVector().Filter(func(key string) bool {
+		return strings.HasPrefix(group, key)
+	})
 
-	re := regexp.MustCompile(`:[\w-]+`)
-	escapedTemplate = re.ReplaceAllString(escapedTemplate, `([^/]+)`)
+	for _, key := range keys.Collect() {
+		funcs, ok := r.groupContextualizers.Get(key)
+		if !ok {
+			return
+		}
 
-	escapedTemplate = `^` + escapedTemplate + `$`
+		for _, f := range funcs.Collect() {
+			result := f(wrt, req, context)
+			if err, ok := result.Err(); ok {
+				if err == nil {
+					wrt.WriteHeader(result.Status())
+					return
+				}
 
-	return escapedTemplate
+				http.Error(wrt, err.Error(), result.Status())
+				return
+			}
+		}
+	}
+
+	result := (*handler)(wrt, req, context)
+	if response, ok := result.Ok(); ok {
+		if response != nil {
+			json.NewEncoder(wrt).Encode(response)
+		}
+		return
+	}
+
+	errorHandler, ok := r.errors.Get(req.Pattern)
+	if !ok {
+		errorHandler, ok = r.errors.Get("$BASE")
+	}
+
+	if ok {
+		(*errorHandler)(wrt, req, context, result)
+		return
+	}
+
+	if err, ok := result.Err(); ok && err != nil {
+		http.Error(wrt, err.Error(), result.Status())
+		return
+	}
+
+	wrt.WriteHeader(result.Status())
 }

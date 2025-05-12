@@ -1,0 +1,124 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write 
+
+jobs:
+  block-non-main:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "🚫 Manual dispatch is only allowed from the 'main' branch."
+          exit 1
+
+  validate-version:
+      needs: block-non-main
+      if: github.ref == 'refs/heads/main'
+      runs-on: ubuntu-latest
+      outputs:
+        version: ${{ steps.check.outputs.version }}
+      steps:
+        - name: Install yq
+          run: |
+            sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+
+        - name: Validate version format
+          id: check
+          run: |
+            VERSION=$(yq '.project.version' go.package.yml)
+            if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9\.-]+)?$ ]]; then
+              echo "❌ Invalid version format: $VERSION"
+              echo "✅ Expected format: v1.2.3 or v1.2.3-beta.1"
+              exit 1
+            fi
+            echo "✅ Valid version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+  build-and-release:
+    needs: validate-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Read front version from go.package.yml
+        id: parse_yaml
+        run: |
+          FRONT_VERSION=$(yq '.project.dependencies.front' go.package.yml)
+          echo "FRONT_VERSION=$FRONT_VERSION" >> $GITHUB_ENV
+
+      - name: Clone frontend repo at specific version
+        run: |
+          git clone --depth 1 --branch $FRONT_VERSION https://github.com/Rafael24595/go-api-front.git frontend
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies and build
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Prepare release directory
+        run: |
+          mkdir -p release/assets/front
+          cp go.mod release/
+          cp go.package.yml release/
+          cp .env.template release/
+          cp -r frontend/dist/* release/assets/front/
+          cp -r frontend/dist/assets release/assets/front/assets
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.0'
+
+      - name: Get version input
+        id: get_version
+        run: |
+          VERSION="${{ needs.validate-version.outputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push Git Tag
+        run: |
+           VERSION=${{ steps.get_version.outputs.version }}
+           git config user.name "github-actions"
+           git config user.email "github-actions@github.com"
+           git tag $VERSION
+           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+           git push origin $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+
+      - name: Build Linux binary
+        if: runner.os == 'Linux'
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o release/myapp-linux ./...
+
+      - name: Build Windows binary
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o release/myapp-windows.exe ./...
+
+      - name: Zip release artifacts
+        run: |
+          zip -r release-linux.zip release/
+          mv release release-windows
+          zip -r release-windows.zip release-windows/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-linux.zip
+            release-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
