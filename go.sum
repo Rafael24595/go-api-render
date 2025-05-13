@@ -1,5 +1,5 @@
-github.com/Rafael24595/go-api-core v0.5.0-beta.3 h1:husiFz3UpAuzbNK/IQ7kBosrMAO207Cgsoa34L8QNaQ=
-github.com/Rafael24595/go-api-core v0.5.0-beta.3/go.mod h1:yVWNRYOLfEwawJivgdfDO6HKQERe1WmCXtmQZVITmA8=
+github.com/Rafael24595/go-api-core v0.5.0-beta.4 h1:eIg43dd8uxeCMIB1GJrFPB6P81xjhecvIr5LqBxjZag=
+github.com/Rafael24595/go-api-core v0.5.0-beta.4/go.mod h1:yVWNRYOLfEwawJivgdfDO6HKQERe1WmCXtmQZVITmA8=
 github.com/Rafael24595/go-collections v0.2.3 h1:bN+EzgWXh98cAGXjXSd0hGC2KyjBUmssrss9zTdCfd8=
 github.com/Rafael24595/go-collections v0.2.3/go.mod h1:XanWz5msL1Wf4gv2PkApCW2EaRLzM/VUVUBCNewo/j8=
 github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
