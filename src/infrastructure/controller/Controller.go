@@ -62,6 +62,10 @@ func NewController(
 		NewControllerFront(route)
 	}
 
+	if configuration.Instance().Dev() {
+		NewControllerDev(route)
+	}
+
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)

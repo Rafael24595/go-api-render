@@ -122,6 +122,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	if !ok {
 		log.Panics("Request handler not found")
 	}
+	
 	contextualizer, ok := r.contextualizer.Get(req.Pattern)
 	if !ok {
 		contextualizer, ok = r.contextualizer.Get("$BASE")
