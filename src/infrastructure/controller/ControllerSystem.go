@@ -43,9 +43,9 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	conf := configuration.Instance()
 	response := makeResponseSystemMetadata(
-		conf.SessionId(), 
-		conf.Timestamp(), 
-		conf.Mod, 
+		conf.SessionId(),
+		conf.Timestamp(),
+		conf.Mod,
 		conf.Project,
 		conf.Front)
 	return result.Ok(response)
