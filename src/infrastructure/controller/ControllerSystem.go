@@ -45,6 +45,7 @@ func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx 
 	response := makeResponseSystemMetadata(
 		conf.SessionId(),
 		conf.Timestamp(),
+		conf.Release,
 		conf.Mod,
 		conf.Project,
 		conf.Front)

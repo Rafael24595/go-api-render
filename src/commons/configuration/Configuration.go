@@ -1,6 +1,8 @@
 package configuration
 
 import (
+	"time"
+
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/commons/utils"
@@ -12,9 +14,10 @@ var instance *Configuration
 
 type Configuration struct {
 	core_configuration.Configuration
-	Front FrontPackage
-	debug bool
-	port  int
+	Release *core_configuration.Release
+	Front   FrontPackage
+	debug   bool
+	port    int
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any, frontPackage *FrontPackage) Configuration {
@@ -52,7 +55,41 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		port:          port,
 	}
 
+	go instance.originLastVersion()
+
 	return *instance
+}
+
+func (c *Configuration) originLastVersion() {
+	ticker := time.NewTicker(30 * time.Minute)
+	defer ticker.Stop()
+
+	fetchLastVersion(c)
+
+	for {
+		select {
+		case <-c.Signal.Done():
+			return
+		case <-ticker.C:
+			fetchLastVersion(c)
+		}
+	}
+}
+
+func fetchLastVersion(c *Configuration) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from panic: %v", r)
+		}
+	}()
+
+	release := core_configuration.OriginLastVersion("Rafael24595", "go-api-render")
+	if release != nil {
+		if c.Release == nil || release.TagName != c.Release.TagName {
+			log.Messagef("New release has been found %s", release.TagName)
+		}
+		c.Release = release
+	}
 }
 
 func Instance() Configuration {
