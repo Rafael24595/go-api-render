@@ -118,6 +118,12 @@ func (r *Router) Listen(host string) error {
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from panic: %v", r)
+		}
+	}()
+
 	handler, ok := r.routes.Get(req.Pattern)
 	if !ok {
 		log.Panics("Request handler not found")
