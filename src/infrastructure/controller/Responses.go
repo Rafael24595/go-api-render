@@ -34,16 +34,26 @@ type responseSystemMetadata struct {
 	CoreName      string `json:"core_name"`
 	CoreVersion   string `json:"core_version"`
 	CoreReplace   bool   `json:"core_replace"`
+	RenderRelease string `json:"render_release"`
 	RenderName    string `json:"render_name"`
 	RenderVersion string `json:"render_version"`
 	FrontName     string `json:"front_name"`
 	FrontVersion  string `json:"front_version"`
 }
 
-func makeResponseSystemMetadata(sessionId string, timestamp int64, mod core_configuration.Mod, project core_configuration.Project, front configuration.FrontPackage) responseSystemMetadata {
+func makeResponseSystemMetadata(sessionId string, timestamp int64,
+	release *core_configuration.Release,
+	mod core_configuration.Mod,
+	project core_configuration.Project,
+	front configuration.FrontPackage) responseSystemMetadata {
 	core, ok := mod.Dependencies["github.com/Rafael24595/go-api-core"]
 	if !ok {
 		log.Panics("Core dependency is not defined")
+	}
+
+	renderRelease := project.Version
+	if release != nil && release.TagName != "" {
+		renderRelease = release.TagName
 	}
 
 	return responseSystemMetadata{
@@ -52,6 +62,7 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64, mod core_conf
 		CoreName:      core.Module,
 		CoreVersion:   core.Version,
 		CoreReplace:   core.Replace != "",
+		RenderRelease: renderRelease,
 		RenderName:    mod.Module,
 		RenderVersion: project.Version,
 		FrontName:     front.Name,
