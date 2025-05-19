@@ -55,13 +55,19 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		port:          port,
 	}
 
-	go instance.originLastVersion()
+	go instance.originLastVersion(kargs)
 
 	return *instance
 }
 
-func (c *Configuration) originLastVersion() {
-	ticker := time.NewTicker(30 * time.Minute)
+func (c *Configuration) originLastVersion(kargs map[string]utils.Any) {
+	releaseTime, ok := kargs["GO_API_FETCH_RELEASE_TIME"].Int()
+	if !ok || releaseTime < 1 {
+		log.Message("Fetch release time is not defined; new releases will not be fetched")
+		return
+	}
+
+	ticker := time.NewTicker(time.Duration(releaseTime) * time.Hour)
 	defer ticker.Stop()
 
 	fetchLastVersion(c)
