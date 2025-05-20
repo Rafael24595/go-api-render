@@ -91,7 +91,7 @@ func fetchLastVersion(c *Configuration) {
 
 	release := core_configuration.OriginLastVersion("Rafael24595", "go-api-render")
 	if release != nil {
-		if c.Release == nil || release.TagName != c.Release.TagName {
+		if release.TagName != c.Project.Version {
 			log.Messagef("New release has been found %s", release.TagName)
 		}
 		c.Release = release
