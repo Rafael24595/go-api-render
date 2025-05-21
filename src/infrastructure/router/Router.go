@@ -172,8 +172,20 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 
 	result := (*handler)(wrt, req, context)
 	if response, ok := result.Ok(); ok {
-		if response != nil {
-			json.NewEncoder(wrt).Encode(response)
+		switch res := response.(type) {
+		case string:
+			wrt.Write([]byte(res))
+		case []byte:
+			wrt.Write(res)
+		case error:
+			http.Error(wrt, res.Error(), http.StatusInternalServerError)
+		case nil:
+			wrt.WriteHeader(http.StatusNoContent)
+		default:
+			wrt.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(wrt).Encode(res); err != nil {
+				http.Error(wrt, err.Error(), http.StatusInternalServerError)
+			}
 		}
 		return
 	}
