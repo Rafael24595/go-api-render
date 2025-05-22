@@ -180,7 +180,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		case error:
 			http.Error(wrt, res.Error(), http.StatusInternalServerError)
 		case nil:
-			wrt.WriteHeader(http.StatusNoContent)
+			return
 		default:
 			wrt.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(wrt).Encode(res); err != nil {
