@@ -88,6 +88,9 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 
 	claims, err := auth.ValidateJWT(token.Value)
 	if err != nil {
+		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
+			closeSession(w)
+		}
 		return result.Err(http.StatusUnauthorized, err)
 	}
 

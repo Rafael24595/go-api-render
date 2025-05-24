@@ -31,7 +31,7 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return nil, err
+		return claims, err
 	}
 	
 	return claims, nil
