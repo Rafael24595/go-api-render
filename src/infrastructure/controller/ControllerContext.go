@@ -87,7 +87,6 @@ func (c *ControllerContext) findContext(w http.ResponseWriter, r *http.Request, 
 
 	context, ok := c.managerContext.Find(user, idContext)
 	if !ok {
-		w.WriteHeader(http.StatusNotFound)
 		return result.Err(http.StatusNotFound, nil)
 	}
 
