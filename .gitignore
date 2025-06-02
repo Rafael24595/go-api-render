@@ -2,3 +2,4 @@
 /db
 /assets/front
 .remote-scripts
+.logs
