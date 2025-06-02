@@ -104,7 +104,10 @@ jobs:
           cp .env.template release/
           cp -r go-api-front/dist/* release/assets/front/
           cp -r go-api-front/package.json release/assets/front/
-          [ -d go-api-front/assets ] && cp -r go-api-front/assets/* release/assets/front/assets/
+          if [ -d go-api-front/assets ]; then
+            mkdir -p release/assets/front/assets
+            cp -r go-api-front/assets/* release/assets/front/assets/
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v4
