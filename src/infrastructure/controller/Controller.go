@@ -50,7 +50,8 @@ func NewController(
 		GroupContextualizer(instance.authHard,
 			"/api/v1/system/log",
 			"/api/v1/action",
-			"/api/v1/import/",
+			"/api/v1/import",
+			"/api/v1/sort",
 			"/api/v1/context",
 			"/api/v1/historic",
 			"/api/v1/request",
@@ -108,7 +109,9 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 
 	timeLeft := time.Until(claims.ExpiresAt.Time)
 	if timeLeft < 10*time.Minute {
-		defineSession(w, user)
+		if err = defineSession(w, user); err != nil {
+			return result.Err(401, err)
+		}
 	}
 
 	return result.Ok(context)

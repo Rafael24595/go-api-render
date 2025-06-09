@@ -53,7 +53,9 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 		return result.Err(http.StatusUnprocessableEntity, nil)
 	}
 
-	defineSession(w, login.Username)
+	if err = defineSession(w, login.Username); err != nil {
+		return result.Err(401, err)
+	}
 
 	ctx.Put(USER, login.Username)
 
@@ -140,7 +142,9 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx rou
 		return result.Err(http.StatusInternalServerError, nil)
 	}
 
-	defineSession(w, session.Username)
+	if err = defineSession(w, session.Username); err != nil {
+		return result.Err(401, err)
+	}
 
 	ctx.Put(USER, session.Username)
 
@@ -203,7 +207,7 @@ func defineSession(w http.ResponseWriter, username string) error {
 	return nil
 }
 
-func closeSession(w http.ResponseWriter) error {
+func closeSession(w http.ResponseWriter) http.ResponseWriter {
 	http.SetCookie(w, &http.Cookie{
 		Name:     COOKIE_NAME,
 		Value:    "",
@@ -214,6 +218,5 @@ func closeSession(w http.ResponseWriter) error {
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 	})
-
-	return nil
+	return w
 }
