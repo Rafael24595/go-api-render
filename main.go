@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/controller"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
 )
@@ -19,16 +21,11 @@ func main() {
 		container.ManagerCollection,
 		container.ManagerHistoric,
 		container.ManagerGroup)
-	port := fmt.Sprintf(":%d", config.Port())
 
-	go func() {
-		if err := router.Listen(port); err != nil {
-			log.Errorf("Server exited with error: %v", err)
-		}
-	}()
+	go listen(config, router)
 
 	<-config.Signal.Done()
-	
+
 	time.Sleep(1 * time.Second)
 
 	for i := 3; i > 0; i-- {
@@ -39,4 +36,24 @@ func main() {
 	log.Message("Exiting app.")
 
 	time.Sleep(1 * time.Second)
+}
+
+func listen(config *configuration.Configuration, router *router.Router) {
+	port := fmt.Sprintf(":%d", config.Port())
+
+	var err error
+	if config.Secure() {
+		portTLS := fmt.Sprintf(":%d", config.PortTLS())
+		err = router.ListenTLS(port, portTLS, config.Cert(), config.Key())
+	} else {
+		err = router.Listen(port)
+	}
+
+	if err == nil {
+		return
+	}
+
+	log.Errorf("Server exited with error: %v", err)
+	time.Sleep(3 * time.Second)
+	os.Exit(1)
 }

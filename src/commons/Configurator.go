@@ -24,18 +24,21 @@ func Initialize() (*configuration.Configuration, *dependency.DependencyContainer
 func ReadFrontPackage() *configuration.FrontPackage {
 	file, err := os.Open("assets/front/package.json")
 	if err != nil {
-		log.Errorf("Error opening go.package.yml: %v", err)
+		log.Errorf("Error opening package.json: %v", err)
 		return &configuration.FrontPackage{
 			Version: "",
 			Name: "",
 		}
 	}
-	defer file.Close()
 
 	var pkg configuration.FrontPackage
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&pkg); err != nil {
 		log.Panicf("Error decoding JSON: %v", err)
+	}
+
+	if err := file.Close(); err !=  nil {
+		log.Panicf("Error closing file: %v", err)
 	}
 
 	return &pkg
