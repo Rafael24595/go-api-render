@@ -1,8 +1,10 @@
 package router
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	stdlog "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,6 +19,17 @@ type contextHandler = func(http.ResponseWriter, *http.Request) (Context, error)
 type requestHandler = func(http.ResponseWriter, *http.Request, Context) result.Result
 type errorHandler = func(http.ResponseWriter, *http.Request, Context, result.Result)
 type startHandler func(w http.ResponseWriter, req *http.Request) bool
+
+type logWriter struct{}
+
+func newLogWriter() *logWriter {
+	return &logWriter{}
+}
+
+func (w *logWriter) Write(p []byte) (n int, err error) {
+	log.Warningf("%s", bytes.TrimSpace(p))
+	return len(p), nil
+}
 
 type Router struct {
 	contextualizer       collection.IDictionary[string, contextHandler]
@@ -98,7 +111,7 @@ func (r *Router) startHandle(next http.Handler, middlewares []startHandler) http
 }
 
 func (r *Router) secureHandler(portTLS string) startHandler {
-	return func (w http.ResponseWriter, req *http.Request) bool {
+	return func(w http.ResponseWriter, req *http.Request) bool {
 		if req.TLS != nil {
 			return false
 		}
@@ -140,33 +153,52 @@ func (r Router) patternKey(method, pattern string, params ...any) string {
 }
 
 func (r *Router) Listen(host string) error {
-	handlers := []startHandler{ 
-		r.corsHandler, 
+	handlers := []startHandler{
+		r.corsHandler,
 	}
+
+	server := &http.Server{
+		Addr:     host,
+		Handler:  r.startHandle(http.DefaultServeMux, handlers),
+		ErrorLog: stdlog.New(newLogWriter(), "", 0),
+	}
+
 	log.Messagef("The app is listen at: %s", host)
-	return http.ListenAndServe(host, r.startHandle(http.DefaultServeMux, handlers))
+	return server.ListenAndServe()
 }
 
 func (r *Router) ListenTLS(host, hostTLS, cert, key string) error {
 	go func() {
-		handlers := []startHandler{ 
-			r.corsHandler, 
+		handlers := []startHandler{
+			r.corsHandler,
 			r.secureHandler(hostTLS),
 		}
-		
+
+		server := &http.Server{
+			Addr:     host,
+			Handler:  r.startHandle(http.DefaultServeMux, handlers),
+			ErrorLog: stdlog.New(newLogWriter(), "", 0),
+		}
+
 		log.Messagef("The app is listen at: %s", host)
-		err := http.ListenAndServe(host, r.startHandle(http.DefaultServeMux, handlers))
+		err := server.ListenAndServe()
 		if err != nil {
 			log.Error(err)
 		}
 	}()
 
-	handlers := []startHandler{ 
-		r.corsHandler, 
+	handlers := []startHandler{
+		r.corsHandler,
+	}
+
+	server := &http.Server{
+		Addr:     hostTLS,
+		Handler:  r.startHandle(http.DefaultServeMux, handlers),
+		ErrorLog: stdlog.New(newLogWriter(), "", 0),
 	}
 
 	log.Messagef("The app is listen at: %s with TLS", hostTLS)
-	return http.ListenAndServeTLS(hostTLS, cert, key, r.startHandle(http.DefaultServeMux, handlers))
+	return server.ListenAndServeTLS(cert, key)
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
