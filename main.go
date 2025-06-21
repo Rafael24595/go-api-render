@@ -40,11 +40,15 @@ func main() {
 
 func listen(config *configuration.Configuration, router *router.Router) {
 	port := fmt.Sprintf(":%d", config.Port())
-
+	
 	var err error
-	if config.Secure() {
+	if config.EnableTLS() {
 		portTLS := fmt.Sprintf(":%d", config.PortTLS())
-		err = router.ListenTLS(port, portTLS, config.Cert(), config.Key())
+		if config.OnlyTLS() {
+			err = router.ListenTLS(portTLS, config.CertTLS(), config.KeyTLS())
+		} else {
+			err = router.ListenWithTLS(port, portTLS, config.CertTLS(), config.KeyTLS())
+		}
 	} else {
 		err = router.Listen(port)
 	}

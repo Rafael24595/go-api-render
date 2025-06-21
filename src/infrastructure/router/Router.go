@@ -156,7 +156,42 @@ func (r *Router) Listen(host string) error {
 	handlers := []startHandler{
 		r.corsHandler,
 	}
+	return r.listen(host, handlers)
+}
 
+func (r *Router) ListenTLS(hostTLS, certTLS, keyTLS string) error {
+	handlers := []startHandler{
+		r.corsHandler,
+	}
+	return r.listenTLS(hostTLS, certTLS, keyTLS, handlers)
+}
+
+func (r *Router) ListenWithTLS(host, hostTLS, certTLS, keyTLS string) error {
+	handlers := []startHandler{
+		r.corsHandler,
+		r.secureHandler(hostTLS),
+	}
+	go func() {
+		if err := r.listen(host, handlers); err != nil {
+			log.Error(err)
+		}
+	}()
+
+	return r.ListenTLS(hostTLS, certTLS, keyTLS)
+}
+
+func (r *Router) listenTLS(hostTLS, certTLS, keyTLS string, handlers []startHandler) error {
+	server := &http.Server{
+		Addr:     hostTLS,
+		Handler:  r.startHandle(http.DefaultServeMux, handlers),
+		ErrorLog: stdlog.New(newLogWriter(), "", 0),
+	}
+
+	log.Messagef("The app is listen at: %s with TLS", hostTLS)
+	return server.ListenAndServeTLS(certTLS, keyTLS)
+}
+
+func (r *Router) listen(host string, handlers []startHandler) error {
 	server := &http.Server{
 		Addr:     host,
 		Handler:  r.startHandle(http.DefaultServeMux, handlers),
@@ -165,40 +200,6 @@ func (r *Router) Listen(host string) error {
 
 	log.Messagef("The app is listen at: %s", host)
 	return server.ListenAndServe()
-}
-
-func (r *Router) ListenTLS(host, hostTLS, cert, key string) error {
-	go func() {
-		handlers := []startHandler{
-			r.corsHandler,
-			r.secureHandler(hostTLS),
-		}
-
-		server := &http.Server{
-			Addr:     host,
-			Handler:  r.startHandle(http.DefaultServeMux, handlers),
-			ErrorLog: stdlog.New(newLogWriter(), "", 0),
-		}
-
-		log.Messagef("The app is listen at: %s", host)
-		err := server.ListenAndServe()
-		if err != nil {
-			log.Error(err)
-		}
-	}()
-
-	handlers := []startHandler{
-		r.corsHandler,
-	}
-
-	server := &http.Server{
-		Addr:     hostTLS,
-		Handler:  r.startHandle(http.DefaultServeMux, handlers),
-		ErrorLog: stdlog.New(newLogWriter(), "", 0),
-	}
-
-	log.Messagef("The app is listen at: %s with TLS", hostTLS)
-	return server.ListenAndServeTLS(cert, key)
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {

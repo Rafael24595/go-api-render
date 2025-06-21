@@ -21,9 +21,10 @@ type Configuration struct {
 	Front   FrontPackage
 	debug   bool
 	port    int
+	onlyTLS bool
 	portTLS int
-	cert    string
-	key     string
+	certTLS string
+	keyTLS  string
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any, frontPackage *FrontPackage) Configuration {
@@ -48,7 +49,7 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		front = false
 	}
 
-	portTLS, cert, key := findCertificate(kargs)
+	portTLS, certTLS, keyTLS, onlyTLS := tlsArgs(kargs)
 
 	frontPackage.Enabled = front
 	if !front {
@@ -61,9 +62,10 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		Front:         *frontPackage,
 		debug:         debug,
 		port:          port,
+		onlyTLS:       onlyTLS,
 		portTLS:       portTLS,
-		cert:          cert,
-		key:           key,
+		certTLS:       certTLS,
+		keyTLS:        keyTLS,
 	}
 
 	go instance.originLastVersion(kargs)
@@ -71,9 +73,14 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 	return *instance
 }
 
-func findCertificate(kargs map[string]utils.Any) (int, string, string) {
+func tlsArgs(kargs map[string]utils.Any) (int, string, string, bool) {
 	if tls, _ := kargs["GO_API_SERVER_ENABLE_TLS"].Bool(); !tls {
-		return 0, "", ""
+		return 0, "", "", false
+	}
+
+	onlyTLS, _ := kargs["GO_API_SERVER_ONLY_TLS"].Bool()
+	if !onlyTLS {
+		onlyTLS = false
 	}
 
 	portTLS, ok := kargs["GO_API_SERVER_PORT_TLS"].Int()
@@ -81,35 +88,37 @@ func findCertificate(kargs map[string]utils.Any) (int, string, string) {
 		portTLS = 0
 	}
 
-	cert, ok := kargs["GO_API_SERVER_CERT"].String()
-	if !ok || cert == "" {
+	certTLS, ok := kargs["GO_API_SERVER_CERT"].String()
+	if !ok || certTLS == "" {
 		_, err := os.Stat(defaultCert)
 		if !os.IsNotExist(err) {
 			log.Message("Certificate flag is not defined; using default certificate")
-			cert = defaultCert
+			certTLS = defaultCert
 		}
 	}
 
-	key, ok := kargs["GO_API_SERVER_KEY"].String()
-	if !ok || key == "" {
+	keyTLS, ok := kargs["GO_API_SERVER_KEY"].String()
+	if !ok || keyTLS == "" {
 		_, err := os.Stat(defaultKey)
 		if !os.IsNotExist(err) {
 			log.Message("Key flag is not defined; using default key")
-			key = defaultKey
+			keyTLS = defaultKey
 		}
 	}
 
-	_, err := os.Stat(cert)
+	_, err := os.Stat(certTLS)
 	if os.IsNotExist(err) {
-		log.Messagef("Certificate file '%s' does not exist", cert)
+		log.Warningf("Certificate file '%s' does not exist, TLS connection aborted", certTLS)
+		return 0, "", "", false
 	}
 
-	_, err = os.Stat(key)
+	_, err = os.Stat(keyTLS)
 	if os.IsNotExist(err) {
-		log.Messagef("Key file '%s' does not exist", key)
+		log.Warningf("Key file '%s' does not exist, TLS connection aborted", keyTLS)
+		return 0, "", "", false
 	}
 
-	return portTLS, cert, key
+	return portTLS, certTLS, keyTLS, onlyTLS
 }
 
 func (c *Configuration) originLastVersion(kargs map[string]utils.Any) {
@@ -165,18 +174,22 @@ func (c Configuration) Port() int {
 	return c.port
 }
 
-func (c Configuration) Secure() bool {
-	return c.portTLS != 0 && c.cert != "" && c.key != ""
+func (c Configuration) OnlyTLS() bool {
+	return c.EnableTLS() && c.onlyTLS
+}
+
+func (c Configuration) EnableTLS() bool {
+	return c.portTLS != 0 && c.certTLS != "" && c.keyTLS != ""
 }
 
 func (c Configuration) PortTLS() int {
 	return c.portTLS
 }
 
-func (c Configuration) Cert() string {
-	return c.cert
+func (c Configuration) CertTLS() string {
+	return c.certTLS
 }
 
-func (c Configuration) Key() string {
-	return c.key
+func (c Configuration) KeyTLS() string {
+	return c.keyTLS
 }
