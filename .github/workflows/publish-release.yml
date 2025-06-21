@@ -102,6 +102,7 @@ jobs:
           cp go.mod release/
           cp go.package.yml release/
           cp .env.template release/
+          cp generate-goapi-cert.sh release/
           cp -r go-api-front/dist/* release/assets/front/
           cp -r go-api-front/package.json release/assets/front/
           if [ -d go-api-front/assets ]; then
