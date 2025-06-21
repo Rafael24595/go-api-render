@@ -1,8 +1,10 @@
 package router
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	stdlog "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,6 +18,18 @@ type Context = collection.IDictionary[string, any]
 type contextHandler = func(http.ResponseWriter, *http.Request) (Context, error)
 type requestHandler = func(http.ResponseWriter, *http.Request, Context) result.Result
 type errorHandler = func(http.ResponseWriter, *http.Request, Context, result.Result)
+type startHandler func(w http.ResponseWriter, req *http.Request) bool
+
+type logWriter struct{}
+
+func newLogWriter() *logWriter {
+	return &logWriter{}
+}
+
+func (w *logWriter) Write(p []byte) (n int, err error) {
+	log.Warningf("%s", bytes.TrimSpace(p))
+	return len(p), nil
+}
 
 type Router struct {
 	contextualizer       collection.IDictionary[string, contextHandler]
@@ -85,27 +99,53 @@ func (r *Router) Cors(cors *Cors) *Router {
 	return r
 }
 
-func (r *Router) corsMiddleware(next http.Handler) http.Handler {
+func (r *Router) startHandle(next http.Handler, middlewares []startHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		origin := strings.Join(r.cors.allowedOrigins, ", ")
-
-		if origin == "*" {
-			origin = req.Header.Get("Origin")
-			w.Header().Set("Vary", "Origin")
+		for _, middleware := range middlewares {
+			if exit := middleware(w, req); exit {
+				return
+			}
 		}
-		
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
-		w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
-		w.Header().Set("Access-Control-Allow-Credentials", strconv.FormatBool(r.cors.allowCredentials))
-
-		if req.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
 		next.ServeHTTP(w, req)
 	})
+}
+
+func (r *Router) secureHandler(portTLS string) startHandler {
+	return func(w http.ResponseWriter, req *http.Request) bool {
+		if req.TLS != nil {
+			return false
+		}
+
+		host := req.Host
+		if colon := strings.Index(host, ":"); colon != -1 {
+			host = host[:colon]
+		}
+		url := fmt.Sprintf("https://%s%s%s", host, portTLS, req.RequestURI)
+		http.Redirect(w, req, url, http.StatusMovedPermanently)
+
+		return true
+	}
+}
+
+func (r *Router) corsHandler(w http.ResponseWriter, req *http.Request) bool {
+	origin := strings.Join(r.cors.allowedOrigins, ", ")
+
+	if origin == "*" {
+		origin = req.Header.Get("Origin")
+		w.Header().Set("Vary", "Origin")
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Methods", strings.Join(r.cors.allowedMethods, ", "))
+	w.Header().Set("Access-Control-Allow-Headers", strings.Join(r.cors.allowedHeaders, ", "))
+	w.Header().Set("Access-Control-Allow-Credentials", strconv.FormatBool(r.cors.allowCredentials))
+
+	if req.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return true
+	}
+
+	return false
 }
 
 func (r Router) patternKey(method, pattern string, params ...any) string {
@@ -113,8 +153,53 @@ func (r Router) patternKey(method, pattern string, params ...any) string {
 }
 
 func (r *Router) Listen(host string) error {
+	handlers := []startHandler{
+		r.corsHandler,
+	}
+	return r.listen(host, handlers)
+}
+
+func (r *Router) ListenTLS(hostTLS, certTLS, keyTLS string) error {
+	handlers := []startHandler{
+		r.corsHandler,
+	}
+	return r.listenTLS(hostTLS, certTLS, keyTLS, handlers)
+}
+
+func (r *Router) ListenWithTLS(host, hostTLS, certTLS, keyTLS string) error {
+	handlers := []startHandler{
+		r.corsHandler,
+		r.secureHandler(hostTLS),
+	}
+	go func() {
+		if err := r.listen(host, handlers); err != nil {
+			log.Error(err)
+		}
+	}()
+
+	return r.ListenTLS(hostTLS, certTLS, keyTLS)
+}
+
+func (r *Router) listenTLS(hostTLS, certTLS, keyTLS string, handlers []startHandler) error {
+	server := &http.Server{
+		Addr:     hostTLS,
+		Handler:  r.startHandle(http.DefaultServeMux, handlers),
+		ErrorLog: stdlog.New(newLogWriter(), "", 0),
+	}
+
+	log.Messagef("The app is listen at: %s with TLS", hostTLS)
+	return server.ListenAndServeTLS(certTLS, keyTLS)
+}
+
+func (r *Router) listen(host string, handlers []startHandler) error {
+	server := &http.Server{
+		Addr:     host,
+		Handler:  r.startHandle(http.DefaultServeMux, handlers),
+		ErrorLog: stdlog.New(newLogWriter(), "", 0),
+	}
+
 	log.Messagef("The app is listen at: %s", host)
-	return http.ListenAndServe(host, r.corsMiddleware(http.DefaultServeMux))
+	return server.ListenAndServe()
 }
 
 func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
@@ -128,7 +213,7 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	if !ok {
 		log.Panics("Request handler not found")
 	}
-	
+
 	contextualizer, ok := r.contextualizer.Get(req.Pattern)
 	if !ok {
 		contextualizer, ok = r.contextualizer.Get("$BASE")
@@ -174,9 +259,13 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	if response, ok := result.Ok(); ok {
 		switch res := response.(type) {
 		case string:
-			wrt.Write([]byte(res))
+			if _, err := wrt.Write([]byte(res)); err != nil {
+				log.Error(err)
+			}
 		case []byte:
-			wrt.Write(res)
+			if _, err := wrt.Write(res); err != nil {
+				log.Error(err)
+			}
 		case error:
 			http.Error(wrt, res.Error(), http.StatusInternalServerError)
 		case nil:
