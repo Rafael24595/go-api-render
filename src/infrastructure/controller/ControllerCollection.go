@@ -37,7 +37,8 @@ func NewControllerCollection(
 		Route(http.MethodPost, instance.importToCollection, "/api/v1/import/collection/{%s}", COLLECTION).
 		Route(http.MethodPut, instance.sortCollections, "/api/v1/sort/collection").
 		Route(http.MethodPut, instance.sortRequests, "/api/v1/sort/collection/{%s}/request", COLLECTION).
-		Route(http.MethodGet, instance.findCollection, "/api/v1/collection").
+		Route(http.MethodGet, instance.findCollections, "/api/v1/collection").
+		Route(http.MethodGet, instance.findCollection, "/api/v1/collection/{%s}", COLLECTION).
 		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection").
 		Route(http.MethodPut, instance.collectRequest, "/api/v1/collection").
 		Route(http.MethodDelete, instance.deleteCollection, "/api/v1/collection/{%s}", COLLECTION).
@@ -51,17 +52,24 @@ func NewControllerCollection(
 func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	r.ParseMultipartForm(10 << 20)
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		return result.Err(http.StatusUnprocessableEntity, err)
+	}
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
-	defer file.Close()
-
+	
 	data, err := io.ReadAll(file)
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		return result.Err(http.StatusInternalServerError, err)
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -137,7 +145,7 @@ func (c *ControllerCollection) sortCollections(w http.ResponseWriter, r *http.Re
 
 	group = c.managerGroup.SortCollections(user, group, payload)
 	
-	dtos := c.managerCollection.FindCollectionNodes(user, group.Nodes)
+	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
 
 	return result.Ok(dtos)
 }
@@ -162,7 +170,7 @@ func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Reque
 	return result.Ok(collection)
 }
 
-func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) findCollections(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	group, resultStatus := findUserGroup(user)
@@ -170,9 +178,22 @@ func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Req
 		return *resultStatus
 	}
 
-	dtos := c.managerCollection.FindCollectionNodes(user, group.Nodes)
+	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
 
 	return result.Ok(dtos)
+}
+
+func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	id := r.PathValue(COLLECTION)
+	if id == "" {
+		return result.Ok(nil)
+	}
+
+	dto, _ := c.managerCollection.FindDto(user, id)
+
+	return result.Ok(dto)
 }
 
 func (c *ControllerCollection) insertCollection(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

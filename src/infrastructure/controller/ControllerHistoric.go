@@ -81,7 +81,7 @@ func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request
 		return *resultStatus
 	}
 
-	dtos := c.managerHistoric.Find(user, collection)
+	dtos := c.managerHistoric.FindLite(user, collection)
 
 	return result.Ok(dtos)
 }

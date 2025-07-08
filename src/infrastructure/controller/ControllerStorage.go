@@ -52,7 +52,7 @@ func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Reques
 	}
 
 	collection = c.managerCollection.ImportDtoRequests(user, collection, *dtos)
-	nodes := c.managerCollection.FindRequestNodes(user, collection)
+	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
 
 	return result.Ok(nodes)
 }
@@ -85,7 +85,7 @@ func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request,
 		return *resultStatus
 	}
 
-	dtos := c.managerCollection.FindRequestNodes(user, collection)
+	dtos := c.managerCollection.FindLiteRequestNodes(user, collection)
 
 	return result.Ok(dtos)
 }
