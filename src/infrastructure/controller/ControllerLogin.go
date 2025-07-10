@@ -26,13 +26,13 @@ func NewControllerLogin(
 	}
 
 	router.
-		Route(http.MethodPost, instance.login, "/api/v1/login").
-		Route(http.MethodDelete, instance.logout, "/api/v1/login").
-		Route(http.MethodGet, instance.user, "/api/v1/user").
-		Route(http.MethodPost, instance.signin, "/api/v1/user").
-		Route(http.MethodDelete, instance.delete, "/api/v1/user").
-		Route(http.MethodPut, instance.verify, "/api/v1/user/verify").
-		Route(http.MethodGet, instance.identify, "/api/v1/identify")
+		Route(http.MethodPost, instance.login, "login").
+		Route(http.MethodDelete, instance.logout, "login").
+		Route(http.MethodGet, instance.user, "user").
+		Route(http.MethodPost, instance.signin, "user").
+		Route(http.MethodDelete, instance.delete, "user").
+		Route(http.MethodPut, instance.verify, "user/verify").
+		Route(http.MethodGet, instance.identify, "identify")
 
 	return instance
 }

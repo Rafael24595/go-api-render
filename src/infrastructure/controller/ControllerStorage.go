@@ -27,13 +27,13 @@ func NewControllerStorage(
 	}
 
 	router.
-		Route(http.MethodPost, instance.importRequests, "/api/v1/import/request").
-		Route(http.MethodPut, instance.sortRequests, "/api/v1/sort/request").
-		Route(http.MethodGet, instance.findRequests, "/api/v1/request").
-		Route(http.MethodPost, instance.insertAction, "/api/v1/request").
-		Route(http.MethodPut, instance.updateRequest, "/api/v1/request").
-		Route(http.MethodGet, instance.findAction, "/api/v1/request/{%s}", ID_REQUEST).
-		Route(http.MethodDelete, instance.deleteAction, "/api/v1/request/{%s}", ID_REQUEST)
+		Route(http.MethodPost, instance.importRequests, "import/request").
+		Route(http.MethodPut, instance.sortRequests, "sort/request").
+		Route(http.MethodGet, instance.findRequests, "request").
+		Route(http.MethodPost, instance.insertAction, "request").
+		Route(http.MethodPut, instance.updateRequest, "request").
+		Route(http.MethodGet, instance.findAction, "request/{%s}", ID_REQUEST).
+		Route(http.MethodDelete, instance.deleteAction, "request/{%s}", ID_REQUEST)
 
 	return instance
 }
@@ -97,7 +97,7 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
-	
+
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	if request.Status == domain.FINAL {

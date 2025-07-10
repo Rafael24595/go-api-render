@@ -7,6 +7,7 @@ import (
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -22,7 +23,12 @@ func NewControllerActions(router *router.Router) ControllerActions {
 	}
 
 	router.
-		Route(http.MethodPost, instance.action, "/api/v1/action")
+		RouteDocument(http.MethodPost, instance.action, "action", docs.IDocPayload{
+			Request: requestExecuteAction{},
+			Responses: map[string]any{
+				"200": responseAction{},
+			},
+		})
 
 	return instance
 }

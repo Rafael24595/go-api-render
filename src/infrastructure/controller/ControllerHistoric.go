@@ -27,9 +27,9 @@ func NewControllerHistoric(
 	}
 
 	router.
-		Route(http.MethodGet, instance.findHistoric, "/api/v1/historic").
-		Route(http.MethodPost, instance.insertHistoric, "/api/v1/historic").
-		Route(http.MethodDelete, instance.deleteHistoric, "/api/v1/historic/{%s}", ID_REQUEST)
+		Route(http.MethodGet, instance.findHistoric, "historic").
+		Route(http.MethodPost, instance.insertHistoric, "historic").
+		Route(http.MethodDelete, instance.deleteHistoric, "historic/{%s}", ID_REQUEST)
 
 	return instance
 }

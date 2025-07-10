@@ -13,6 +13,7 @@ import (
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
 )
@@ -42,26 +43,37 @@ func NewController(
 		AllowedHeaders("Content-Type", "Authorization").
 		AllowCredentials()
 
-	route.
-		GroupContextualizer(instance.authSoft,
-			"/api/v1/user",
-			"/api/v1/user/verify",
-		).
-		GroupContextualizer(instance.authHard,
-			"/api/v1/system/log",
-			"/api/v1/action",
-			"/api/v1/import",
-			"/api/v1/sort",
-			"/api/v1/context",
-			"/api/v1/historic",
-			"/api/v1/request",
-			"/api/v1/collection",
-		).
-		Cors(cors)
-
 	if configuration.Instance().Front.Enabled {
 		NewControllerFront(route)
 	}
+
+	route.
+		BasePath("/api/v1/").
+		GroupContextualizerDocument(instance.authSoft,
+			docs.IDocGroup{
+				Cookies: map[string]string{
+					COOKIE_NAME: "",
+				},
+			},
+			"user",
+			"user/verify",
+		).
+		GroupContextualizerDocument(instance.authHard,
+			docs.IDocGroup{
+				Cookies: map[string]string{
+					COOKIE_NAME: "",
+				},
+			},
+			"system/log",
+			"action",
+			"import",
+			"sort",
+			"context",
+			"historic",
+			"request",
+			"collection",
+		).
+		Cors(cors)
 
 	if configuration.Instance().Dev() {
 		NewControllerDev(route)
