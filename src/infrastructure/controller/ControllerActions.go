@@ -23,7 +23,7 @@ func NewControllerActions(router *router.Router) ControllerActions {
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.action, "action", docs.IDocPayload{
+		RouteDocument(http.MethodPost, instance.action, "action", docs.DocPayload{
 			Request: requestExecuteAction{},
 			Responses: map[string]any{
 				"200": responseAction{},

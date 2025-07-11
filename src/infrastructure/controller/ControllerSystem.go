@@ -21,7 +21,7 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 
 	router.
 		Route(http.MethodGet, instance.log, "system/log").
-		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.IDocPayload{
+		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.DocPayload{
 			Responses: map[string]any{
 				"200": responseSystemMetadata{},
 			},

@@ -80,7 +80,7 @@ func (r *Router) Contextualizer(handler contextHandler) *Router {
 	return r
 }
 
-func (r *Router) GroupContextualizerDocument(handler requestHandler, doc docs.IDocGroup, group ...string) *Router {
+func (r *Router) GroupContextualizerDocument(handler requestHandler, doc docs.DocGroup, group ...string) *Router {
 	for _, v := range group {
 		result, _ := r.groupContextualizers.
 			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
@@ -117,17 +117,18 @@ func (r *Router) RouteOptions(method string, handler requestHandler, contextuali
 	return r.Route(method, handler, pattern, params...)
 }
 
-func (r *Router) RouteDocument(method string, handler requestHandler, pattern string, doc docs.IDocPayload) *Router {
+func (r *Router) RouteDocument(method string, handler requestHandler, pattern string, doc docs.DocPayload) *Router {
 	params := make([]any, 0)
 	for p := range doc.Parameters {
 		params = append(params, p)
 	}
 
-	docRoute := docs.IDocRoute{
+	docRoute := docs.DocRoute{
 		Method:     method,
 		BasePath:   r.basePath,
 		Path:       fmt.Sprintf(pattern, params...),
 		Parameters: doc.Parameters,
+		Files:      doc.Files,
 		Query:      doc.Query,
 		Request:    doc.Request,
 		Responses:  doc.Responses,
@@ -136,7 +137,7 @@ func (r *Router) RouteDocument(method string, handler requestHandler, pattern st
 }
 
 func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
-	doc := docs.IDocRoute{
+	doc := docs.DocRoute{
 		Method:   method,
 		BasePath: r.basePath,
 		Path:     fmt.Sprintf(pattern, params...),
@@ -144,7 +145,7 @@ func (r *Router) Route(method string, handler requestHandler, pattern string, pa
 	return r.route(method, handler, pattern, doc, params...)
 }
 
-func (r *Router) route(method string, handler requestHandler, pattern string, doc docs.IDocRoute, params ...any) *Router {
+func (r *Router) route(method string, handler requestHandler, pattern string, doc docs.DocRoute, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	r.routes.Put(route, handler)
 	http.HandleFunc(route, r.handler)

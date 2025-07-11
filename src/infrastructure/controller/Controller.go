@@ -50,7 +50,7 @@ func NewController(
 	route.
 		BasePath("/api/v1/").
 		GroupContextualizerDocument(instance.authSoft,
-			docs.IDocGroup{
+			docs.DocGroup{
 				Cookies: map[string]string{
 					COOKIE_NAME: "",
 				},
@@ -59,7 +59,7 @@ func NewController(
 			"user/verify",
 		).
 		GroupContextualizerDocument(instance.authHard,
-			docs.IDocGroup{
+			docs.DocGroup{
 				Cookies: map[string]string{
 					COOKIE_NAME: "",
 				},

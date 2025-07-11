@@ -8,6 +8,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -32,7 +33,11 @@ func NewControllerCollection(
 	}
 
 	instance.router.
-		Route(http.MethodPost, instance.openapi, "import/openapi").
+		RouteDocument(http.MethodPost, instance.openapi, "import/openapi", docs.DocPayload{
+			Files: map[string]string{
+				"file": "OpenAPI file",
+			},
+		}).
 		Route(http.MethodPost, instance.importCollection, "import/collection").
 		Route(http.MethodPost, instance.importToCollection, "import/collection/{%s}", COLLECTION).
 		Route(http.MethodPut, instance.sortCollections, "sort/collection").

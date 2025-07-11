@@ -29,7 +29,7 @@ func NewControllerContext(
 		Route(http.MethodPost, instance.importContext, "import/context").
 		Route(http.MethodGet, instance.findUserContext, "context").
 		Route(http.MethodPut, instance.updateContext, "context").
-		RouteDocument(http.MethodGet, instance.findContext, "context/{%s}", docs.IDocPayload{
+		RouteDocument(http.MethodGet, instance.findContext, "context/{%s}", docs.DocPayload{
 			Parameters: map[string]string{
 				ID_CONTEXT: "",
 			},
