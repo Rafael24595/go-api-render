@@ -106,6 +106,23 @@ func (r *Router) ErrorHandler(handler errorHandler) *Router {
 	return r
 }
 
+func (r *Router) ViewerSources() []docs.DocViewerSources {
+	if r.docViewer == nil {
+		return make([]docs.DocViewerSources, 0)
+	}
+
+	handlers := r.docViewer.Handlers()
+	sources := make([]docs.DocViewerSources, len(handlers))
+	for i, v := range handlers {
+		sources[i] = docs.DocViewerSources{
+			Name:        v.Name,
+			Route:       v.Route,
+			Description: v.Description,
+		}
+	}
+	return sources
+}
+
 func (r *Router) RouteOptions(method string, handler requestHandler, contextualizer *contextHandler, error *errorHandler, pattern string, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	if contextualizer != nil {

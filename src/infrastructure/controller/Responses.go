@@ -5,6 +5,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 )
 
 type responseAction struct {
@@ -29,23 +30,25 @@ type responseClientIdentity struct {
 }
 
 type responseSystemMetadata struct {
-	SessionId     string `json:"session_id"`
-	SessionTime   int64  `json:"session_time"`
-	CoreName      string `json:"core_name"`
-	CoreVersion   string `json:"core_version"`
-	CoreReplace   bool   `json:"core_replace"`
-	RenderRelease string `json:"render_release"`
-	RenderName    string `json:"render_name"`
-	RenderVersion string `json:"render_version"`
-	FrontName     string `json:"front_name"`
-	FrontVersion  string `json:"front_version"`
+	SessionId     string                  `json:"session_id"`
+	SessionTime   int64                   `json:"session_time"`
+	CoreName      string                  `json:"core_name"`
+	CoreVersion   string                  `json:"core_version"`
+	CoreReplace   bool                    `json:"core_replace"`
+	RenderRelease string                  `json:"render_release"`
+	RenderName    string                  `json:"render_name"`
+	RenderVersion string                  `json:"render_version"`
+	FrontName     string                  `json:"front_name"`
+	FrontVersion  string                  `json:"front_version"`
+	ViewerSources []docs.DocViewerSources `json:"viewer_sources"`
 }
 
 func makeResponseSystemMetadata(sessionId string, timestamp int64,
 	release *core_configuration.Release,
 	mod core_configuration.Mod,
 	project core_configuration.Project,
-	front configuration.FrontPackage) responseSystemMetadata {
+	front configuration.FrontPackage,
+	viewer []docs.DocViewerSources) responseSystemMetadata {
 	core, ok := mod.Dependencies["github.com/Rafael24595/go-api-core"]
 	if !ok {
 		log.Panics("Core dependency is not defined")
@@ -67,5 +70,6 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64,
 		RenderVersion: project.Version,
 		FrontName:     front.Name,
 		FrontVersion:  front.Version,
+		ViewerSources: viewer,
 	}
 }

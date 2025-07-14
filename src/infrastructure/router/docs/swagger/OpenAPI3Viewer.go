@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
@@ -18,6 +19,7 @@ import (
 const SWAGGER string = "SWAGGER"
 
 type OpenAPI3Viewer struct {
+	build      sync.Once
 	data       OpenAPI3
 	factory    *FactoryStructToSchema
 	headers    map[string]map[string]string
@@ -112,14 +114,18 @@ func (v *OpenAPI3Viewer) groupCookies(group string, cookies map[string]string) d
 func (v *OpenAPI3Viewer) Handlers() []docs.DocViewerHandler {
 	return []docs.DocViewerHandler{
 		{
-			Method:  http.MethodGet,
-			Route:   "/swagger/",
-			Handler: httpSwagger.WrapHandler,
+			Method:      http.MethodGet,
+			Route:       "/swagger/",
+			Handler:     httpSwagger.WrapHandler,
+			Name:        "OAS3",
+			Description: "OpenAPI 3.0 view",
 		},
 		{
-			Method:  http.MethodGet,
-			Route:   "/swagger/doc.json",
-			Handler: v.doc,
+			Method:      http.MethodGet,
+			Route:       "/swagger/doc.json",
+			Handler:     v.doc,
+			Name:        "OAS3 JSON",
+			Description: "OpenAPI 3.0 definition",
 		},
 	}
 }
@@ -169,14 +175,14 @@ func (v *OpenAPI3Viewer) RegisterRoute(route docs.DocRoute) docs.IDocViewer {
 }
 
 func (v *OpenAPI3Viewer) doc(w http.ResponseWriter, r *http.Request) {
-	if v.stringData == "" {
+	v.build.Do(func() {
 		v.data.Components = *v.factory.Components()
 		data, err := json.Marshal(v.data)
 		if err != nil {
 			log.Error(err)
 		}
 		v.stringData = string(data)
-	}
+	})
 
 	_, err := w.Write([]byte(v.stringData))
 	if err != nil {

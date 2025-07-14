@@ -10,9 +10,17 @@ const (
 )
 
 type DocViewerHandler struct {
-	Method  string
-	Route   string
-	Handler func(http.ResponseWriter, *http.Request)
+	Method      string
+	Route       string
+	Handler     func(http.ResponseWriter, *http.Request)
+	Name        string
+	Description string
+}
+
+type DocViewerSources struct {
+	Name        string `json:"name"`
+	Route       string `json:"route"`
+	Description string `json:"description"`
 }
 
 type DocGroup struct {

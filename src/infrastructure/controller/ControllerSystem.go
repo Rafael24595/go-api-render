@@ -53,6 +53,7 @@ func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx 
 		conf.Release,
 		conf.Mod,
 		conf.Project,
-		conf.Front)
+		conf.Front,
+		c.router.ViewerSources())
 	return result.Ok(response)
 }
