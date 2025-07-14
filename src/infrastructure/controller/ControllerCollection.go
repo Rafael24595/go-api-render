@@ -44,6 +44,7 @@ func NewControllerCollection(
 		Route(http.MethodPut, instance.sortRequests, "sort/collection/{%s}/request", COLLECTION).
 		Route(http.MethodGet, instance.findCollections, "collection").
 		Route(http.MethodGet, instance.findCollection, "collection/{%s}", COLLECTION).
+		Route(http.MethodGet, instance.findCollectionLite, "collection/{%s}/lite", COLLECTION).
 		Route(http.MethodPost, instance.insertCollection, "collection").
 		Route(http.MethodPut, instance.collectRequest, "collection").
 		Route(http.MethodDelete, instance.deleteCollection, "collection/{%s}", COLLECTION).
@@ -197,6 +198,19 @@ func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Req
 	}
 
 	dto, _ := c.managerCollection.FindDto(user, id)
+
+	return result.Ok(dto)
+}
+
+func (c *ControllerCollection) findCollectionLite(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	id := r.PathValue(COLLECTION)
+	if id == "" {
+		return result.Ok(nil)
+	}
+
+	dto, _ := c.managerCollection.FindDtoLite(user, id)
 
 	return result.Ok(dto)
 }
