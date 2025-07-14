@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 	"github.com/Rafael24595/go-collections/collection"
 )
@@ -36,7 +37,9 @@ type Router struct {
 	groupContextualizers collection.IDictionary[string, collection.Vector[requestHandler]]
 	errors               collection.IDictionary[string, errorHandler]
 	routes               collection.IDictionary[string, requestHandler]
+	basePath             string
 	cors                 *Cors
+	docViewer            docs.IDocViewer
 }
 
 func NewRouter() *Router {
@@ -45,8 +48,24 @@ func NewRouter() *Router {
 		groupContextualizers: collection.DictionaryEmpty[string, collection.Vector[requestHandler]](),
 		errors:               collection.DictionaryEmpty[string, errorHandler](),
 		routes:               collection.DictionaryEmpty[string, requestHandler](),
+		basePath:             "",
 		cors:                 EmptyCors(),
+		docViewer:            docs.NoDocViewer(),
 	}
+}
+
+func (r *Router) BasePath(basePath string) *Router {
+	r.basePath = basePath
+	return r
+}
+
+func (r *Router) DocViewer(viewer docs.IDocViewer) *Router {
+	for _, v := range viewer.Handlers() {
+		pattern := fmt.Sprintf("%s %s", v.Method, v.Route)
+		http.HandleFunc(pattern, v.Handler)
+	}
+	r.docViewer = viewer
+	return r
 }
 
 func (r *Router) ResourcesPath(path string) *Router {
@@ -58,6 +77,17 @@ func (r *Router) ResourcesPath(path string) *Router {
 
 func (r *Router) Contextualizer(handler contextHandler) *Router {
 	r.contextualizer.Put("$BASE", handler)
+	return r
+}
+
+func (r *Router) GroupContextualizerDocument(handler requestHandler, doc docs.DocGroup, group ...string) *Router {
+	for _, v := range group {
+		result, _ := r.groupContextualizers.
+			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
+		result.Append(handler)
+		r.groupContextualizers.Put(v, *result)
+		r.docViewer.RegisterGroup(v, doc)
+	}
 	return r
 }
 
@@ -76,6 +106,23 @@ func (r *Router) ErrorHandler(handler errorHandler) *Router {
 	return r
 }
 
+func (r *Router) ViewerSources() []docs.DocViewerSources {
+	if r.docViewer == nil {
+		return make([]docs.DocViewerSources, 0)
+	}
+
+	handlers := r.docViewer.Handlers()
+	sources := make([]docs.DocViewerSources, len(handlers))
+	for i, v := range handlers {
+		sources[i] = docs.DocViewerSources{
+			Name:        v.Name,
+			Route:       v.Route,
+			Description: v.Description,
+		}
+	}
+	return sources
+}
+
 func (r *Router) RouteOptions(method string, handler requestHandler, contextualizer *contextHandler, error *errorHandler, pattern string, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	if contextualizer != nil {
@@ -87,10 +134,39 @@ func (r *Router) RouteOptions(method string, handler requestHandler, contextuali
 	return r.Route(method, handler, pattern, params...)
 }
 
+func (r *Router) RouteDocument(method string, handler requestHandler, pattern string, doc docs.DocPayload) *Router {
+	params := make([]any, 0)
+	for p := range doc.Parameters {
+		params = append(params, p)
+	}
+
+	docRoute := docs.DocRoute{
+		Method:     method,
+		BasePath:   r.basePath,
+		Path:       fmt.Sprintf(pattern, params...),
+		Parameters: doc.Parameters,
+		Files:      doc.Files,
+		Query:      doc.Query,
+		Request:    doc.Request,
+		Responses:  doc.Responses,
+	}
+	return r.route(method, handler, pattern, docRoute, params...)
+}
+
 func (r *Router) Route(method string, handler requestHandler, pattern string, params ...any) *Router {
+	doc := docs.DocRoute{
+		Method:   method,
+		BasePath: r.basePath,
+		Path:     fmt.Sprintf(pattern, params...),
+	}
+	return r.route(method, handler, pattern, doc, params...)
+}
+
+func (r *Router) route(method string, handler requestHandler, pattern string, doc docs.DocRoute, params ...any) *Router {
 	route := r.patternKey(method, pattern, params...)
 	r.routes.Put(route, handler)
 	http.HandleFunc(route, r.handler)
+	r.docViewer.RegisterRoute(doc)
 	return r
 }
 
@@ -149,7 +225,7 @@ func (r *Router) corsHandler(w http.ResponseWriter, req *http.Request) bool {
 }
 
 func (r Router) patternKey(method, pattern string, params ...any) string {
-	return fmt.Sprintf("%s %s", method, fmt.Sprintf(pattern, params...))
+	return fmt.Sprintf("%s %s%s", method, r.basePath, fmt.Sprintf(pattern, params...))
 }
 
 func (r *Router) Listen(host string) error {

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,7 +20,8 @@ func NewControllerDev(router *router.Router) ControllerDev {
 	}
 
 	router.
-		Route(http.MethodGet, instance.wait, "/api/v1/dev/wait")
+		Route(http.MethodGet, instance.wait, "dev/wait").
+		Route(http.MethodPost, instance.paylaod, "dev/print/payload")
 
 	return instance
 }
@@ -33,4 +35,13 @@ func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.
 	}
 
 	return result.Ok(nil)
+}
+
+func (c *ControllerDev) paylaod(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return result.Err(500, err)
+	}
+
+	return result.Ok(string(bodyBytes))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -32,19 +33,24 @@ func NewControllerCollection(
 	}
 
 	instance.router.
-		Route(http.MethodPost, instance.openapi, "/api/v1/import/openapi").
-		Route(http.MethodPost, instance.importCollection, "/api/v1/import/collection").
-		Route(http.MethodPost, instance.importToCollection, "/api/v1/import/collection/{%s}", COLLECTION).
-		Route(http.MethodPut, instance.sortCollections, "/api/v1/sort/collection").
-		Route(http.MethodPut, instance.sortRequests, "/api/v1/sort/collection/{%s}/request", COLLECTION).
-		Route(http.MethodGet, instance.findCollections, "/api/v1/collection").
-		Route(http.MethodGet, instance.findCollection, "/api/v1/collection/{%s}", COLLECTION).
-		Route(http.MethodPost, instance.insertCollection, "/api/v1/collection").
-		Route(http.MethodPut, instance.collectRequest, "/api/v1/collection").
-		Route(http.MethodDelete, instance.deleteCollection, "/api/v1/collection/{%s}", COLLECTION).
-		Route(http.MethodPost, instance.cloneCollection, "/api/v1/collection/{%s}/clone", COLLECTION).
-		Route(http.MethodPut, instance.takeFromCollection, "/api/v1/collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST).
-		Route(http.MethodDelete, instance.deleteFromCollection, "/api/v1/collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST)
+		RouteDocument(http.MethodPost, instance.openapi, "import/openapi", docs.DocPayload{
+			Files: map[string]string{
+				"file": "OpenAPI file",
+			},
+		}).
+		Route(http.MethodPost, instance.importCollection, "import/collection").
+		Route(http.MethodPost, instance.importToCollection, "import/collection/{%s}", COLLECTION).
+		Route(http.MethodPut, instance.sortCollections, "sort/collection").
+		Route(http.MethodPut, instance.sortRequests, "sort/collection/{%s}/request", COLLECTION).
+		Route(http.MethodGet, instance.findCollections, "collection").
+		Route(http.MethodGet, instance.findCollection, "collection/{%s}", COLLECTION).
+		Route(http.MethodGet, instance.findCollectionLite, "collection/{%s}/lite", COLLECTION).
+		Route(http.MethodPost, instance.insertCollection, "collection").
+		Route(http.MethodPut, instance.collectRequest, "collection").
+		Route(http.MethodDelete, instance.deleteCollection, "collection/{%s}", COLLECTION).
+		Route(http.MethodPost, instance.cloneCollection, "collection/{%s}/clone", COLLECTION).
+		Route(http.MethodPut, instance.takeFromCollection, "collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST).
+		Route(http.MethodDelete, instance.deleteFromCollection, "collection/{%s}/request/{%s}", COLLECTION, ID_REQUEST)
 
 	return instance
 }
@@ -61,7 +67,7 @@ func (c *ControllerCollection) openapi(w http.ResponseWriter, r *http.Request, c
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
-	
+
 	data, err := io.ReadAll(file)
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
@@ -144,7 +150,7 @@ func (c *ControllerCollection) sortCollections(w http.ResponseWriter, r *http.Re
 	payload := requestSortCollectionToPayload(dto)
 
 	group = c.managerGroup.SortCollections(user, group, payload)
-	
+
 	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
 
 	return result.Ok(dtos)
@@ -192,6 +198,19 @@ func (c *ControllerCollection) findCollection(w http.ResponseWriter, r *http.Req
 	}
 
 	dto, _ := c.managerCollection.FindDto(user, id)
+
+	return result.Ok(dto)
+}
+
+func (c *ControllerCollection) findCollectionLite(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	id := r.PathValue(COLLECTION)
+	if id == "" {
+		return result.Ok(nil)
+	}
+
+	dto, _ := c.managerCollection.FindDtoLite(user, id)
 
 	return result.Ok(dto)
 }
