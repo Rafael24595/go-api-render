@@ -10,11 +10,18 @@ import (
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/controller"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs/swagger"
 )
 
 func main() {
 	config, container := commons.Initialize()
 	router := router.NewRouter()
+
+	if config.Dev() {
+		viewer := swagger.InitializeViewer()
+		router.DocViewer(viewer)
+	}
+
 	controller.NewController(router,
 		container.ManagerRequest,
 		container.ManagerContext,
@@ -40,7 +47,7 @@ func main() {
 
 func listen(config *configuration.Configuration, router *router.Router) {
 	port := fmt.Sprintf(":%d", config.Port())
-	
+
 	var err error
 	if config.EnableTLS() {
 		portTLS := fmt.Sprintf(":%d", config.PortTLS())

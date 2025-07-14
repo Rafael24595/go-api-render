@@ -6,6 +6,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -19,8 +20,12 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 	}
 
 	router.
-		Route(http.MethodGet, instance.log, "/api/v1/system/log").
-		Route(http.MethodGet, instance.metadata, "/api/v1/system/metadata")
+		Route(http.MethodGet, instance.log, "system/log").
+		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.DocPayload{
+			Responses: map[string]any{
+				"200": responseSystemMetadata{},
+			},
+		})
 
 	return instance
 }
@@ -48,6 +53,7 @@ func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx 
 		conf.Release,
 		conf.Mod,
 		conf.Project,
-		conf.Front)
+		conf.Front,
+		c.router.ViewerSources())
 	return result.Ok(response)
 }

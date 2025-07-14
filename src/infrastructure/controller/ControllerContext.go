@@ -6,6 +6,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -25,10 +26,14 @@ func NewControllerContext(
 	}
 
 	instance.router.
-		Route(http.MethodPost, instance.importContext, "/api/v1/import/context").
-		Route(http.MethodGet, instance.findUserContext, "/api/v1/context").
-		Route(http.MethodPut, instance.updateContext, "/api/v1/context").
-		Route(http.MethodGet, instance.findContext, "/api/v1/context/{%s}", ID_CONTEXT)
+		Route(http.MethodPost, instance.importContext, "import/context").
+		Route(http.MethodGet, instance.findUserContext, "context").
+		Route(http.MethodPut, instance.updateContext, "context").
+		RouteDocument(http.MethodGet, instance.findContext, "context/{%s}", docs.DocPayload{
+			Parameters: map[string]string{
+				ID_CONTEXT: "",
+			},
+		})
 
 	return instance
 }
