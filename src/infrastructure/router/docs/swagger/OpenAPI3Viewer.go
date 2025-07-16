@@ -144,7 +144,7 @@ func (v *OpenAPI3Viewer) RegisterRoute(route docs.DocRoute) docs.IDocViewer {
 
 	operation := &Operation{
 		Tags:        makeTags(route),
-		Parameters:  v.makeParameters(route),
+		Parameters:  v.makeParameters(path, route),
 		RequestBody: v.makeRequest(route),
 		Responses:   v.makeResponses(route),
 	}
@@ -190,11 +190,11 @@ func (v *OpenAPI3Viewer) doc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (v *OpenAPI3Viewer) makeParameters(route docs.DocRoute) []Parameter {
+func (v *OpenAPI3Viewer) makeParameters(path string, route docs.DocRoute) []Parameter {
 	parameters := make([]Parameter, 0)
 
 	for k, h := range v.headers {
-		if strings.HasPrefix(route.Path, k) {
+		if strings.HasPrefix(path, k) {
 			for n, d := range h {
 				parameters = append(parameters, v.makeParameter(n, d, "header"))
 			}
@@ -202,7 +202,7 @@ func (v *OpenAPI3Viewer) makeParameters(route docs.DocRoute) []Parameter {
 	}
 
 	for k, h := range v.cookies {
-		if strings.HasPrefix(route.Path, k) {
+		if strings.HasPrefix(path, k) {
 			for n, d := range h {
 				parameters = append(parameters, v.makeParameter(n, d, "cookie"))
 			}

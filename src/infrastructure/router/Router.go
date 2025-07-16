@@ -85,8 +85,9 @@ func (r *Router) GroupContextualizerDocument(handler requestHandler, doc docs.Do
 		result, _ := r.groupContextualizers.
 			PutIfAbsent(v, *collection.VectorEmpty[requestHandler]())
 		result.Append(handler)
-		r.groupContextualizers.Put(v, *result)
-		r.docViewer.RegisterGroup(v, doc)
+		path := fmt.Sprintf("%s%s", r.basePath, v)
+		r.groupContextualizers.Put(path, *result)
+		r.docViewer.RegisterGroup(path, doc)
 	}
 	return r
 }
