@@ -216,7 +216,7 @@ func (v *OpenAPI3Viewer) makeParameters(path string, route docs.DocRoute) []Para
 	}
 
 	if route.Query != nil {
-		for n, d := range route.Parameters {
+		for n, d := range route.Query {
 			parameters = append(parameters, v.makeParameter(n, d, "query"))
 		}
 	}

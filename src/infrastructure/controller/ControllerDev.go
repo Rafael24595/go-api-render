@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
+
+const QUERY_TIME = "time"
 
 type ControllerDev struct {
 	router *router.Router
@@ -20,14 +23,18 @@ func NewControllerDev(router *router.Router) ControllerDev {
 	}
 
 	router.
-		Route(http.MethodGet, instance.wait, "dev/wait").
+		RouteDocument(http.MethodGet, instance.wait, "dev/wait", docs.DocPayload{
+			Query: map[string]string{
+				QUERY_TIME: "Time in milliseconds",
+			},
+		}).
 		Route(http.MethodPost, instance.paylaod, "dev/print/payload")
 
 	return instance
 }
 
 func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	timeValue := r.URL.Query().Get("time")
+	timeValue := r.URL.Query().Get(QUERY_TIME)
 
 	millis, err := strconv.Atoi(timeValue)
 	if err == nil && millis > 0 {
