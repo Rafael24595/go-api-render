@@ -20,6 +20,33 @@ import (
 
 const USER = "user"
 
+const (
+	AUTH_401 = "Invalid or expired authentication token"
+	AUTH_404 = "User does not exist or session is invalid"
+	AUTH_406 = "Password update required"
+)
+
+var docsAuthSoft = docs.DocGroup{
+	Cookies: map[string]string{
+		COOKIE_NAME: "Session cookie",
+	},
+	Responses: map[string]docs.DocItemStruct{
+		"401": docs.DocStruct("", AUTH_401),
+		"404": docs.DocStruct("", AUTH_404),
+	},
+}
+
+var docsAuthHard = docs.DocGroup{
+	Cookies: map[string]string{
+		COOKIE_NAME: "Session cookie",
+	},
+	Responses: map[string]docs.DocItemStruct{
+		"401": docs.DocStruct("", AUTH_401),
+		"404": docs.DocStruct("", AUTH_404),
+		"406": docs.DocStruct("", AUTH_406),
+	},
+}
+
 type Controller struct {
 	router  *router.Router
 	manager templates.TemplateManager
@@ -49,21 +76,11 @@ func NewController(
 
 	route.
 		BasePath("/api/v1/").
-		GroupContextualizerDocument(instance.authSoft,
-			docs.DocGroup{
-				Cookies: map[string]string{
-					COOKIE_NAME: "",
-				},
-			},
+		GroupContextualizerDocument(instance.authSoft, docsAuthSoft,
 			"user",
 			"user/verify",
 		).
-		GroupContextualizerDocument(instance.authHard,
-			docs.DocGroup{
-				Cookies: map[string]string{
-					COOKIE_NAME: "",
-				},
-			},
+		GroupContextualizerDocument(instance.authHard, docsAuthHard,
 			"system/log",
 			"action",
 			"import",
@@ -122,7 +139,7 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 	timeLeft := time.Until(claims.ExpiresAt.Time)
 	if timeLeft < 10*time.Minute {
 		if err = defineSession(w, user); err != nil {
-			return result.Err(401, err)
+			return result.Err(http.StatusUnauthorized, err)
 		}
 	}
 

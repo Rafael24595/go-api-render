@@ -1,6 +1,9 @@
 package docs
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 type ParameterType string
 
@@ -24,16 +27,17 @@ type DocViewerSources struct {
 }
 
 type DocGroup struct {
-	Headers map[string]string
-	Cookies map[string]string
+	Headers   map[string]string
+	Cookies   map[string]string
+	Responses map[string]DocItemStruct
 }
 
 type DocPayload struct {
 	Parameters map[string]string
 	Query      map[string]string
 	Files      map[string]string
-	Request    any
-	Responses  map[string]any
+	Request    DocItemStruct
+	Responses  map[string]DocItemStruct
 }
 
 type DocRoute struct {
@@ -43,8 +47,20 @@ type DocRoute struct {
 	Parameters map[string]string
 	Query      map[string]string
 	Files      map[string]string
-	Request    any
-	Responses  map[string]any
+	Request    DocItemStruct
+	Responses  map[string]DocItemStruct
+}
+
+type DocItemStruct struct {
+	Item        any
+	Description string
+}
+
+func DocStruct(item any, description ...string) DocItemStruct {
+	return DocItemStruct{
+		Item:        item,
+		Description: strings.Join(description, ""),
+	}
 }
 
 type IDocViewer interface {

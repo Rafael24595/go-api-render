@@ -24,9 +24,9 @@ func NewControllerActions(router *router.Router) ControllerActions {
 
 	router.
 		RouteDocument(http.MethodPost, instance.action, "action", docs.DocPayload{
-			Request: requestExecuteAction{},
-			Responses: map[string]any{
-				"200": responseAction{},
+			Request: docs.DocStruct(requestExecuteAction{}),
+			Responses: map[string]docs.DocItemStruct{
+				"200": docs.DocStruct(responseAction{}),
 			},
 		})
 

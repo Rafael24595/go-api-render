@@ -30,27 +30,35 @@ func (f *FactoryStructToSchema) MakeSchema(root any) (map[string]Schema, *Schema
 		t = t.Elem()
 	}
 
-	ref, err := f.collectSchema(t)
+	ref, isVector, err := f.collectSchema(t)
 	if err != nil {
 		return f.schemas, nil, err
 	}
 
-	main := &Schema{
-		Ref: ref,
+	if isVector {
+		return f.schemas, &Schema{
+			Items: &Schema{
+				Ref: ref,
+			},
+		}, nil
 	}
 
-	return f.schemas, main, nil
+	return f.schemas, &Schema{
+		Ref: ref,
+	}, nil
 }
 
-func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, error) {
+func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, bool, error) {
+	isVector := f.isVector(t)
+
 	t = f.deferencePointer(t)
 
 	if t.Kind() != reflect.Struct {
-		return "", nil
+		return "", isVector, nil
 	}
 
 	if ref, ok := f.seen[t]; ok {
-		return ref, nil
+		return ref, isVector, nil
 	}
 
 	properties := make(map[string]*Schema)
@@ -68,16 +76,16 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, error) {
 			continue
 		}
 
+		propRef, err := f.inferSchema(field.Type)
+		if err != nil {
+			return "", isVector, err
+		}
+
 		propName := jsonTag
 		if propName == "" {
 			propName = field.Name
 		}
-
-		propRef, err := f.inferSchema(field.Type)
-		if err != nil {
-			return "", err
-		}
-
+		
 		properties[propName] = propRef
 
 		if !strings.Contains(field.Tag.Get("json"), "omitempty") &&
@@ -104,7 +112,7 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, error) {
 		Required:   required,
 	}
 
-	return ref, nil
+	return ref, isVector, nil
 }
 
 func (f *FactoryStructToSchema) inferSchema(fieldType reflect.Type) (*Schema, error) {
@@ -132,10 +140,19 @@ func (f *FactoryStructToSchema) inferSchema(fieldType reflect.Type) (*Schema, er
 }
 
 func (f *FactoryStructToSchema) inferStruct(fieldType reflect.Type) (*Schema, error) {
-	ref, err := f.collectSchema(fieldType)
+	ref, isVector, err := f.collectSchema(fieldType)
 	if err != nil {
 		return nil, err
 	}
+
+	if isVector {
+		return &Schema{
+			Items: &Schema{
+				Ref: ref,
+			},
+		}, nil
+	}
+
 	return &Schema{Ref: ref}, nil
 }
 
@@ -168,6 +185,10 @@ func (f *FactoryStructToSchema) deferencePointer(t reflect.Type) reflect.Type {
 		t = t.Elem()
 	}
 	return t
+}
+
+func (f *FactoryStructToSchema) isVector(t reflect.Type) bool {
+	return t.Kind() == reflect.Slice || t.Kind() == reflect.Array
 }
 
 func (f *FactoryStructToSchema) makeRefString(name string) string {

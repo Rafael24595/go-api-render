@@ -20,10 +20,14 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 	}
 
 	router.
-		Route(http.MethodGet, instance.log, "system/log").
+		RouteDocument(http.MethodGet, instance.log, "system/log", docs.DocPayload{
+			Responses: map[string]docs.DocItemStruct{
+				"200": docs.DocStruct([]log.Record{}),
+			},
+		}).
 		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.DocPayload{
-			Responses: map[string]any{
-				"200": responseSystemMetadata{},
+			Responses: map[string]docs.DocItemStruct{
+				"200": docs.DocStruct(responseSystemMetadata{}),
 			},
 		})
 
