@@ -2,10 +2,12 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
 
+	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
@@ -13,7 +15,8 @@ import (
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
-const COOKIE_NAME = "Go-Api-Client"
+const AUTH_COOKIE = "go_api_token"
+const REFRESH_COOKIE = "go_api_refresh"
 
 type ControllerLogin struct {
 	router *router.Router
@@ -32,7 +35,8 @@ func NewControllerLogin(
 		Route(http.MethodPost, instance.signin, "user").
 		Route(http.MethodDelete, instance.delete, "user").
 		Route(http.MethodPut, instance.verify, "user/verify").
-		Route(http.MethodGet, instance.identify, "identify")
+		Route(http.MethodGet, instance.identify, "identify").
+		Route(http.MethodGet, instance.refresh, "refresh")
 
 	return instance
 }
@@ -53,7 +57,8 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 		return result.Err(http.StatusUnprocessableEntity, nil)
 	}
 
-	if err = defineSession(w, login.Username); err != nil {
+	_, _, err = defineSession(w, session)
+	if err != nil {
 		return result.Err(401, err)
 	}
 
@@ -63,7 +68,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 }
 
 func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	closeSession(w)
+	eraseSession(w)
 	ctx.Put(USER, domain.ANONYMOUS_OWNER)
 	return c.user(w, r, ctx)
 }
@@ -142,7 +147,8 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx rou
 		return result.Err(http.StatusInternalServerError, nil)
 	}
 
-	if err = defineSession(w, session.Username); err != nil {
+	_, _, err = defineSession(w, session)
+	if err != nil {
 		return result.Err(401, err)
 	}
 
@@ -166,7 +172,7 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx rou
 		return result.Err(http.StatusForbidden, err)
 	}
 
-	closeSession(w)
+	eraseSession(w)
 
 	ctx.Put(USER, domain.ANONYMOUS_OWNER)
 
@@ -189,14 +195,52 @@ func (c *ControllerLogin) identify(w http.ResponseWriter, r *http.Request, ctx r
 	return result.Ok(response)
 }
 
-func defineSession(w http.ResponseWriter, username string) error {
-	token, err := auth.GenerateJWT(username)
+func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	cookie, err := r.Cookie(REFRESH_COOKIE)
 	if err != nil {
-		return err
+		return result.Err(http.StatusUnauthorized, err)
+	}
+
+	claims, err := auth.ValidateJWT(cookie.Value)
+	if err != nil {
+		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
+			eraseSession(w)
+		}
+		return result.Err(http.StatusUnauthorized, err)
+	}
+
+	user := claims.Username
+
+	sessions := repository.InstanceManagerSession()
+	session, exists := sessions.Find(user)
+	if !exists {
+		err = errors.New("user not exists")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	if cookie.Value != session.Refresh {
+		return result.Err(http.StatusUnauthorized, nil)
+	}
+
+	_, _, err = defineSession(w, session)
+	if err != nil {
+		return result.Err(http.StatusBadRequest, err)
+	}
+
+	ctx.Put(USER, user)
+	return c.user(w, r, ctx)
+}
+
+func defineSession(w http.ResponseWriter, session *session.Session) (string, string, error) {
+	sessions := repository.InstanceManagerSession()
+
+	token, err := auth.GenerateJWT(session.Username)
+	if err != nil {
+		return "", "", err
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     COOKIE_NAME,
+		Name:     AUTH_COOKIE,
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
@@ -204,14 +248,47 @@ func defineSession(w http.ResponseWriter, username string) error {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	return nil
+	refresh := session.Refresh
+	if _, err := auth.ValidateJWT(refresh); err != nil {
+		refresh, err = auth.GenerateRefreshJWT(session.Username)
+		if err != nil {
+			return "", "", err
+		}
+		sessions.Refresh(session, refresh)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     REFRESH_COOKIE,
+		Value:    refresh,
+		Path:     fmt.Sprintf("%srefresh", BASE_PATH),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	return token, refresh, nil
 }
 
 func closeSession(w http.ResponseWriter) http.ResponseWriter {
 	http.SetCookie(w, &http.Cookie{
-		Name:     COOKIE_NAME,
+		Name:     AUTH_COOKIE,
 		Value:    "",
 		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+	return w
+}
+
+func eraseSession(w http.ResponseWriter) http.ResponseWriter {
+	closeSession(w)
+	http.SetCookie(w, &http.Cookie{
+		Name:     REFRESH_COOKIE,
+		Value:    "",
+		Path:     fmt.Sprintf("%srefresh", BASE_PATH),
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HttpOnly: true,

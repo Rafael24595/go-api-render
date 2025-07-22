@@ -28,7 +28,7 @@ const (
 
 var docsAuthSoft = docs.DocGroup{
 	Cookies: map[string]string{
-		COOKIE_NAME: "Session cookie",
+		AUTH_COOKIE: "Session cookie",
 	},
 	Responses: map[string]docs.DocItemStruct{
 		"401": docs.DocStruct("", AUTH_401),
@@ -38,7 +38,7 @@ var docsAuthSoft = docs.DocGroup{
 
 var docsAuthHard = docs.DocGroup{
 	Cookies: map[string]string{
-		COOKIE_NAME: "Session cookie",
+		AUTH_COOKIE: "Session cookie",
 	},
 	Responses: map[string]docs.DocItemStruct{
 		"401": docs.DocStruct("", AUTH_401),
@@ -46,6 +46,8 @@ var docsAuthHard = docs.DocGroup{
 		"406": docs.DocStruct("", AUTH_406),
 	},
 }
+
+const BASE_PATH = "/api/v1/"
 
 type Controller struct {
 	router  *router.Router
@@ -75,7 +77,7 @@ func NewController(
 	}
 
 	route.
-		BasePath("/api/v1/").
+		BasePath(BASE_PATH).
 		GroupContextualizerDocument(instance.authSoft, docsAuthSoft,
 			"user",
 			"user/verify",
@@ -110,7 +112,7 @@ func NewController(
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
 	user := domain.ANONYMOUS_OWNER
 
-	token, err := r.Cookie(COOKIE_NAME)
+	token, err := r.Cookie(AUTH_COOKIE)
 	if err != nil {
 		context.Put(USER, user)
 		return result.Ok(context)
@@ -118,8 +120,9 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 
 	claims, err := auth.ValidateJWT(token.Value)
 	if err != nil {
+		closeSession(w)
 		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
-			closeSession(w)
+			return result.Err(498, errors.New("token expired"))
 		}
 		return result.Err(http.StatusUnauthorized, err)
 	}
@@ -127,7 +130,6 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 	user = claims.Username
 
 	sessions := repository.InstanceManagerSession()
-
 	_, exists := sessions.Find(user)
 	if !exists {
 		err = errors.New("user not exists")
@@ -135,13 +137,6 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 	}
 
 	context.Put(USER, user)
-
-	timeLeft := time.Until(claims.ExpiresAt.Time)
-	if timeLeft < 10*time.Minute {
-		if err = defineSession(w, user); err != nil {
-			return result.Err(http.StatusUnauthorized, err)
-		}
-	}
 
 	return result.Ok(context)
 }

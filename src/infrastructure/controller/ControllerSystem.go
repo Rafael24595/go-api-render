@@ -43,7 +43,7 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 	}
 
 	if !session.IsAdmin {
-		return result.Err(http.StatusUnauthorized, nil)
+		return result.Err(http.StatusForbidden, nil)
 	}
 
 	return result.Ok(log.Records())
