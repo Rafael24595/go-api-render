@@ -71,8 +71,8 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, bool, err
 			continue
 		}
 
-		jsonTag := strings.Split(field.Tag.Get("json"), ",")[0]
-		if jsonTag == "-" {
+		isJson, jsonTag, jsonOmitempty := f.isJsonField(field)
+		if !isJson {
 			continue
 		}
 
@@ -81,25 +81,18 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, bool, err
 			return "", isVector, err
 		}
 
-		propName := jsonTag
-		if propName == "" {
-			propName = field.Name
-		}
+		propRef.Description = field.Tag.Get("description")
 		
-		properties[propName] = propRef
+		properties[jsonTag] = propRef
 
-		if !strings.Contains(field.Tag.Get("json"), "omitempty") &&
-			field.Type.Kind() != reflect.Ptr &&
-			field.Type.Kind() != reflect.Slice &&
-			field.Type.Kind() != reflect.Map {
-			required = append(required, propName)
+		if !jsonOmitempty && f.required(field) {
+			required = append(required, jsonTag)
 		}
 	}
 
-	pkg := t.PkgPath()
 	name := t.Name()
 	if name == "" {
-		name = fmt.Sprintf("Anon%s", pkg)
+		name = fmt.Sprintf("Anon%s", t.PkgPath())
 	}
 
 	ref := f.makeRefString(name)
@@ -113,6 +106,25 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, bool, err
 	}
 
 	return ref, isVector, nil
+}
+
+func (f *FactoryStructToSchema) isJsonField(field reflect.StructField) (bool, string, bool) {
+	jsonTag := strings.Split(field.Tag.Get("json"), ",")[0]
+	if jsonTag == "-" {
+		return false, "", false
+	}
+
+	if jsonTag == "" {
+		jsonTag = field.Name
+	}
+
+	return true, jsonTag, strings.Contains(field.Tag.Get("json"), "omitempty")
+}
+
+func (f *FactoryStructToSchema) required(field reflect.StructField) bool {
+	return field.Type.Kind() != reflect.Ptr &&
+		field.Type.Kind() != reflect.Slice &&
+		field.Type.Kind() != reflect.Map 
 }
 
 func (f *FactoryStructToSchema) inferSchema(fieldType reflect.Type) (*Schema, error) {
