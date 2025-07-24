@@ -142,15 +142,18 @@ func (r *Router) RouteDocument(method string, handler requestHandler, pattern st
 	}
 
 	docRoute := docs.DocRoute{
-		Method:     method,
-		BasePath:   r.basePath,
-		Path:       fmt.Sprintf(pattern, params...),
-		Parameters: doc.Parameters,
-		Files:      doc.Files,
-		Query:      doc.Query,
-		Request:    doc.Request,
-		Responses:  doc.Responses,
+		Description: doc.Description,
+		Method:      method,
+		BasePath:    r.basePath,
+		Path:        fmt.Sprintf(pattern, params...),
+		Parameters:  doc.Parameters,
+		Query:       doc.Query,
+		Cookies:     doc.Cookies,
+		Files:       doc.Files,
+		Request:     doc.Request,
+		Responses:   doc.Responses,
 	}
+	
 	return r.route(method, handler, pattern, docRoute, params...)
 }
 

@@ -6,6 +6,8 @@ import (
 )
 
 type ParameterType string
+type DocResponses map[string]DocItemStruct
+type DocParameters map[string]string
 
 const (
 	QUERY ParameterType = "query"
@@ -27,28 +29,32 @@ type DocViewerSources struct {
 }
 
 type DocGroup struct {
-	Headers   map[string]string
-	Cookies   map[string]string
-	Responses map[string]DocItemStruct
+	Headers   DocParameters
+	Cookies   DocParameters
+	Responses DocResponses
 }
 
 type DocPayload struct {
-	Parameters map[string]string
-	Query      map[string]string
-	Files      map[string]string
-	Request    DocItemStruct
-	Responses  map[string]DocItemStruct
+	Description string
+	Parameters  DocParameters
+	Query       DocParameters
+	Files       DocParameters
+	Cookies   DocParameters
+	Request     DocItemStruct
+	Responses   DocResponses
 }
 
 type DocRoute struct {
-	Method     string
-	BasePath   string
-	Path       string
-	Parameters map[string]string
-	Query      map[string]string
-	Files      map[string]string
-	Request    DocItemStruct
-	Responses  map[string]DocItemStruct
+	Description string
+	Method      string
+	BasePath    string
+	Path        string
+	Parameters  DocParameters
+	Query       DocParameters
+	Files       DocParameters
+	Cookies   DocParameters
+	Request     DocItemStruct
+	Responses   DocResponses
 }
 
 type DocItemStruct struct {
