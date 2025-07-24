@@ -20,18 +20,19 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 	}
 
 	router.
-		RouteDocument(http.MethodGet, instance.log, "system/log", docs.DocPayload{
-			Responses: map[string]docs.DocItemStruct{
-				"200": docs.DocStruct([]log.Record{}),
-			},
-		}).
-		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.DocPayload{
-			Responses: map[string]docs.DocItemStruct{
-				"200": docs.DocStruct(responseSystemMetadata{}),
-			},
-		})
+		RouteDocument(http.MethodGet, instance.log, "system/log", instance.docLog()).
+		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", instance.docMetadata())
 
 	return instance
+}
+
+func (c *ControllerSystem) docLog() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Returns all server-side application logs. Only accessible by admin users.",
+		Responses: map[string]docs.DocItemStruct{
+			"200": docs.DocStruct([]log.Record{}),
+		},
+	}
 }
 
 func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -47,6 +48,15 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 	}
 
 	return result.Ok(log.Records())
+}
+
+func (c *ControllerSystem) docMetadata() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Returns runtime system metadata including session ID, timestamp, release version, and frontend status.",
+		Responses: map[string]docs.DocItemStruct{
+			"200": docs.DocStruct(responseSystemMetadata{}),
+		},
+	}
 }
 
 func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

@@ -26,27 +26,6 @@ const (
 	AUTH_406 = "Password update required"
 )
 
-var docsAuthSoft = docs.DocGroup{
-	Cookies: map[string]string{
-		AUTH_COOKIE: "Session cookie",
-	},
-	Responses: map[string]docs.DocItemStruct{
-		"401": docs.DocStruct("", AUTH_401),
-		"404": docs.DocStruct("", AUTH_404),
-	},
-}
-
-var docsAuthHard = docs.DocGroup{
-	Cookies: map[string]string{
-		AUTH_COOKIE: "Session cookie",
-	},
-	Responses: map[string]docs.DocItemStruct{
-		"401": docs.DocStruct("", AUTH_401),
-		"404": docs.DocStruct("", AUTH_404),
-		"406": docs.DocStruct("", AUTH_406),
-	},
-}
-
 const BASE_PATH = "/api/v1/"
 
 type Controller struct {
@@ -78,11 +57,11 @@ func NewController(
 
 	route.
 		BasePath(BASE_PATH).
-		GroupContextualizerDocument(instance.authSoft, docsAuthSoft,
+		GroupContextualizerDocument(instance.authSoft, docAuthSoft,
 			"user",
 			"user/verify",
 		).
-		GroupContextualizerDocument(instance.authHard, docsAuthHard,
+		GroupContextualizerDocument(instance.authHard, docAuthHard,
 			"system/log",
 			"action",
 			"import",
@@ -107,6 +86,16 @@ func NewController(
 	NewControllerCollection(route, managerCollection, managerGroup)
 
 	return instance
+}
+
+var docAuthSoft = docs.DocGroup{
+	Cookies:docs.DocParameters{
+		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+	},
+	Responses: docs.DocResponses{
+		"401": docs.DocStruct("", AUTH_401),
+		"404": docs.DocStruct("", AUTH_404),
+	},
 }
 
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
@@ -139,6 +128,17 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 	context.Put(USER, user)
 
 	return result.Ok(context)
+}
+
+var docAuthHard = docs.DocGroup{
+	Cookies: docs.DocParameters{
+		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+	},
+	Responses: docs.DocResponses{
+		"401": docs.DocStruct("", AUTH_401),
+		"404": docs.DocStruct("", AUTH_404),
+		"406": docs.DocStruct("", AUTH_406),
+	},
 }
 
 func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {

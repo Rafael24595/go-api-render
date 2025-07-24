@@ -7,6 +7,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -27,18 +28,28 @@ func NewControllerStorage(
 	}
 
 	router.
-		Route(http.MethodPost, instance.importRequests, "import/request").
-		Route(http.MethodPut, instance.sortRequests, "sort/request").
-		Route(http.MethodGet, instance.findRequests, "request").
-		Route(http.MethodPost, instance.insertAction, "request").
-		Route(http.MethodPut, instance.updateRequest, "request").
-		Route(http.MethodGet, instance.findAction, "request/{%s}", ID_REQUEST).
-		Route(http.MethodDelete, instance.deleteAction, "request/{%s}", ID_REQUEST)
+		RouteDocument(http.MethodPost, instance.importItems, "import/request", instance.docImportItems()).
+		RouteDocument(http.MethodPut, instance.sort, "sort/request", instance.docSort()).
+		RouteDocument(http.MethodGet, instance.findAll, "request", instance.docFindAll()).
+		RouteDocument(http.MethodPost, instance.insert, "request", instance.docInsert()).
+		RouteDocument(http.MethodPut, instance.update, "request", instance.docUpdate()).
+		RouteDocument(http.MethodGet, instance.find, "request/{%s}", instance.docFind()).
+		RouteDocument(http.MethodDelete, instance.delete, "request/{%s}", instance.docDelete())
 
 	return instance
 }
 
-func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docImportItems() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Imports multiple requests into the user's default collection.",
+		Request: docs.DocStruct([]dto.DtoRequest{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct([]string{}),
+		},
+	}
+}
+
+func (c *ControllerStorage) importItems(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
@@ -54,10 +65,25 @@ func (c *ControllerStorage) importRequests(w http.ResponseWriter, r *http.Reques
 	collection = c.managerCollection.ImportDtoRequests(user, collection, *dtos)
 	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
 
-	return result.Ok(nodes)
+	ids := make([]string, len(nodes))
+	for i, v := range nodes {
+		ids[i] = v.Request.Id
+	}
+
+	return result.Ok(ids)
 }
 
-func (c *ControllerStorage) sortRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docSort() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Sorts the requests within the user's default collection based on the provided node structure.",
+		Request: docs.DocStruct(requestSortNodes{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerStorage) sort(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dto, err := jsonDeserialize[requestSortNodes](r)
@@ -74,10 +100,19 @@ func (c *ControllerStorage) sortRequests(w http.ResponseWriter, r *http.Request,
 
 	collection = c.managerCollection.SortCollectionRequest(user, collection, payload)
 
-	return result.Ok(collection)
+	return result.Ok(collection.Id)
 }
 
-func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docFindAll() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct([]dto.DtoLiteNodeRequest{}),
+		},
+	}
+}
+
+func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	collection, resultStatus := findUserCollection(user)
@@ -90,7 +125,17 @@ func (c *ControllerStorage) findRequests(w http.ResponseWriter, r *http.Request,
 	return result.Ok(dtos)
 }
 
-func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docInsert() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Inserts a new request and its response into the user's default collection.",
+		Request: docs.DocStruct(requestInsertAction{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct(responseAction{}),
+		},
+	}
+}
+
+func (c *ControllerStorage) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	action, err := jsonDeserialize[requestInsertAction](r)
@@ -116,7 +161,17 @@ func (c *ControllerStorage) insertAction(w http.ResponseWriter, r *http.Request,
 	return result.Ok(dto)
 }
 
-func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docUpdate() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Updates an existing request in the user's collection.",
+		Request: docs.DocStruct(dto.DtoRequest{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct(ID_REQUEST, ID_REQUEST_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerStorage) update(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtoRequest, err := jsonDeserialize[dto.DtoRequest](r)
@@ -135,10 +190,22 @@ func (c *ControllerStorage) updateRequest(w http.ResponseWriter, r *http.Request
 
 	dto := dto.FromRequest(request)
 
-	return result.Ok(dto)
+	return result.Ok(dto.Id)
 }
 
-func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docFind() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Finds a specific request and its response by request ID.",
+		Parameters: docs.DocParameters{
+			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct(responseAction{}),
+		},
+	}
+}
+
+func (c *ControllerStorage) find(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
@@ -159,7 +226,19 @@ func (c *ControllerStorage) findAction(w http.ResponseWriter, r *http.Request, c
 	return result.Ok(dto)
 }
 
-func (c *ControllerStorage) deleteAction(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerStorage) docDelete() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Deletes a specific request from the user's collection by ID.",
+		Parameters: docs.DocParameters{
+			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocStruct(responseAction{}),
+		},
+	}
+}
+
+func (c *ControllerStorage) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
