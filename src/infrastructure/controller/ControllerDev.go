@@ -36,6 +36,7 @@ func (c *ControllerDev) doWait() docs.DocPayload {
 		Query: docs.DocParameters{
 			QUERY_TIME: QUERY_TIME_DESCRIPTION,
 		},
+		Tags: docs.DocTags("dev", "debug"),
 	}
 }
 
@@ -54,6 +55,7 @@ func (c *ControllerDev) doPayload() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Reads and returns the raw request payload as plain text for debugging.",
 		Request: docs.DocStruct(""),
+		Tags: docs.DocTags("dev", "debug"),
 	}
 }
 

@@ -364,6 +364,10 @@ func (v *OpenAPI3Viewer) makeResponsesFromMap(responses map[string]docs.DocItemS
 }
 
 func makeTags(route docs.DocRoute) []string {
+	if route.Tags != nil {
+		return *route.Tags
+	}
+	
 	tags := make([]string, 0)
 	if route.BasePath != "" {
 		tags = append(tags, route.BasePath)

@@ -152,8 +152,9 @@ func (r *Router) RouteDocument(method string, handler requestHandler, pattern st
 		Files:       doc.Files,
 		Request:     doc.Request,
 		Responses:   doc.Responses,
+		Tags:        doc.Tags,
 	}
-	
+
 	return r.route(method, handler, pattern, docRoute, params...)
 }
 

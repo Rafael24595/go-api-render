@@ -39,9 +39,10 @@ type DocPayload struct {
 	Parameters  DocParameters
 	Query       DocParameters
 	Files       DocParameters
-	Cookies   DocParameters
+	Cookies     DocParameters
 	Request     DocItemStruct
 	Responses   DocResponses
+	Tags        *[]string
 }
 
 type DocRoute struct {
@@ -52,9 +53,10 @@ type DocRoute struct {
 	Parameters  DocParameters
 	Query       DocParameters
 	Files       DocParameters
-	Cookies   DocParameters
+	Cookies     DocParameters
 	Request     DocItemStruct
 	Responses   DocResponses
+	Tags        *[]string
 }
 
 type DocItemStruct struct {
@@ -92,4 +94,11 @@ func (v *noDocViewer) RegisterGroup(group string, data DocGroup) IDocViewer {
 
 func NoDocViewer() IDocViewer {
 	return &noDocViewer{}
+}
+
+func DocTags(tags ...string) *[]string {
+	if len(tags) == 0 {
+		return nil
+	}
+	return &tags
 }
