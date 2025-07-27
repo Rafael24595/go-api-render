@@ -97,8 +97,5 @@ func NoDocViewer() IDocViewer {
 }
 
 func DocTags(tags ...string) *[]string {
-	if len(tags) == 0 {
-		return nil
-	}
 	return &tags
 }
