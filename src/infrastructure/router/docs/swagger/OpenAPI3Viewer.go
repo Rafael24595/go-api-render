@@ -270,7 +270,7 @@ func (v *OpenAPI3Viewer) makeRequest(route docs.DocRoute) *RequestBody {
 	content := make(map[string]MediaType)
 
 	if contentType, media := v.makeMainRequest(route); media != nil {
-		content[contentType] = *media
+		content[string(contentType)] = *media
 	}
 
 	if contentType, media := v.makeFileRequest(route); media != nil {
@@ -283,18 +283,18 @@ func (v *OpenAPI3Viewer) makeRequest(route docs.DocRoute) *RequestBody {
 	}
 }
 
-func (v *OpenAPI3Viewer) makeMainRequest(route docs.DocRoute) (string, *MediaType) {
+func (v *OpenAPI3Viewer) makeMainRequest(route docs.DocRoute) (docs.MediaType, *MediaType) {
 	if route.Request.Item == nil {
 		return "", nil
 	}
 
-	_, main, err := v.factory.MakeSchema(route.Request.Item)
+	main, err := v.factory.MakeSchema(route.Request.MediaType, route.Request.Item)
 	if err != nil {
 		log.Error(err)
 		return "", nil
 	}
 
-	return "application/json", &MediaType{
+	return route.Request.MediaType, &MediaType{
 		Schema: main,
 	}
 }
@@ -345,7 +345,7 @@ func (v *OpenAPI3Viewer) makeResponsesFromMap(responses map[string]docs.DocItemS
 
 	result := make(map[string]Response)
 	for status, response := range responses {
-		_, main, err := v.factory.MakeSchema(response.Item)
+		main, err := v.factory.MakeSchema(response.MediaType, response.Item)
 		if err != nil {
 			log.Error(err)
 			return nil
@@ -353,7 +353,7 @@ func (v *OpenAPI3Viewer) makeResponsesFromMap(responses map[string]docs.DocItemS
 		result[status] = Response{
 			Description: response.Description,
 			Content: map[string]MediaType{
-				"application/json": {
+				string(response.MediaType): {
 					Schema: main,
 				},
 			},

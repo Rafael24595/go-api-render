@@ -54,8 +54,8 @@ func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.
 func (c *ControllerDev) doPayload() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Reads and returns the raw request payload as plain text for debugging.",
-		Request: docs.DocStruct(""),
-		Tags: docs.DocTags("dev", "debug"),
+		Request:     docs.DocJsonStruct(""),
+		Tags:        docs.DocTags("dev", "debug"),
 	}
 }
 

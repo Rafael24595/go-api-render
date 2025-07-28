@@ -93,8 +93,8 @@ var docAuthSoft = docs.DocGroup{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
-		"401": docs.DocStruct("", AUTH_401),
-		"404": docs.DocStruct("", AUTH_404),
+		"401": docs.DocJsonStruct("", AUTH_401),
+		"404": docs.DocJsonStruct("", AUTH_404),
 	},
 }
 
@@ -135,9 +135,9 @@ var docAuthHard = docs.DocGroup{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
-		"401": docs.DocStruct("", AUTH_401),
-		"404": docs.DocStruct("", AUTH_404),
-		"406": docs.DocStruct("", AUTH_406),
+		"401": docs.DocJsonStruct("", AUTH_401),
+		"404": docs.DocJsonStruct("", AUTH_404),
+		"406": docs.DocJsonStruct("", AUTH_406),
 	},
 }
 

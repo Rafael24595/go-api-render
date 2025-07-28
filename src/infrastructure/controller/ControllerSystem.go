@@ -30,7 +30,7 @@ func (c *ControllerSystem) docLog() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Returns all server-side application logs. Only accessible by admin users.",
 		Responses: map[string]docs.DocItemStruct{
-			"200": docs.DocStruct([]log.Record{}),
+			"200": docs.DocJsonStruct([]log.Record{}),
 		},
 	}
 }
@@ -54,7 +54,7 @@ func (c *ControllerSystem) docMetadata() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Returns runtime system metadata including session ID, timestamp, release version, and frontend status.",
 		Responses: map[string]docs.DocItemStruct{
-			"200": docs.DocStruct(responseSystemMetadata{}),
+			"200": docs.DocJsonStruct(responseSystemMetadata{}),
 		},
 	}
 }

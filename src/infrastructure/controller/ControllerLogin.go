@@ -45,8 +45,8 @@ func NewControllerLogin(
 func (c *ControllerLogin) docLogin() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Authenticate user and establish a session with JWT and refresh token cookies.",
-		Request:   docs.DocStruct(requestLogin{}),
-		Responses: c.docUser().Responses,
+		Request:     docs.DocJsonStruct(requestLogin{}),
+		Responses:   c.docUser().Responses,
 	}
 }
 
@@ -79,7 +79,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 func (c *ControllerLogin) docLogout() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Logout the current user and invalidate session cookies.",
-		Responses: c.docUser().Responses,
+		Responses:   c.docUser().Responses,
 	}
 }
 
@@ -93,7 +93,7 @@ func (c *ControllerLogin) docUser() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Get the currently authenticated user's information and context.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseUserData{}),
+			"200": docs.DocJsonStruct(responseUserData{}),
 		},
 	}
 }
@@ -131,9 +131,9 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 func (c *ControllerLogin) docSignin() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Register a new user using the current user's session context.",
-		Request: docs.DocStruct(requestSigninUser{}),
+		Request:     docs.DocJsonStruct(requestSigninUser{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseUserData{}),
+			"200": docs.DocJsonStruct(responseUserData{}),
 		},
 	}
 }
@@ -168,7 +168,7 @@ func (c *ControllerLogin) docDelete() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Delete the current user account and clear session data.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseUserData{}),
+			"200": docs.DocJsonStruct(responseUserData{}),
 		},
 	}
 }
@@ -198,9 +198,9 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx rou
 func (c *ControllerLogin) docVerify() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Change the user's password by verifying the old one and setting a new one.",
-		Request: docs.DocStruct(requestVerify{}),
+		Request:     docs.DocJsonStruct(requestVerify{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseUserData{}),
+			"200": docs.DocJsonStruct(responseUserData{}),
 		},
 	}
 }
@@ -240,7 +240,7 @@ func (c *ControllerLogin) docRefresh() docs.DocPayload {
 			REFRESH_COOKIE: REFRESH_COOKIE_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseUserData{}),
+			"200": docs.DocJsonStruct(responseUserData{}),
 		},
 	}
 }

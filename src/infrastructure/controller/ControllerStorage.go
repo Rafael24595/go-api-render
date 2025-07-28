@@ -42,9 +42,9 @@ func NewControllerStorage(
 func (c *ControllerStorage) docImportItems() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Imports multiple requests into the user's default collection.",
-		Request: docs.DocStruct([]dto.DtoRequest{}),
+		Request:     docs.DocJsonStruct([]dto.DtoRequest{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]string{}),
+			"200": docs.DocJsonStruct([]string{}),
 		},
 	}
 }
@@ -76,9 +76,9 @@ func (c *ControllerStorage) importItems(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerStorage) docSort() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Sorts the requests within the user's default collection based on the provided node structure.",
-		Request: docs.DocStruct(requestSortNodes{}),
+		Request:     docs.DocJsonStruct(requestSortNodes{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -107,7 +107,7 @@ func (c *ControllerStorage) docFindAll() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonStruct([]dto.DtoLiteNodeRequest{}),
 		},
 	}
 }
@@ -128,9 +128,9 @@ func (c *ControllerStorage) findAll(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerStorage) docInsert() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Inserts a new request and its response into the user's default collection.",
-		Request: docs.DocStruct(requestInsertAction{}),
+		Request:     docs.DocJsonStruct(requestInsertAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }
@@ -164,9 +164,9 @@ func (c *ControllerStorage) insert(w http.ResponseWriter, r *http.Request, ctx r
 func (c *ControllerStorage) docUpdate() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Updates an existing request in the user's collection.",
-		Request: docs.DocStruct(dto.DtoRequest{}),
+		Request:     docs.DocJsonStruct(dto.DtoRequest{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(ID_REQUEST, ID_REQUEST_DESCRIPTION),
+			"200": docs.DocJsonStruct(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 	}
 }
@@ -200,7 +200,7 @@ func (c *ControllerStorage) docFind() docs.DocPayload {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }
@@ -233,7 +233,7 @@ func (c *ControllerStorage) docDelete() docs.DocPayload {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }

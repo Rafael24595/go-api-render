@@ -59,7 +59,7 @@ func (c *ControllerCollection) docOpenApi() docs.DocPayload {
 			"file": "OpenAPI file",
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -103,9 +103,9 @@ func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, c
 func (c *ControllerCollection) docImportItems() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Imports multiple collection objects and associates them with the current user's group.",
-		Request:     docs.DocStruct([]dto.DtoCollection{}),
+		Request:     docs.DocJsonStruct([]dto.DtoCollection{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]string{}, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct([]string{}, ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -142,9 +142,9 @@ func (c *ControllerCollection) docImportTo() docs.DocPayload {
 		Parameters: docs.DocParameters{
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
-		Request: docs.DocStruct([]dto.DtoRequest{}),
+		Request: docs.DocJsonStruct([]dto.DtoRequest{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -175,9 +175,9 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerCollection) docSort() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Sorts the collections in the user group according to the provided node structure.",
-		Request:     docs.DocStruct(requestSortNodes{}),
+		Request:     docs.DocJsonStruct(requestSortNodes{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]string{}, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct([]string{}, ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -214,9 +214,9 @@ func (c *ControllerCollection) docSortRequests() docs.DocPayload {
 		Parameters: docs.DocParameters{
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
-		Request: docs.DocStruct([]requestSortNodes{}),
+		Request: docs.DocJsonStruct([]requestSortNodes{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -245,7 +245,7 @@ func (c *ControllerCollection) docFindAll() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Retrieves all collection summaries (lite version) for the current user's group.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]dto.DtoLiteNodeCollection{}),
+			"200": docs.DocJsonStruct([]dto.DtoLiteNodeCollection{}),
 		},
 	}
 }
@@ -270,7 +270,7 @@ func (c *ControllerCollection) docFind() docs.DocPayload {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(dto.DtoCollection{}),
+			"200": docs.DocJsonStruct(dto.DtoCollection{}),
 		},
 	}
 }
@@ -295,7 +295,7 @@ func (c *ControllerCollection) docFindLite() docs.DocPayload {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(dto.DtoLiteCollection{}),
+			"200": docs.DocJsonStruct(dto.DtoLiteCollection{}),
 		},
 	}
 }
@@ -316,9 +316,9 @@ func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerCollection) docInsert() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Inserts a new collection into the current user's group.",
-		Request:     docs.DocStruct(domain.Collection{}),
+		Request:     docs.DocJsonStruct(domain.Collection{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -344,9 +344,9 @@ func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ct
 func (c *ControllerCollection) docCollect() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Collects a request from a general context and adds it into the user's active collection.",
-		Request:     docs.DocStruct(requestPushToCollection{}),
+		Request:     docs.DocJsonStruct(requestPushToCollection{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -358,7 +358,7 @@ func (c *ControllerCollection) docDelete() docs.DocPayload {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -388,7 +388,7 @@ func (c *ControllerCollection) docClone() docs.DocPayload {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -444,7 +444,7 @@ func (c *ControllerCollection) docTake() docs.DocPayload {
 			ID_REQUEST:    ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -480,7 +480,7 @@ func (c *ControllerCollection) docDeleteFrom() docs.DocPayload {
 			ID_REQUEST:    ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct("", ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonStruct("", ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }

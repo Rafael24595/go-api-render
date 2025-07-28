@@ -14,6 +14,13 @@ const (
 	PATH  ParameterType = "path"
 )
 
+type MediaType string
+
+const (
+	JSON MediaType = "application/json"
+	XML  MediaType = "application/xml"
+)
+
 type DocViewerHandler struct {
 	Method      string
 	Route       string
@@ -61,12 +68,22 @@ type DocRoute struct {
 
 type DocItemStruct struct {
 	Item        any
+	MediaType   MediaType
 	Description string
 }
 
-func DocStruct(item any, description ...string) DocItemStruct {
+func DocXmlStruct(item any, description ...string) DocItemStruct {
+	return docStruct(item, XML, description...)
+}
+
+func DocJsonStruct(item any, description ...string) DocItemStruct {
+	return docStruct(item, JSON, description...)
+}
+
+func docStruct(item any, media MediaType, description ...string) DocItemStruct {
 	return DocItemStruct{
 		Item:        item,
+		MediaType:   media,
 		Description: strings.Join(description, ""),
 	}
 }

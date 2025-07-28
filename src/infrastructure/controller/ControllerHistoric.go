@@ -39,7 +39,7 @@ func (c *ControllerHistoric) docFind() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonStruct([]dto.DtoLiteNodeRequest{}),
 		},
 	}
 }
@@ -60,9 +60,9 @@ func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx ro
 func (c *ControllerHistoric) docInsert() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Inserts a new request/response pair into the historic collection. If the request is not a draft, the full response will be returned.",
-		Request:     docs.DocStruct(requestInsertAction{}),
+		Request:     docs.DocJsonStruct(requestInsertAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }
@@ -113,7 +113,7 @@ func (c *ControllerHistoric) docDelete() docs.DocPayload {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }

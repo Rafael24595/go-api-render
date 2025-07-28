@@ -32,9 +32,9 @@ func NewControllerActions(router *router.Router) ControllerActions {
 func (c *ControllerActions) docAction() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Executes an HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
-		Request:     docs.DocStruct(requestExecuteAction{}),
+		Request:     docs.DocJsonStruct(requestExecuteAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(responseAction{}),
+			"200": docs.DocJsonStruct(responseAction{}),
 		},
 	}
 }

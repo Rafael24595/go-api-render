@@ -37,12 +37,12 @@ func NewControllerContext(
 
 func (c *ControllerContext) docImportItem() docs.DocPayload {
 	return docs.DocPayload{
-	Description: "Imports and merges a new context object for the authenticated user, combining the target and source contexts.",
-	Request:     docs.DocStruct(requestImportContext{}),
-	Responses: docs.DocResponses{
-		"200": docs.DocStruct("", ID_CONTEXT_DESCRIPTION),
-	},
-}
+		Description: "Imports and merges a new context object for the authenticated user, combining the target and source contexts.",
+		Request:     docs.DocJsonStruct(requestImportContext{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct("", ID_CONTEXT_DESCRIPTION),
+		},
+	}
 }
 
 func (c *ControllerContext) importItem(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -61,11 +61,11 @@ func (c *ControllerContext) importItem(w http.ResponseWriter, r *http.Request, c
 
 func (c *ControllerContext) docFindFromUser() docs.DocPayload {
 	return docs.DocPayload{
-	Description: "Retrieves the current context associated with the authenticated user, based on their collection metadata.",
-	Responses: docs.DocResponses{
-		"200": docs.DocStruct(dto.DtoContext{}),
-	},
-}
+		Description: "Retrieves the current context associated with the authenticated user, based on their collection metadata.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct(dto.DtoContext{}),
+		},
+	}
 }
 
 func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -88,12 +88,12 @@ func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request,
 
 func (c *ControllerContext) docUpdate() docs.DocPayload {
 	return docs.DocPayload{
-	Description: "Updates an existing context object for the authenticated user using the provided context data.",
-	Request:     docs.DocStruct(dto.DtoContext{}),
-	Responses: docs.DocResponses{
-		"200": docs.DocStruct("", ID_CONTEXT_DESCRIPTION),
-	},
-}
+		Description: "Updates an existing context object for the authenticated user using the provided context data.",
+		Request:     docs.DocJsonStruct(dto.DtoContext{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct("", ID_CONTEXT_DESCRIPTION),
+		},
+	}
 }
 
 func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

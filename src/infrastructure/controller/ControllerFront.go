@@ -30,7 +30,7 @@ func (c *ControllerFront) docClient() docs.DocPayload {
 	return docs.DocPayload{
 		Description: "Serves frontend static files. Falls back to index.html for SPA routing.",
 		Responses: docs.DocResponses{
-			"200": docs.DocStruct(""),
+			"200": docs.DocJsonStruct(""),
 		},
 	}
 }
