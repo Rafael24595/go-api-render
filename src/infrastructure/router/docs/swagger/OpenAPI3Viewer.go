@@ -24,6 +24,7 @@ type OpenAPI3Viewer struct {
 	factory    *FactoryStructToSchema
 	headers    map[string]map[string]string
 	cookies    map[string]map[string]string
+	responses  map[string]map[string]Response
 	stringData string
 }
 
@@ -63,6 +64,7 @@ func InitializeViewer() *OpenAPI3Viewer {
 		factory:    NewFactoryStructToSchema(),
 		headers:    make(map[string]map[string]string),
 		cookies:    make(map[string]map[string]string),
+		responses:  make(map[string]map[string]Response),
 		stringData: "",
 	}
 }
@@ -82,13 +84,14 @@ func loadYAML(filename string) (*OpenAPI3, error) {
 func (v *OpenAPI3Viewer) RegisterGroup(group string, data docs.DocGroup) docs.IDocViewer {
 	v.groupHeaders(group, data.Headers)
 	v.groupCookies(group, data.Cookies)
+	v.groupResponses(group, data.Responses)
 	return v
 }
 
 func (v *OpenAPI3Viewer) groupHeaders(group string, headers map[string]string) docs.IDocViewer {
 	item, ok := v.headers[group]
 	if !ok {
-		item = make(map[string]string, 0)
+		item = make(map[string]string)
 	}
 
 	maps.Copy(item, headers)
@@ -101,12 +104,27 @@ func (v *OpenAPI3Viewer) groupHeaders(group string, headers map[string]string) d
 func (v *OpenAPI3Viewer) groupCookies(group string, cookies map[string]string) docs.IDocViewer {
 	item, ok := v.cookies[group]
 	if !ok {
-		item = make(map[string]string, 0)
+		item = make(map[string]string)
 	}
 
 	maps.Copy(item, cookies)
 
 	v.cookies[group] = item
+
+	return v
+}
+
+func (v *OpenAPI3Viewer) groupResponses(group string, responses map[string]docs.DocItemStruct) docs.IDocViewer {
+	item, ok := v.responses[group]
+	if !ok {
+		item = make(map[string]Response)
+	}
+
+	result := v.makeResponsesFromMap(responses)
+
+	maps.Copy(item, result)
+
+	v.responses[group] = item
 
 	return v
 }
@@ -144,9 +162,10 @@ func (v *OpenAPI3Viewer) RegisterRoute(route docs.DocRoute) docs.IDocViewer {
 
 	operation := &Operation{
 		Tags:        makeTags(route),
+		Description: route.Description,
 		Parameters:  v.makeParameters(path, route),
 		RequestBody: v.makeRequest(route),
-		Responses:   v.makeResponses(route),
+		Responses:   v.makeResponses(path, route),
 	}
 
 	switch route.Method {
@@ -204,7 +223,7 @@ func (v *OpenAPI3Viewer) makeParameters(path string, route docs.DocRoute) []Para
 	for k, h := range v.cookies {
 		if strings.HasPrefix(path, k) {
 			for n, d := range h {
-				parameters = append(parameters, v.makeParameter(n, d, "cookie"))
+				parameters = append(parameters, v.makeCookie(n, d))
 			}
 		}
 	}
@@ -221,7 +240,21 @@ func (v *OpenAPI3Viewer) makeParameters(path string, route docs.DocRoute) []Para
 		}
 	}
 
+	if route.Cookies != nil {
+		for n, d := range route.Cookies {
+			parameters = append(parameters, v.makeCookie(n, d))
+		}
+	}
+
 	return parameters
+}
+
+func (v *OpenAPI3Viewer) makeCookie(name string, description string) Parameter {
+	cookie := v.makeParameter(name, description, "cookie")
+	cookie.Schema = &Schema{
+		Type: "string",
+	}
+	return cookie
 }
 
 func (v *OpenAPI3Viewer) makeParameter(name, description, category string) Parameter {
@@ -237,7 +270,7 @@ func (v *OpenAPI3Viewer) makeRequest(route docs.DocRoute) *RequestBody {
 	content := make(map[string]MediaType)
 
 	if contentType, media := v.makeMainRequest(route); media != nil {
-		content[contentType] = *media
+		content[string(contentType)] = *media
 	}
 
 	if contentType, media := v.makeFileRequest(route); media != nil {
@@ -245,22 +278,23 @@ func (v *OpenAPI3Viewer) makeRequest(route docs.DocRoute) *RequestBody {
 	}
 
 	return &RequestBody{
-		Content: content,
+		Description: route.Request.Description,
+		Content:     content,
 	}
 }
 
-func (v *OpenAPI3Viewer) makeMainRequest(route docs.DocRoute) (string, *MediaType) {
-	if route.Request == nil {
+func (v *OpenAPI3Viewer) makeMainRequest(route docs.DocRoute) (docs.MediaType, *MediaType) {
+	if route.Request.Item == nil {
 		return "", nil
 	}
 
-	_, main, err := v.factory.MakeSchema(route.Request)
+	main, err := v.factory.MakeSchema(route.Request.MediaType, route.Request.Item)
 	if err != nil {
 		log.Error(err)
 		return "", nil
 	}
 
-	return "application/json", &MediaType{
+	return route.Request.MediaType, &MediaType{
 		Schema: main,
 	}
 }
@@ -289,31 +323,51 @@ func (v *OpenAPI3Viewer) makeFileRequest(route docs.DocRoute) (string, *MediaTyp
 	}
 }
 
-func (v *OpenAPI3Viewer) makeResponses(route docs.DocRoute) map[string]Response {
-	if len(route.Responses) == 0 {
-		return nil
+func (v *OpenAPI3Viewer) makeResponses(path string, route docs.DocRoute) map[string]Response {
+	reponses := make(map[string]Response)
+	for k, h := range v.responses {
+		if strings.HasPrefix(path, k) {
+			maps.Copy(reponses, h)
+		}
 	}
 
-	responses := make(map[string]Response)
-	for status, response := range route.Responses {
-		_, main, err := v.factory.MakeSchema(response)
+	result := v.makeResponsesFromMap(route.Responses)
+
+	maps.Copy(result, reponses)
+
+	return result
+}
+
+func (v *OpenAPI3Viewer) makeResponsesFromMap(responses map[string]docs.DocItemStruct) map[string]Response {
+	if len(responses) == 0 {
+		return make(map[string]Response)
+	}
+
+	result := make(map[string]Response)
+	for status, response := range responses {
+		main, err := v.factory.MakeSchema(response.MediaType, response.Item)
 		if err != nil {
 			log.Error(err)
 			return nil
 		}
-		responses[status] = Response{
+		result[status] = Response{
+			Description: response.Description,
 			Content: map[string]MediaType{
-				"application/json": {
+				string(response.MediaType): {
 					Schema: main,
 				},
 			},
 		}
 	}
 
-	return responses
+	return result
 }
 
 func makeTags(route docs.DocRoute) []string {
+	if route.Tags != nil {
+		return *route.Tags
+	}
+	
 	tags := make([]string, 0)
 	if route.BasePath != "" {
 		tags = append(tags, route.BasePath)

@@ -12,6 +12,7 @@ import (
 )
 
 const QUERY_TIME = "time"
+const QUERY_TIME_DESCRIPTION = "Time in milliseconds"
 
 type ControllerDev struct {
 	router *router.Router
@@ -23,14 +24,20 @@ func NewControllerDev(router *router.Router) ControllerDev {
 	}
 
 	router.
-		RouteDocument(http.MethodGet, instance.wait, "dev/wait", docs.DocPayload{
-			Query: map[string]string{
-				QUERY_TIME: "Time in milliseconds",
-			},
-		}).
-		Route(http.MethodPost, instance.paylaod, "dev/print/payload")
+		RouteDocument(http.MethodGet, instance.wait, "dev/wait", instance.doWait()).
+		RouteDocument(http.MethodPost, instance.paylaod, "dev/print/payload", instance.doPayload())
 
 	return instance
+}
+
+func (c *ControllerDev) doWait() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Simulates a delayed response by waiting for a specified number of milliseconds.",
+		Query: docs.DocParameters{
+			QUERY_TIME: QUERY_TIME_DESCRIPTION,
+		},
+		Tags: docs.DocTags("dev", "debug"),
+	}
 }
 
 func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -42,6 +49,14 @@ func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.
 	}
 
 	return result.Ok(nil)
+}
+
+func (c *ControllerDev) doPayload() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Reads and returns the raw request payload as plain text for debugging.",
+		Request:     docs.DocJsonStruct(""),
+		Tags:        docs.DocTags("dev", "debug"),
+	}
 }
 
 func (c *ControllerDev) paylaod(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

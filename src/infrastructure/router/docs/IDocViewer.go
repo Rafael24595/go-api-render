@@ -1,12 +1,24 @@
 package docs
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 type ParameterType string
+type DocResponses map[string]DocItemStruct
+type DocParameters map[string]string
 
 const (
 	QUERY ParameterType = "query"
 	PATH  ParameterType = "path"
+)
+
+type MediaType string
+
+const (
+	JSON MediaType = "application/json"
+	XML  MediaType = "application/xml"
 )
 
 type DocViewerHandler struct {
@@ -24,27 +36,56 @@ type DocViewerSources struct {
 }
 
 type DocGroup struct {
-	Headers map[string]string
-	Cookies map[string]string
+	Headers   DocParameters
+	Cookies   DocParameters
+	Responses DocResponses
 }
 
 type DocPayload struct {
-	Parameters map[string]string
-	Query      map[string]string
-	Files      map[string]string
-	Request    any
-	Responses  map[string]any
+	Description string
+	Parameters  DocParameters
+	Query       DocParameters
+	Files       DocParameters
+	Cookies     DocParameters
+	Request     DocItemStruct
+	Responses   DocResponses
+	Tags        *[]string
 }
 
 type DocRoute struct {
-	Method     string
-	BasePath   string
-	Path       string
-	Parameters map[string]string
-	Query      map[string]string
-	Files      map[string]string
-	Request    any
-	Responses  map[string]any
+	Description string
+	Method      string
+	BasePath    string
+	Path        string
+	Parameters  DocParameters
+	Query       DocParameters
+	Files       DocParameters
+	Cookies     DocParameters
+	Request     DocItemStruct
+	Responses   DocResponses
+	Tags        *[]string
+}
+
+type DocItemStruct struct {
+	Item        any
+	MediaType   MediaType
+	Description string
+}
+
+func DocXmlStruct(item any, description ...string) DocItemStruct {
+	return docStruct(item, XML, description...)
+}
+
+func DocJsonStruct(item any, description ...string) DocItemStruct {
+	return docStruct(item, JSON, description...)
+}
+
+func docStruct(item any, media MediaType, description ...string) DocItemStruct {
+	return DocItemStruct{
+		Item:        item,
+		MediaType:   media,
+		Description: strings.Join(description, ""),
+	}
 }
 
 type IDocViewer interface {
@@ -70,4 +111,8 @@ func (v *noDocViewer) RegisterGroup(group string, data DocGroup) IDocViewer {
 
 func NoDocViewer() IDocViewer {
 	return &noDocViewer{}
+}
+
+func DocTags(tags ...string) *[]string {
+	return &tags
 }

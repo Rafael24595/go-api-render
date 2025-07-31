@@ -7,6 +7,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
@@ -27,14 +28,46 @@ func NewControllerHistoric(
 	}
 
 	router.
-		Route(http.MethodGet, instance.findHistoric, "historic").
-		Route(http.MethodPost, instance.insertHistoric, "historic").
-		Route(http.MethodDelete, instance.deleteHistoric, "historic/{%s}", ID_REQUEST)
+		RouteDocument(http.MethodGet, instance.find, "historic", instance.docFind()).
+		RouteDocument(http.MethodPost, instance.insert, "historic", instance.docInsert()).
+		RouteDocument(http.MethodDelete, instance.delete, "historic/{%s}", instance.docDelete())
 
 	return instance
 }
 
-func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerHistoric) docFind() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct([]dto.DtoLiteNodeRequest{}),
+		},
+	}
+}
+
+func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+	user := findUser(ctx)
+
+	collection, resultStatus := findHistoricCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	dtos := c.managerHistoric.FindLite(user, collection)
+
+	return result.Ok(dtos)
+}
+
+func (c *ControllerHistoric) docInsert() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Inserts a new request/response pair into the historic collection. If the request is not a draft, the full response will be returned.",
+		Request:     docs.DocJsonStruct(requestInsertAction{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct(responseAction{}),
+		},
+	}
+}
+
+func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
 	action, err := jsonDeserialize[requestInsertAction](r)
@@ -73,20 +106,19 @@ func (c *ControllerHistoric) insertHistoric(w http.ResponseWriter, r *http.Reque
 	return result.Ok(resultResponse)
 }
 
-func (c *ControllerHistoric) findHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	user := findUser(ctx)
-
-	collection, resultStatus := findHistoricCollection(user)
-	if resultStatus != nil {
-		return *resultStatus
+func (c *ControllerHistoric) docDelete() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Deletes a historic request entry by ID. Returns the removed request and response.",
+		Parameters: docs.DocParameters{
+			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct(responseAction{}),
+		},
 	}
-
-	dtos := c.managerHistoric.FindLite(user, collection)
-
-	return result.Ok(dtos)
 }
 
-func (c *ControllerHistoric) deleteHistoric(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 

@@ -4,57 +4,108 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type FactoryStructToSchema struct {
-	seen    map[reflect.Type]string
-	schemas map[string]Schema
+	seen map[reflect.Type]map[docs.MediaType]seen
+}
+
+type seen struct {
+	ref    string
+	name   string
+	schema Schema
 }
 
 func NewFactoryStructToSchema() *FactoryStructToSchema {
 	return &FactoryStructToSchema{
-		seen:    make(map[reflect.Type]string),
-		schemas: make(map[string]Schema),
+		seen: make(map[reflect.Type]map[docs.MediaType]seen),
 	}
 }
 
 func (f *FactoryStructToSchema) Components() *Components {
+	schemas := make(map[string]Schema)
+	for _, s := range f.seen {
+		for _, r := range s {
+			schemas[r.name] = r.schema
+		}
+	}
 	return &Components{
-		Schemas: f.schemas,
+		Schemas: schemas,
 	}
 }
 
-func (f *FactoryStructToSchema) MakeSchema(root any) (map[string]Schema, *Schema, error) {
+func (f *FactoryStructToSchema) MakeSchema(media docs.MediaType, root any) (*Schema, error) {
 	t := reflect.TypeOf(root)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 
-	ref, err := f.collectSchema(t)
+	ref, isVector, err := f.collectSchema(media, t)
 	if err != nil {
-		return f.schemas, nil, err
+		return nil, err
 	}
 
-	main := &Schema{
+	if isVector {
+		return &Schema{
+			Items: &Schema{
+				Ref: ref,
+			},
+		}, nil
+	}
+
+	return &Schema{
 		Ref: ref,
-	}
-
-	return f.schemas, main, nil
+	}, nil
 }
 
-func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, error) {
+func (f *FactoryStructToSchema) collectSchema(media docs.MediaType, t reflect.Type) (string, bool, error) {
+	isVector := f.isVector(t)
 	t = f.deferencePointer(t)
 
 	if t.Kind() != reflect.Struct {
-		return "", nil
+		return "", isVector, nil
 	}
 
-	if ref, ok := f.seen[t]; ok {
-		return ref, nil
+	if refs, ok := f.seen[t]; ok {
+		if ref, ok := refs[media]; ok {
+			return ref.ref, isVector, nil
+		}
 	}
 
-	properties := make(map[string]*Schema)
-	required := make([]string, 0)
+	schema, err := f.makeSchema(media, t)
+	if err != nil {
+		return "", isVector, err
+	}
+
+	name := f.makeStructName(t)
+	mediaName := f.makeMediaName(media, name)
+	ref := f.makeRefString(mediaName)
+
+	if _, ok := f.seen[t]; !ok {
+		f.seen[t] = make(map[docs.MediaType]seen)
+	}
+
+	f.seen[t][media] = seen{
+		ref:    ref,
+		name:   mediaName,
+		schema: *schema,
+	}
+
+	return ref, isVector, nil
+}
+
+func (f *FactoryStructToSchema) makeSchema(media docs.MediaType, t reflect.Type) (*Schema, error) {
+	t = f.deferencePointer(t)
+
+	if t.Kind() != reflect.Struct {
+		return nil, nil
+	}
+
+	schema := NewSchema()
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -63,60 +114,107 @@ func (f *FactoryStructToSchema) collectSchema(t reflect.Type) (string, error) {
 			continue
 		}
 
-		jsonTag := strings.Split(field.Tag.Get("json"), ",")[0]
-		if jsonTag == "-" {
-			continue
-		}
-
-		propName := jsonTag
-		if propName == "" {
-			propName = field.Name
-		}
-
-		propRef, err := f.inferSchema(field.Type)
+		name := field.Name
+		isRequired := f.required(field)
+		ref, err := f.inferSchema(media, field.Type)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
-		properties[propName] = propRef
+		ref.Description = field.Tag.Get("description")
 
-		if !strings.Contains(field.Tag.Get("json"), "omitempty") &&
-			field.Type.Kind() != reflect.Ptr &&
-			field.Type.Kind() != reflect.Slice &&
-			field.Type.Kind() != reflect.Map {
-			required = append(required, propName)
+		if media == docs.XML {
+			if xmlTag, xmlOmitempty, xmlRef := f.isXmlField(field, ref); xmlRef != nil {
+				name = xmlTag
+				isRequired = isRequired && !xmlOmitempty
+				ref = xmlRef
+			}
 		}
+
+		if media == docs.JSON {
+			if jsonTag, jsonOmitempty, jsonRef := f.isJsonField(field, ref); jsonRef != nil {
+				name = jsonTag
+				isRequired = isRequired && !jsonOmitempty
+				ref = jsonRef
+			}
+		}
+
+		schema = f.addProperty(schema, name, ref, isRequired)
 	}
 
-	pkg := t.PkgPath()
-	name := t.Name()
-	if name == "" {
-		name = fmt.Sprintf("Anon%s", pkg)
-	}
-
-	ref := f.makeRefString(name)
-
-	f.seen[t] = ref
-
-	f.schemas[name] = Schema{
-		Type:       "object",
-		Properties: properties,
-		Required:   required,
-	}
-
-	return ref, nil
+	return schema, nil
 }
 
-func (f *FactoryStructToSchema) inferSchema(fieldType reflect.Type) (*Schema, error) {
+func (f *FactoryStructToSchema) addProperty(schema *Schema, name string, property *Schema, isRequired bool) *Schema {
+	schema.Properties[name] = property
+	if isRequired {
+		schema.Required = append(schema.Required, name)
+	}
+	return schema
+}
+
+func (f *FactoryStructToSchema) isJsonField(field reflect.StructField, ref *Schema) (string, bool, *Schema) {
+	attribute := field.Tag.Get("json")
+
+	tag := strings.Split(attribute, ",")[0]
+	if tag == "" || tag == "-" {
+		return "", false, nil
+	}
+
+	omitEmpty := strings.Contains(attribute, "omitempty")
+
+	return tag, omitEmpty, ref
+}
+
+func (f *FactoryStructToSchema) isXmlField(field reflect.StructField, ref *Schema) (string, bool, *Schema) {
+	attribute := field.Tag.Get("xml")
+
+	tag := strings.Split(attribute, ",")[0]
+	if tag == "" || tag == "-" {
+		return "", false, nil
+	}
+
+	wrapper := ""
+	if fragments := strings.Split(tag, ">"); len(fragments) > 1 {
+		tag = fragments[0]
+		wrapper = fragments[1]
+	}
+
+	if wrapper != "" {
+		ref = &Schema{
+			Type: "object",
+			Properties: map[string]*Schema{
+				wrapper: ref,
+			},
+		}
+	}
+
+	attr := strings.Contains(attribute, "attr")
+	ref.XML = &XML{
+		Name:      tag,
+		Attribute: attr,
+	}
+
+	omitEmpty := strings.Contains(attribute, "omitempty")
+	return tag, omitEmpty, ref
+}
+
+func (f *FactoryStructToSchema) required(field reflect.StructField) bool {
+	return field.Type.Kind() != reflect.Ptr &&
+		field.Type.Kind() != reflect.Slice &&
+		field.Type.Kind() != reflect.Map
+}
+
+func (f *FactoryStructToSchema) inferSchema(media docs.MediaType, fieldType reflect.Type) (*Schema, error) {
 	switch fieldType.Kind() {
 	case reflect.Ptr:
-		return f.inferSchema(fieldType.Elem())
+		return f.inferSchema(media, fieldType.Elem())
 	case reflect.Struct:
-		return f.inferStruct(fieldType)
+		return f.inferStruct(media, fieldType)
 	case reflect.Slice, reflect.Array:
-		return f.inferArray(fieldType)
+		return f.inferArray(media, fieldType)
 	case reflect.Map:
-		return f.inferMap(fieldType)
+		return f.inferMap(media, fieldType)
 	case reflect.String:
 		return &Schema{Type: "string"}, nil
 	case reflect.Bool:
@@ -131,16 +229,25 @@ func (f *FactoryStructToSchema) inferSchema(fieldType reflect.Type) (*Schema, er
 	}
 }
 
-func (f *FactoryStructToSchema) inferStruct(fieldType reflect.Type) (*Schema, error) {
-	ref, err := f.collectSchema(fieldType)
+func (f *FactoryStructToSchema) inferStruct(media docs.MediaType, fieldType reflect.Type) (*Schema, error) {
+	ref, isVector, err := f.collectSchema(media, fieldType)
 	if err != nil {
 		return nil, err
 	}
+
+	if isVector {
+		return &Schema{
+			Items: &Schema{
+				Ref: ref,
+			},
+		}, nil
+	}
+
 	return &Schema{Ref: ref}, nil
 }
 
-func (f *FactoryStructToSchema) inferArray(fieldType reflect.Type) (*Schema, error) {
-	itemRef, err := f.inferSchema(fieldType.Elem())
+func (f *FactoryStructToSchema) inferArray(media docs.MediaType, fieldType reflect.Type) (*Schema, error) {
+	itemRef, err := f.inferSchema(media, fieldType.Elem())
 	if err != nil {
 		return nil, err
 	}
@@ -151,14 +258,14 @@ func (f *FactoryStructToSchema) inferArray(fieldType reflect.Type) (*Schema, err
 	}, nil
 }
 
-func (f *FactoryStructToSchema) inferMap(fieldType reflect.Type) (*Schema, error) {
-	properties, err := f.inferSchema(fieldType.Elem())
+func (f *FactoryStructToSchema) inferMap(media docs.MediaType, fieldType reflect.Type) (*Schema, error) {
+	properties, err := f.inferSchema(media, fieldType.Elem())
 	if err != nil {
 		return nil, err
 	}
 
 	return &Schema{
-		Type: "object",
+		Type:                 "object",
 		AdditionalProperties: properties,
 	}, nil
 }
@@ -168,6 +275,39 @@ func (f *FactoryStructToSchema) deferencePointer(t reflect.Type) reflect.Type {
 		t = t.Elem()
 	}
 	return t
+}
+
+func (f *FactoryStructToSchema) isVector(t reflect.Type) bool {
+	return t.Kind() == reflect.Slice || t.Kind() == reflect.Array
+}
+
+func (f *FactoryStructToSchema) makeStructName(t reflect.Type) string {
+	name := t.Name()
+	if name == "" {
+		name = fmt.Sprintf("Anon%s", t.PkgPath())
+	}
+	return name
+}
+
+func (f *FactoryStructToSchema) makeMediaName(media docs.MediaType, name string) string {
+	switch media {
+	case docs.XML:
+		media = "xml"
+	case docs.JSON:
+		media = "json"
+	default:
+		media = ""
+	}
+
+	nameFormat := name
+	mediaFormat := string(media)
+	if media != "" {
+		caser := cases.Title(language.Und, cases.NoLower)
+		nameFormat = caser.String(nameFormat)
+		mediaFormat = caser.String(mediaFormat)
+	}
+
+	return fmt.Sprintf("%s%s", mediaFormat, nameFormat)
 }
 
 func (f *FactoryStructToSchema) makeRefString(name string) string {

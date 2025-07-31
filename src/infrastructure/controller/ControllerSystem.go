@@ -20,14 +20,19 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 	}
 
 	router.
-		Route(http.MethodGet, instance.log, "system/log").
-		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", docs.DocPayload{
-			Responses: map[string]any{
-				"200": responseSystemMetadata{},
-			},
-		})
+		RouteDocument(http.MethodGet, instance.log, "system/log", instance.docLog()).
+		RouteDocument(http.MethodGet, instance.metadata, "system/metadata", instance.docMetadata())
 
 	return instance
+}
+
+func (c *ControllerSystem) docLog() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Returns all server-side application logs. Only accessible by admin users.",
+		Responses: map[string]docs.DocItemStruct{
+			"200": docs.DocJsonStruct([]log.Record{}),
+		},
+	}
 }
 
 func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -39,10 +44,19 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 	}
 
 	if !session.IsAdmin {
-		return result.Err(http.StatusUnauthorized, nil)
+		return result.Err(http.StatusForbidden, nil)
 	}
 
 	return result.Ok(log.Records())
+}
+
+func (c *ControllerSystem) docMetadata() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Returns runtime system metadata including session ID, timestamp, release version, and frontend status.",
+		Responses: map[string]docs.DocItemStruct{
+			"200": docs.DocJsonStruct(responseSystemMetadata{}),
+		},
+	}
 }
 
 func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

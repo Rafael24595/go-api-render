@@ -20,6 +20,14 @@ import (
 
 const USER = "user"
 
+const (
+	AUTH_401 = "Invalid or expired authentication token"
+	AUTH_404 = "User does not exist or session is invalid"
+	AUTH_406 = "Password update required"
+)
+
+const BASE_PATH = "/api/v1/"
+
 type Controller struct {
 	router  *router.Router
 	manager templates.TemplateManager
@@ -48,22 +56,12 @@ func NewController(
 	}
 
 	route.
-		BasePath("/api/v1/").
-		GroupContextualizerDocument(instance.authSoft,
-			docs.DocGroup{
-				Cookies: map[string]string{
-					COOKIE_NAME: "",
-				},
-			},
+		BasePath(BASE_PATH).
+		GroupContextualizerDocument(instance.authSoft, docAuthSoft,
 			"user",
 			"user/verify",
 		).
-		GroupContextualizerDocument(instance.authHard,
-			docs.DocGroup{
-				Cookies: map[string]string{
-					COOKIE_NAME: "",
-				},
-			},
+		GroupContextualizerDocument(instance.authHard, docAuthHard,
 			"system/log",
 			"action",
 			"import",
@@ -90,10 +88,20 @@ func NewController(
 	return instance
 }
 
+var docAuthSoft = docs.DocGroup{
+	Cookies:docs.DocParameters{
+		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+	},
+	Responses: docs.DocResponses{
+		"401": docs.DocJsonStruct("", AUTH_401),
+		"404": docs.DocJsonStruct("", AUTH_404),
+	},
+}
+
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
 	user := domain.ANONYMOUS_OWNER
 
-	token, err := r.Cookie(COOKIE_NAME)
+	token, err := r.Cookie(AUTH_COOKIE)
 	if err != nil {
 		context.Put(USER, user)
 		return result.Ok(context)
@@ -101,8 +109,9 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 
 	claims, err := auth.ValidateJWT(token.Value)
 	if err != nil {
+		closeSession(w)
 		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
-			closeSession(w)
+			return result.Err(498, errors.New("token expired"))
 		}
 		return result.Err(http.StatusUnauthorized, err)
 	}
@@ -110,7 +119,6 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 	user = claims.Username
 
 	sessions := repository.InstanceManagerSession()
-
 	_, exists := sessions.Find(user)
 	if !exists {
 		err = errors.New("user not exists")
@@ -119,14 +127,18 @@ func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context ro
 
 	context.Put(USER, user)
 
-	timeLeft := time.Until(claims.ExpiresAt.Time)
-	if timeLeft < 10*time.Minute {
-		if err = defineSession(w, user); err != nil {
-			return result.Err(401, err)
-		}
-	}
-
 	return result.Ok(context)
+}
+
+var docAuthHard = docs.DocGroup{
+	Cookies: docs.DocParameters{
+		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+	},
+	Responses: docs.DocResponses{
+		"401": docs.DocJsonStruct("", AUTH_401),
+		"404": docs.DocJsonStruct("", AUTH_404),
+		"406": docs.DocJsonStruct("", AUTH_406),
+	},
 }
 
 func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {

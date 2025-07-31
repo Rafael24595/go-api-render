@@ -12,6 +12,7 @@ import (
 )
 
 const ID_REQUEST = "id_request"
+const ID_REQUEST_DESCRIPTION = "Request ID"
 
 type ControllerActions struct {
 	router *router.Router
@@ -23,14 +24,19 @@ func NewControllerActions(router *router.Router) ControllerActions {
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.action, "action", docs.DocPayload{
-			Request: requestExecuteAction{},
-			Responses: map[string]any{
-				"200": responseAction{},
-			},
-		})
+		RouteDocument(http.MethodPost, instance.action, "action", instance.docAction())
 
 	return instance
+}
+
+func (c *ControllerActions) docAction() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Executes an HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
+		Request:     docs.DocJsonStruct(requestExecuteAction{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonStruct(responseAction{}),
+		},
+	}
 }
 
 func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {

@@ -145,6 +145,22 @@ type Schema struct {
 	Enum                 []interface{}      `json:"enum,omitempty" yaml:"enum,omitempty"`
 	Description          string             `json:"description,omitempty" yaml:"description,omitempty"`
 	AdditionalProperties *Schema            `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
+	XML                  *XML               `json:"xml,omitempty" yaml:"xml,omitempty"`
+}
+
+func NewSchema() *Schema {
+	return &Schema{
+		Ref:                  "",
+		Title:                "",
+		Type:                 "object",
+		Format:               "",
+		Properties:           make(map[string]*Schema),
+		Items:                nil,
+		Required:             make([]string, 0),
+		Enum:                 nil,
+		Description:          "",
+		AdditionalProperties: nil,
+	}
 }
 
 type SecurityScheme struct {
@@ -166,4 +182,12 @@ type Tag struct {
 type ExternalDocs struct {
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 	URL         string `json:"url" yaml:"url"`
+}
+
+type XML struct {
+	Name      string `json:"name,omitempty" yaml:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	Prefix    string `json:"prefix,omitempty" yaml:"prefix,omitempty"`
+	Attribute bool   `json:"attribute,omitempty" yaml:"attribute,omitempty"`
+	Wrapped   bool   `json:"wrapped,omitempty" yaml:"wrapped,omitempty"`
 }

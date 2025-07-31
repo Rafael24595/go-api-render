@@ -8,9 +8,17 @@ import (
 )
 
 func GenerateJWT(username string) (string, error) {
+	return generateJWT(username, 30 * time.Minute)
+}
+
+func GenerateRefreshJWT(username string) (string, error) {
+	return generateJWT(username, 7 * 24 * time.Hour)
+}
+
+func generateJWT(username string, duration time.Duration) (string, error) {
 	secret := configuration.Instance().Secret()
 
-	expirationTime := time.Now().Add(1 * time.Hour)
+	expirationTime := time.Now().Add(duration)
 	claims := &Claims{
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
