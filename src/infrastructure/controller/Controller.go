@@ -77,6 +77,10 @@ func NewController(
 		NewControllerDev(route)
 	}
 
+	if configuration.Instance().EnableSecrets() {
+		NewControllerSecret(route)
+	}
+
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
