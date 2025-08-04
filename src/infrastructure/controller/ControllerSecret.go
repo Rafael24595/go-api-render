@@ -25,8 +25,8 @@ func NewControllerSecret(router *router.Router) ControllerSecret {
 	}
 
 	router.
-		Route(http.MethodGet, instance.jsTetris, "dev/js-tetris/play").
-		Route(http.MethodGet, instance.jsTetris, "dev/js-tetris/{%s}", JS_RESOURCE)
+		Route(http.MethodGet, instance.jsTetris, "secret/js-tetris/play").
+		Route(http.MethodGet, instance.jsTetris, "secret/js-tetris/{%s}", JS_RESOURCE)
 
 	return instance
 }
