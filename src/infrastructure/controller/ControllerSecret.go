@@ -7,28 +7,52 @@ import (
 	"strings"
 
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
+	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
 )
 
 const TETRIS_PROJECT = "https://raw.githubusercontent.com/Rafael24595/js-tetris/refs/heads/main"
+
 const JS_RESOURCE = "js_resource"
+const JS_RESOURCE_DESCRIPTION = "The name of the JavaScript, HTML, or CSS file to be retrieved from the remote Tetris project repository."
 
 type ControllerSecret struct {
 	router *router.Router
-	cache map[string]string
+	cache  map[string]string
 }
 
 func NewControllerSecret(router *router.Router) ControllerSecret {
 	instance := ControllerSecret{
 		router: router,
-		cache: make(map[string]string),
+		cache:  make(map[string]string),
 	}
 
 	router.
-		Route(http.MethodGet, instance.jsTetris, "secret/js-tetris/play").
-		Route(http.MethodGet, instance.jsTetris, "secret/js-tetris/{%s}", JS_RESOURCE)
+		RouteDocument(http.MethodGet, instance.jsTetris, "secret/js-tetris/play", instance.docPlay()).
+		RouteDocument(http.MethodGet, instance.jsTetris, "secret/js-tetris/{%s}", instance.docResource())
 
 	return instance
+}
+
+func (c *ControllerSecret) docPlay() docs.DocPayload {
+	resources := c.docResource()
+	return docs.DocPayload{
+		Description: "Serves the main HTML page for the hidden Tetris game.",
+		Responses:   resources.Responses,
+	}
+}
+
+func (c *ControllerSecret) docResource() docs.DocPayload {
+	return docs.DocPayload{
+		Description: "Retrieves a specific static asset (HTML, JS, or CSS file) from a remote GitHub repository that hosts the Tetris game.",
+		Parameters: docs.DocParameters{
+			JS_RESOURCE: JS_RESOURCE_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocText("The raw content of the requested static file (HTML, JS, CSS)."),
+			"500": docs.DocText("Error retrieving or reading the remote file."),
+		},
+	}
 }
 
 func (c *ControllerSecret) jsTetris(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
@@ -66,6 +90,6 @@ func (c *ControllerSecret) jsTetris(w http.ResponseWriter, r *http.Request, ctx 
 	resource := string(bodyBytes)
 
 	c.cache[jsResource] = resource
-	
+
 	return result.Ok(resource)
 }

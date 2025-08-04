@@ -40,7 +40,7 @@ func (c *ControllerContext) docImportItem() docs.DocPayload {
 		Description: "Imports and merges a new context object for the authenticated user, combining the target and source contexts.",
 		Request:     docs.DocJsonStruct(requestImportContext{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct("", ID_CONTEXT_DESCRIPTION),
+			"200": docs.DocText(ID_CONTEXT_DESCRIPTION),
 		},
 	}
 }
@@ -91,7 +91,7 @@ func (c *ControllerContext) docUpdate() docs.DocPayload {
 		Description: "Updates an existing context object for the authenticated user using the provided context data.",
 		Request:     docs.DocJsonStruct(dto.DtoContext{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct("", ID_CONTEXT_DESCRIPTION),
+			"200": docs.DocText(ID_CONTEXT_DESCRIPTION),
 		},
 	}
 }
