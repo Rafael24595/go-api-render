@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"sync"
 	"time"
 
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
@@ -13,62 +14,74 @@ const defaultPort = 8080
 const defaultCert = "./cert/cert.pem"
 const defaultKey = "./cert/key.pem"
 
-var instance *Configuration
+var (
+	instance *Configuration
+	once     sync.Once
+)
 
 type Configuration struct {
 	core_configuration.Configuration
-	Release *core_configuration.Release
-	Front   FrontPackage
-	debug   bool
-	port    int
-	onlyTLS bool
-	portTLS int
-	certTLS string
-	keyTLS  string
+	Release       *core_configuration.Release
+	Front         FrontPackage
+	debug         bool
+	port          int
+	onlyTLS       bool
+	portTLS       int
+	certTLS       string
+	keyTLS        string
+	enableSecrets bool
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any, frontPackage *FrontPackage) Configuration {
-	if instance != nil {
-		log.Panics("The configuration is alredy initialized")
+	once.Do(func() {
+		debug, ok := kargs["GO_API_DEBUG"].Bool()
+		if !ok {
+			debug = false
+		}
+
+		port, ok := kargs["GO_API_SERVER_PORT"].Int()
+		if !ok {
+			log.Messagef("Custom port flag is not defined; using default port %d", defaultPort)
+			port = defaultPort
+		}
+
+		front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
+		if !ok {
+			log.Message("Front flag is not defined; the frontend application will not be displayed")
+			front = false
+		}
+
+		portTLS, certTLS, keyTLS, onlyTLS := tlsArgs(kargs)
+
+		frontPackage.Enabled = front
+		if !front {
+			frontPackage.Name = ""
+			frontPackage.Version = ""
+		}
+
+		enableSecrets, ok := kargs["GO_API_ENABLE_SECRETS"].Bool()
+		if !ok {
+			enableSecrets = false
+		}
+
+		instance = &Configuration{
+			Configuration: *core,
+			Front:         *frontPackage,
+			debug:         debug,
+			port:          port,
+			onlyTLS:       onlyTLS,
+			portTLS:       portTLS,
+			certTLS:       certTLS,
+			keyTLS:        keyTLS,
+			enableSecrets: enableSecrets,
+		}
+
+		go instance.originLastVersion(kargs)
+	})
+
+	if instance == nil {
+		log.Panics("The configuration is not initialized properly")
 	}
-
-	debug, ok := kargs["GO_API_DEBUG"].Bool()
-	if !ok {
-		debug = false
-	}
-
-	port, ok := kargs["GO_API_SERVER_PORT"].Int()
-	if !ok {
-		log.Messagef("Custom port flag is not defined; using default port %d", defaultPort)
-		port = defaultPort
-	}
-
-	front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
-	if !ok {
-		log.Message("Front flag is not defined; the frontend application will not be displayed")
-		front = false
-	}
-
-	portTLS, certTLS, keyTLS, onlyTLS := tlsArgs(kargs)
-
-	frontPackage.Enabled = front
-	if !front {
-		frontPackage.Name = ""
-		frontPackage.Version = ""
-	}
-
-	instance = &Configuration{
-		Configuration: *core,
-		Front:         *frontPackage,
-		debug:         debug,
-		port:          port,
-		onlyTLS:       onlyTLS,
-		portTLS:       portTLS,
-		certTLS:       certTLS,
-		keyTLS:        keyTLS,
-	}
-
-	go instance.originLastVersion(kargs)
 
 	return *instance
 }
@@ -192,4 +205,8 @@ func (c Configuration) CertTLS() string {
 
 func (c Configuration) KeyTLS() string {
 	return c.keyTLS
+}
+
+func (c Configuration) EnableSecrets() bool {
+	return c.enableSecrets
 }

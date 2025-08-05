@@ -77,6 +77,10 @@ func NewController(
 		NewControllerDev(route)
 	}
 
+	if configuration.Instance().EnableSecrets() {
+		NewControllerSecret(route)
+	}
+
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
@@ -89,12 +93,12 @@ func NewController(
 }
 
 var docAuthSoft = docs.DocGroup{
-	Cookies:docs.DocParameters{
+	Cookies: docs.DocParameters{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
-		"401": docs.DocJsonStruct("", AUTH_401),
-		"404": docs.DocJsonStruct("", AUTH_404),
+		"401": docs.DocText(AUTH_401),
+		"404": docs.DocText(AUTH_404),
 	},
 }
 
@@ -135,9 +139,9 @@ var docAuthHard = docs.DocGroup{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
-		"401": docs.DocJsonStruct("", AUTH_401),
-		"404": docs.DocJsonStruct("", AUTH_404),
-		"406": docs.DocJsonStruct("", AUTH_406),
+		"401": docs.DocText(AUTH_401),
+		"404": docs.DocText(AUTH_404),
+		"406": docs.DocText(AUTH_406),
 	},
 }
 

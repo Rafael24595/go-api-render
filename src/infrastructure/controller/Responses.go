@@ -24,11 +24,6 @@ type responseUserData struct {
 	FirstTime   bool   `json:"first_time"`
 }
 
-type responseClientIdentity struct {
-	Ip     string `json:"ip"`
-	IsHost bool   `json:"is_host"`
-}
-
 type responseSystemMetadata struct {
 	SessionId     string                  `json:"session_id"`
 	SessionTime   int64                   `json:"session_time"`
@@ -41,6 +36,7 @@ type responseSystemMetadata struct {
 	FrontName     string                  `json:"front_name"`
 	FrontVersion  string                  `json:"front_version"`
 	ViewerSources []docs.DocViewerSources `json:"viewer_sources"`
+	EnableSecrets bool                    `json:"enable_secrets"`
 }
 
 func makeResponseSystemMetadata(sessionId string, timestamp int64,
@@ -48,7 +44,8 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64,
 	mod core_configuration.Mod,
 	project core_configuration.Project,
 	front configuration.FrontPackage,
-	viewer []docs.DocViewerSources) responseSystemMetadata {
+	viewer []docs.DocViewerSources,
+	enableSecrets bool) responseSystemMetadata {
 	core, ok := mod.Dependencies["github.com/Rafael24595/go-api-core"]
 	if !ok {
 		log.Panics("Core dependency is not defined")
@@ -71,5 +68,6 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64,
 		FrontName:     front.Name,
 		FrontVersion:  front.Version,
 		ViewerSources: viewer,
+		EnableSecrets: enableSecrets,
 	}
 }

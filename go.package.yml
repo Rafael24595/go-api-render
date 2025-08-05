@@ -2,6 +2,6 @@ version: '1.0'
 
 project:
   name: go-api-render
-  version: v0.5.0-rc.10
+  version: v0.5.0-rc.11
   dependencies:
-    front: v0.5.0-rc.6
+    front: v0.5.0-rc.7

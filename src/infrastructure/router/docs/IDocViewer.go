@@ -80,6 +80,10 @@ func DocJsonStruct(item any, description ...string) DocItemStruct {
 	return docStruct(item, JSON, description...)
 }
 
+func DocText(description ...string) DocItemStruct {
+	return docStruct("", JSON, description...)
+}
+
 func docStruct(item any, media MediaType, description ...string) DocItemStruct {
 	return DocItemStruct{
 		Item:        item,
