@@ -18,6 +18,9 @@ import (
 
 const SWAGGER string = "SWAGGER"
 
+const SWAGGER_ROUTE = "/swagger/"
+const SWAGGER_JSON = "/swagger/doc.json"
+
 type OpenAPI3Viewer struct {
 	build      sync.Once
 	data       OpenAPI3
@@ -57,7 +60,8 @@ func InitializeViewer() *OpenAPI3Viewer {
 
 	data.Info.Version = conf.Project.Version
 
-	log.Custom(SWAGGER, "Swagger displayed on /swagger")
+	log.Customf(SWAGGER, "Swagger interface displayed on %s", SWAGGER_ROUTE)
+	log.Customf(SWAGGER, "Swagger JSON displayed on %s", SWAGGER_JSON)
 
 	return &OpenAPI3Viewer{
 		data:       *data,
@@ -133,14 +137,14 @@ func (v *OpenAPI3Viewer) Handlers() []docs.DocViewerHandler {
 	return []docs.DocViewerHandler{
 		{
 			Method:      http.MethodGet,
-			Route:       "/swagger/",
+			Route:       SWAGGER_ROUTE,
 			Handler:     httpSwagger.WrapHandler,
 			Name:        "OAS3",
 			Description: "OpenAPI 3.0 view",
 		},
 		{
 			Method:      http.MethodGet,
-			Route:       "/swagger/doc.json",
+			Route:       SWAGGER_JSON,
 			Handler:     v.doc,
 			Name:        "OAS3 JSON",
 			Description: "OpenAPI 3.0 definition",
