@@ -101,6 +101,7 @@ jobs:
           cp README.md release/
           cp go.mod release/
           cp go.package.yml release/
+          cp swagger.yaml release/
           cp .env.template release/
           cp generate-goapi-cert.sh release/
           cp -r go-api-front/dist/* release/assets/front/
