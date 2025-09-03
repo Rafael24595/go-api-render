@@ -123,15 +123,14 @@ func (f *FactoryStructToSchema) makeSchema(media docs.MediaType, t reflect.Type)
 
 		ref.Description = field.Tag.Get("description")
 
-		if media == docs.XML {
+		switch media {
+		case docs.XML:
 			if xmlTag, xmlOmitempty, xmlRef := f.isXmlField(field, ref); xmlRef != nil {
 				name = xmlTag
 				isRequired = isRequired && !xmlOmitempty
 				ref = xmlRef
 			}
-		}
-
-		if media == docs.JSON {
+		case docs.JSON:
 			if jsonTag, jsonOmitempty, jsonRef := f.isJsonField(field, ref); jsonRef != nil {
 				name = jsonTag
 				isRequired = isRequired && !jsonOmitempty

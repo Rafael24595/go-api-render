@@ -295,6 +295,21 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 		log.Panics("Request handler not found")
 	}
 
+	context, ok := r.initializeContext(wrt, req)
+	if !ok {
+		return
+	}
+
+	result := (*handler)(wrt, req, context)
+	if response, ok := result.Ok(); ok {
+		r.manageOk(wrt, result, response)
+		return
+	}
+
+	r.manageErr(wrt, req, context, result)
+}
+
+func (r *Router) initializeContext(wrt http.ResponseWriter, req *http.Request) (Context, bool) {
 	contextualizer, ok := r.contextualizer.Get(req.Pattern)
 	if !ok {
 		contextualizer, ok = r.contextualizer.Get("$BASE")
@@ -311,7 +326,6 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	}
 
 	group := strings.Split(req.Pattern, " ")[1]
-
 	keys := r.groupContextualizers.KeysVector().Filter(func(key string) bool {
 		return strings.HasPrefix(group, key)
 	})
@@ -319,47 +333,59 @@ func (r *Router) handler(wrt http.ResponseWriter, req *http.Request) {
 	for _, key := range keys.Collect() {
 		funcs, ok := r.groupContextualizers.Get(key)
 		if !ok {
-			return
+			return context, false
 		}
 
 		for _, f := range funcs.Collect() {
 			result := f(wrt, req, context)
-			if err, ok := result.Err(); ok {
-				if err == nil {
-					wrt.WriteHeader(result.Status())
-					return
-				}
-
-				http.Error(wrt, err.Error(), result.Status())
-				return
+			
+			err, ok := result.Err()
+			if !ok {
+				continue
 			}
+
+			if err == nil {
+				wrt.WriteHeader(result.Status())
+				return context, false
+			}
+
+			http.Error(wrt, err.Error(), result.Status())
+			return context, false
 		}
 	}
 
-	result := (*handler)(wrt, req, context)
-	if response, ok := result.Ok(); ok {
-		switch res := response.(type) {
-		case string:
-			if _, err := wrt.Write([]byte(res)); err != nil {
-				log.Error(err)
-			}
-		case []byte:
-			if _, err := wrt.Write(res); err != nil {
-				log.Error(err)
-			}
-		case error:
-			http.Error(wrt, res.Error(), http.StatusInternalServerError)
-		case nil:
-			return
-		default:
-			wrt.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(wrt).Encode(res); err != nil {
-				http.Error(wrt, err.Error(), http.StatusInternalServerError)
-			}
+	return context, true
+}
+
+func (r *Router) manageOk(wrt http.ResponseWriter, result result.Result, response any) {
+	switch res := response.(type) {
+	case nil:
+	case string:
+		if _, err := wrt.Write([]byte(res)); err != nil {
+			log.Error(err)
 		}
+	case []byte:
+		if _, err := wrt.Write(res); err != nil {
+			log.Error(err)
+		}
+	case error:
+		http.Error(wrt, res.Error(), http.StatusInternalServerError)
+		return
+	default:
+		wrt.WriteHeader(result.Status())
+		wrt.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(wrt).Encode(res); err != nil {
+			http.Error(wrt, err.Error(), http.StatusInternalServerError)
+		}
+		
 		return
 	}
 
+	wrt.WriteHeader(result.Status())
+}
+
+func (r *Router) manageErr(wrt http.ResponseWriter, req *http.Request, context Context, result result.Result, ) {
 	errorHandler, ok := r.errors.Get(req.Pattern)
 	if !ok {
 		errorHandler, ok = r.errors.Get("$BASE")
