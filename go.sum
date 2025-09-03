@@ -1,7 +1,7 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/Rafael24595/go-api-core v0.5.0-rc.6 h1:nkyUa+3J4K1moiHrmtrqREnJGjyFJwxboyaA8p4DFFU=
-github.com/Rafael24595/go-api-core v0.5.0-rc.6/go.mod h1:JO3SzJUddnqJrKchJAvsMi9rUxtL6Dstl/X7O9mAhps=
+github.com/Rafael24595/go-api-core v0.5.0-rc.7 h1:unoqORxx22h5FhNkq9D6Zl4vybiBFvmkWwQan0ywkFQ=
+github.com/Rafael24595/go-api-core v0.5.0-rc.7/go.mod h1:JO3SzJUddnqJrKchJAvsMi9rUxtL6Dstl/X7O9mAhps=
 github.com/Rafael24595/go-collections v0.2.3 h1:bN+EzgWXh98cAGXjXSd0hGC2KyjBUmssrss9zTdCfd8=
 github.com/Rafael24595/go-collections v0.2.3/go.mod h1:XanWz5msL1Wf4gv2PkApCW2EaRLzM/VUVUBCNewo/j8=
 github.com/agiledragon/gomonkey/v2 v2.3.1 h1:k+UnUY0EMNYUFUAQVETGY9uUTxjMdnUkP0ARyJS1zzs=
