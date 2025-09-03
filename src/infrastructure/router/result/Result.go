@@ -18,6 +18,15 @@ func Ok(ok any) Result {
 	}
 }
 
+func Oks(status int, ok any) Result {
+	return Result{
+		isOk:   true,
+		status: status,
+		ok:     ok,
+		err:    nil,
+	}
+}
+
 func Err(status int, err error) Result {
 	return Result{
 		isOk:   false,

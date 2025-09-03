@@ -14,6 +14,9 @@ import (
 const QUERY_TIME = "time"
 const QUERY_TIME_DESCRIPTION = "Time in milliseconds"
 
+const STATUS_CODE = "status"
+const STATUS_CODE_DESCRIPTION = "HTTP status code"
+
 type ControllerDev struct {
 	router *router.Router
 }
@@ -24,31 +27,38 @@ func NewControllerDev(router *router.Router) ControllerDev {
 	}
 
 	router.
-		RouteDocument(http.MethodGet, instance.wait, "dev/wait", instance.doWait()).
+		RouteDocument(http.MethodGet, instance.playground, "dev/playground", instance.doPlayground()).
 		RouteDocument(http.MethodPost, instance.paylaod, "dev/print/payload", instance.doPayload())
 
 	return instance
 }
 
-func (c *ControllerDev) doWait() docs.DocPayload {
+func (c *ControllerDev) doPlayground() docs.DocPayload {
 	return docs.DocPayload{
-		Description: "Simulates a delayed response by waiting for a specified number of milliseconds.",
+		Description: "Simulates a request that can be programmed to change its behavior.",
 		Query: docs.DocParameters{
 			QUERY_TIME: QUERY_TIME_DESCRIPTION,
+			STATUS_CODE: STATUS_CODE_DESCRIPTION,
 		},
 		Tags: docs.DocTags("dev", "debug"),
 	}
 }
 
-func (c *ControllerDev) wait(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerDev) playground(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	timeValue := r.URL.Query().Get(QUERY_TIME)
+	statusValue := r.URL.Query().Get(STATUS_CODE)
 
 	millis, err := strconv.Atoi(timeValue)
 	if err == nil && millis > 0 {
 		time.Sleep(time.Duration(millis) * time.Millisecond)
 	}
 
-	return result.Ok(nil)
+	status, err := strconv.Atoi(statusValue)
+	if err != nil {
+		status = 200
+	}
+
+	return result.Oks(status, nil)
 }
 
 func (c *ControllerDev) doPayload() docs.DocPayload {
