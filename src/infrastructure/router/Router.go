@@ -358,6 +358,8 @@ func (r *Router) initializeContext(wrt http.ResponseWriter, req *http.Request) (
 }
 
 func (r *Router) manageOk(wrt http.ResponseWriter, result result.Result, response any) {
+	wrt.WriteHeader(result.Status())
+	
 	switch res := response.(type) {
 	case nil:
 	case string:
@@ -372,7 +374,6 @@ func (r *Router) manageOk(wrt http.ResponseWriter, result result.Result, respons
 		http.Error(wrt, res.Error(), http.StatusInternalServerError)
 		return
 	default:
-		wrt.WriteHeader(result.Status())
 		wrt.Header().Set("Content-Type", "application/json")
 
 		if err := json.NewEncoder(wrt).Encode(res); err != nil {
@@ -381,8 +382,6 @@ func (r *Router) manageOk(wrt http.ResponseWriter, result result.Result, respons
 		
 		return
 	}
-
-	wrt.WriteHeader(result.Status())
 }
 
 func (r *Router) manageErr(wrt http.ResponseWriter, req *http.Request, context Context, result result.Result, ) {
