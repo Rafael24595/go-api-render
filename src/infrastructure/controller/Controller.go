@@ -70,6 +70,7 @@ func NewController(
 			"historic",
 			"request",
 			"collection",
+			"format",
 		).
 		Cors(cors)
 
@@ -84,10 +85,11 @@ func NewController(
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
-	NewControllerStorage(route, managerRequest, managerCollection)
+	NewControllerRequest(route, managerRequest, managerCollection)
 	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerGroup)
+	NewControllerFormat(route, managerRequest, managerContext)
 
 	return instance
 }
@@ -153,19 +155,19 @@ func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context ro
 
 	userInterface, ok := context.Get(USER)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	username, ok := (*userInterface).(string)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	sessions := repository.InstanceManagerSession()
 
 	session, exists := sessions.Find(username)
 	if !exists {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	if session.IsNotVerified() {
@@ -204,7 +206,7 @@ func findSession(user string) (*session.Session, *result.Result) {
 	sessions := repository.InstanceManagerSession()
 	session, ok := sessions.Find(user)
 	if !ok {
-		result := result.Err(http.StatusUnauthorized, nil)
+		result := result.Reject(http.StatusUnauthorized)
 		return nil, &result
 	}
 	return session, nil
