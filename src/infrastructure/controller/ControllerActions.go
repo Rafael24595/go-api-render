@@ -3,7 +3,6 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain/context"
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
@@ -47,9 +46,9 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx r
 
 	actionContext := dto.ToContext(&actionData.Context)
 	actionRequest := dto.ToRequest(&actionData.Request)
-	actionRequest = context.ProcessRequest(actionRequest, actionContext)
 
-	actionResponse, apiErr := core_infrastructure.Client().Fetch(*actionRequest)
+	actionResponse, apiErr := core_infrastructure.Client().
+		FetchWithContext(actionContext, actionRequest)
 	if apiErr != nil {
 		return result.Err(apiErr.Status, err)
 	}
