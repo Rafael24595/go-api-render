@@ -58,7 +58,7 @@ func (c *ControllerDev) playground(w http.ResponseWriter, r *http.Request, ctx r
 		status = 200
 	}
 
-	return result.Oks(status, nil)
+	return result.Accept(status)
 }
 
 func (c *ControllerDev) doPayload() docs.DocPayload {

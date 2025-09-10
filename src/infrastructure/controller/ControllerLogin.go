@@ -63,7 +63,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 	}
 
 	if session == nil {
-		return result.Err(http.StatusUnprocessableEntity, nil)
+		return result.Reject(http.StatusUnprocessableEntity)
 	}
 
 	_, _, err = defineSession(w, session)
@@ -220,7 +220,7 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx rou
 	}
 
 	if session == nil {
-		return result.Err(http.StatusInternalServerError, nil)
+		return result.Reject(http.StatusInternalServerError)
 	}
 
 	_, _, err = defineSession(w, session)
@@ -269,7 +269,7 @@ func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx ro
 	}
 
 	if cookie.Value != session.Refresh {
-		return result.Err(http.StatusUnauthorized, nil)
+		return result.Reject(http.StatusUnauthorized)
 	}
 
 	_, _, err = defineSession(w, session)

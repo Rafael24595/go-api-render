@@ -78,7 +78,7 @@ func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request,
 
 	context, ok := c.managerContext.Find(user, collection.Context)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dtoContext := dto.FromContext(context)
@@ -127,7 +127,7 @@ func (c *ControllerContext) find(w http.ResponseWriter, r *http.Request, ctx rou
 
 	context, ok := c.managerContext.Find(user, idContext)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dtoContext := dto.FromContext(context)

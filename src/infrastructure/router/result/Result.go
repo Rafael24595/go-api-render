@@ -36,6 +36,24 @@ func Err(status int, err error) Result {
 	}
 }
 
+func Accept(status int) Result {
+	return Result{
+		isOk:   true,
+		status: status,
+		ok:     nil,
+		err:    nil,
+	}
+}
+
+func Reject(status int) Result {
+	return Result{
+		isOk:   false,
+		status: status,
+		ok:     nil,
+		err:    nil,
+	}
+}
+
 func (r Result) Status() int {
 	return r.status
 }

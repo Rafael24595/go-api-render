@@ -130,7 +130,7 @@ func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx 
 	_, actionRequest, actionResponse := c.managerHistoric.Delete(user, collection, idRequest)
 
 	if actionRequest == nil && actionResponse == nil {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	response := responseAction{
