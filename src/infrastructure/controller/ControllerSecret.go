@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const TETRIS_PROJECT = "https://raw.githubusercontent.com/Rafael24595/js-tetris/refs/heads/main"
@@ -34,16 +34,16 @@ func NewControllerSecret(router *router.Router) ControllerSecret {
 	return instance
 }
 
-func (c *ControllerSecret) docPlay() docs.DocPayload {
+func (c *ControllerSecret) docPlay() docs.DocRoute {
 	resources := c.docResource()
-	return docs.DocPayload{
+	return docs.DocRoute{
 		Description: "Serves the main HTML page for the hidden Tetris game.",
 		Responses:   resources.Responses,
 	}
 }
 
-func (c *ControllerSecret) docResource() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerSecret) docResource() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Retrieves a specific static asset (HTML, JS, or CSS file) from a remote GitHub repository that hosts the Tetris game.",
 		Parameters: docs.DocParameters{
 			JS_RESOURCE: JS_RESOURCE_DESCRIPTION,

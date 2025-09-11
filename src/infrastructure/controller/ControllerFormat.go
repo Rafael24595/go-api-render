@@ -6,9 +6,9 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/domain/formatter"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const SW_INLINE = "inline"
@@ -36,18 +36,18 @@ func NewControllerFormat(
 	return instance
 }
 
-func (c *ControllerFormat) docCurl() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerFormat) docCurl() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Executes an HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
 		Parameters: docs.DocParameters{
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Query: docs.DocParameters{
 			ID_CONTEXT: ID_CONTEXT_DESCRIPTION,
-			SW_INLINE: STATUS_CODE_DESCRIPTION,
+			SW_INLINE:  STATUS_CODE_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }
@@ -84,8 +84,8 @@ func (c *ControllerFormat) curl(w http.ResponseWriter, r *http.Request, ctx rout
 
 	curl, err := formatter.ToCurl(context, request, inline)
 	if err != nil {
-			return result.Err(http.StatusInternalServerError, err)
-		}
+		return result.Err(http.StatusInternalServerError, err)
+	}
 
 	return result.Ok(curl)
 }

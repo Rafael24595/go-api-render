@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const QUERY_TIME = "time"
@@ -33,11 +33,11 @@ func NewControllerDev(router *router.Router) ControllerDev {
 	return instance
 }
 
-func (c *ControllerDev) doPlayground() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerDev) doPlayground() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Simulates a request that can be programmed to change its behavior.",
 		Query: docs.DocParameters{
-			QUERY_TIME: QUERY_TIME_DESCRIPTION,
+			QUERY_TIME:  QUERY_TIME_DESCRIPTION,
 			STATUS_CODE: STATUS_CODE_DESCRIPTION,
 		},
 		Tags: docs.DocTags("dev", "debug"),
@@ -61,8 +61,8 @@ func (c *ControllerDev) playground(w http.ResponseWriter, r *http.Request, ctx r
 	return result.Accept(status)
 }
 
-func (c *ControllerDev) doPayload() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerDev) doPayload() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Reads and returns the raw request payload as plain text for debugging.",
 		Request:     docs.DocText(),
 		Tags:        docs.DocTags("dev", "debug"),

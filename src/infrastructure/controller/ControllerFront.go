@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerFront struct {
@@ -26,8 +26,8 @@ func NewControllerFront(
 	return instance
 }
 
-func (c *ControllerFront) docClient() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerFront) docClient() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Serves frontend static files. Falls back to index.html for SPA routing.",
 		Responses: docs.DocResponses{
 			"200": docs.DocText(),

@@ -6,9 +6,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerHistoric struct {
@@ -35,11 +35,11 @@ func NewControllerHistoric(
 	return instance
 }
 
-func (c *ControllerHistoric) docFind() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerHistoric) docFind() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonPayload([]dto.DtoLiteNodeRequest{}),
 		},
 	}
 }
@@ -57,12 +57,12 @@ func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx ro
 	return result.Ok(dtos)
 }
 
-func (c *ControllerHistoric) docInsert() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerHistoric) docInsert() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Inserts a new request/response pair into the historic collection. If the request is not a draft, the full response will be returned.",
-		Request:     docs.DocJsonStruct(requestInsertAction{}),
+		Request:     docs.DocJsonPayload(requestInsertAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }
@@ -106,14 +106,14 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 	return result.Ok(resultResponse)
 }
 
-func (c *ControllerHistoric) docDelete() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerHistoric) docDelete() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Deletes a historic request entry by ID. Returns the removed request and response.",
 		Parameters: docs.DocParameters{
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }

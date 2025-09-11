@@ -5,9 +5,9 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerSystem struct {
@@ -26,11 +26,11 @@ func NewControllerSystem(router *router.Router) ControllerSystem {
 	return instance
 }
 
-func (c *ControllerSystem) docLog() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerSystem) docLog() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Returns all server-side application logs. Only accessible by admin users.",
-		Responses: map[string]docs.DocItemStruct{
-			"200": docs.DocJsonStruct([]log.Record{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload([]log.Record{}),
 		},
 	}
 }
@@ -50,11 +50,11 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 	return result.Ok(log.Records())
 }
 
-func (c *ControllerSystem) docMetadata() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerSystem) docMetadata() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Returns runtime system metadata including session ID, timestamp, release version, and frontend status.",
-		Responses: map[string]docs.DocItemStruct{
-			"200": docs.DocJsonStruct(responseSystemMetadata{}),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload(responseSystemMetadata{}),
 		},
 	}
 }

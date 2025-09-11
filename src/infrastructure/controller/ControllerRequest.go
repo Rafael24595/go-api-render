@@ -6,9 +6,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerRequest struct {
@@ -39,12 +39,12 @@ func NewControllerRequest(
 	return instance
 }
 
-func (c *ControllerRequest) docImportItems() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docImportItems() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Imports multiple requests into the user's default collection.",
-		Request:     docs.DocJsonStruct([]dto.DtoRequest{}),
+		Request:     docs.DocJsonPayload([]dto.DtoRequest{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct([]string{}),
+			"200": docs.DocJsonPayload([]string{}),
 		},
 	}
 }
@@ -73,12 +73,12 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 	return result.Ok(ids)
 }
 
-func (c *ControllerRequest) docSort() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docSort() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Sorts the requests within the user's default collection based on the provided node structure.",
-		Request:     docs.DocJsonStruct(requestSortNodes{}),
+		Request:     docs.DocJsonPayload(requestSortNodes{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonPayload(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -103,11 +103,11 @@ func (c *ControllerRequest) sort(w http.ResponseWriter, r *http.Request, ctx rou
 	return result.Ok(collection.Id)
 }
 
-func (c *ControllerRequest) docFindAll() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docFindAll() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonPayload([]dto.DtoLiteNodeRequest{}),
 		},
 	}
 }
@@ -125,12 +125,12 @@ func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx 
 	return result.Ok(dtos)
 }
 
-func (c *ControllerRequest) docInsert() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docInsert() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Inserts a new request and its response into the user's default collection.",
-		Request:     docs.DocJsonStruct(requestInsertAction{}),
+		Request:     docs.DocJsonPayload(requestInsertAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }
@@ -161,12 +161,12 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx r
 	return result.Ok(dto)
 }
 
-func (c *ControllerRequest) docUpdate() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docUpdate() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Updates an existing request in the user's collection.",
-		Request:     docs.DocJsonStruct(dto.DtoRequest{}),
+		Request:     docs.DocJsonPayload(dto.DtoRequest{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(ID_REQUEST, ID_REQUEST_DESCRIPTION),
+			"200": docs.DocJsonPayload(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 	}
 }
@@ -193,14 +193,14 @@ func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx r
 	return result.Ok(dto.Id)
 }
 
-func (c *ControllerRequest) docFind() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docFind() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Finds a specific request and its response by request ID.",
 		Parameters: docs.DocParameters{
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }
@@ -226,14 +226,14 @@ func (c *ControllerRequest) find(w http.ResponseWriter, r *http.Request, ctx rou
 	return result.Ok(dto)
 }
 
-func (c *ControllerRequest) docDelete() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerRequest) docDelete() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Deletes a specific request from the user's collection by ID.",
 		Parameters: docs.DocParameters{
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }

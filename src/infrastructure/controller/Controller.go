@@ -12,10 +12,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const USER = "user"
@@ -30,7 +29,6 @@ const BASE_PATH = "/api/v1/"
 
 type Controller struct {
 	router  *router.Router
-	manager templates.TemplateManager
 }
 
 func NewController(
@@ -42,14 +40,7 @@ func NewController(
 	managerGroup *repository.ManagerGroup) Controller {
 	instance := Controller{
 		router:  route,
-		manager: templates.NewBuilder().Make(),
 	}
-
-	cors := router.EmptyCors().
-		AllowedOrigins("*").
-		AllowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").
-		AllowedHeaders("Content-Type", "Authorization").
-		AllowCredentials()
 
 	if configuration.Instance().Front.Enabled {
 		NewControllerFront(route)
@@ -72,7 +63,7 @@ func NewController(
 			"collection",
 			"format",
 		).
-		Cors(cors)
+		Cors(router.PermissiveCors())
 
 	if configuration.Instance().Dev() {
 		NewControllerDev(route)

@@ -5,9 +5,9 @@ import (
 
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const ID_REQUEST = "id_request"
@@ -28,12 +28,12 @@ func NewControllerActions(router *router.Router) ControllerActions {
 	return instance
 }
 
-func (c *ControllerActions) docAction() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerActions) docAction() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Executes an HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
-		Request:     docs.DocJsonStruct(requestExecuteAction{}),
+		Request:     docs.DocJsonPayload(requestExecuteAction{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseAction{}),
+			"200": docs.DocJsonPayload(responseAction{}),
 		},
 	}
 }
