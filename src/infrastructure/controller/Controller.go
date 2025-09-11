@@ -12,10 +12,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/templates"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const USER = "user"
@@ -30,7 +29,6 @@ const BASE_PATH = "/api/v1/"
 
 type Controller struct {
 	router  *router.Router
-	manager templates.TemplateManager
 }
 
 func NewController(
@@ -42,14 +40,7 @@ func NewController(
 	managerGroup *repository.ManagerGroup) Controller {
 	instance := Controller{
 		router:  route,
-		manager: templates.NewBuilder().Make(),
 	}
-
-	cors := router.EmptyCors().
-		AllowedOrigins("*").
-		AllowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").
-		AllowedHeaders("Content-Type", "Authorization").
-		AllowCredentials()
 
 	if configuration.Instance().Front.Enabled {
 		NewControllerFront(route)
@@ -70,8 +61,9 @@ func NewController(
 			"historic",
 			"request",
 			"collection",
+			"format",
 		).
-		Cors(cors)
+		Cors(router.PermissiveCors())
 
 	if configuration.Instance().Dev() {
 		NewControllerDev(route)
@@ -84,10 +76,11 @@ func NewController(
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
-	NewControllerStorage(route, managerRequest, managerCollection)
+	NewControllerRequest(route, managerRequest, managerCollection)
 	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerGroup)
+	NewControllerFormat(route, managerRequest, managerContext)
 
 	return instance
 }
@@ -153,19 +146,19 @@ func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context ro
 
 	userInterface, ok := context.Get(USER)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	username, ok := (*userInterface).(string)
 	if !ok {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	sessions := repository.InstanceManagerSession()
 
 	session, exists := sessions.Find(username)
 	if !exists {
-		return result.Err(http.StatusNotFound, nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	if session.IsNotVerified() {
@@ -204,7 +197,7 @@ func findSession(user string) (*session.Session, *result.Result) {
 	sessions := repository.InstanceManagerSession()
 	session, ok := sessions.Find(user)
 	if !ok {
-		result := result.Err(http.StatusUnauthorized, nil)
+		result := result.Reject(http.StatusUnauthorized)
 		return nil, &result
 	}
 	return session, nil

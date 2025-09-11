@@ -10,9 +10,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/docs"
-	"github.com/Rafael24595/go-api-render/src/infrastructure/router/result"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs"
+	"github.com/Rafael24595/go-web/router/result"
 )
 
 const AUTH_COOKIE = "go_api_token"
@@ -42,10 +42,10 @@ func NewControllerLogin(
 	return instance
 }
 
-func (c *ControllerLogin) docLogin() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docLogin() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Authenticate user and establish a session with JWT and refresh token cookies.",
-		Request:     docs.DocJsonStruct(requestLogin{}),
+		Request:     docs.DocJsonPayload(requestLogin{}),
 		Responses:   c.docUser().Responses,
 	}
 }
@@ -63,7 +63,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 	}
 
 	if session == nil {
-		return result.Err(http.StatusUnprocessableEntity, nil)
+		return result.Reject(http.StatusUnprocessableEntity)
 	}
 
 	_, _, err = defineSession(w, session)
@@ -76,8 +76,8 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docLogout() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docLogout() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Logout the current user and invalidate session cookies.",
 		Responses:   c.docUser().Responses,
 	}
@@ -89,11 +89,11 @@ func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx rou
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docUser() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docUser() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Get the currently authenticated user's information and context.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseUserData{}),
+			"200": docs.DocJsonPayload(responseUserData{}),
 		},
 	}
 }
@@ -128,12 +128,12 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 	return result.Ok(response)
 }
 
-func (c *ControllerLogin) docSignin() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docSignin() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Register a new user using the current user's session context.",
-		Request:     docs.DocJsonStruct(requestSigninUser{}),
+		Request:     docs.DocJsonPayload(requestSigninUser{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseUserData{}),
+			"200": docs.DocJsonPayload(responseUserData{}),
 		},
 	}
 }
@@ -164,11 +164,11 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx rou
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docDelete() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docDelete() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Delete the current user account and clear session data.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseUserData{}),
+			"200": docs.DocJsonPayload(responseUserData{}),
 		},
 	}
 }
@@ -195,12 +195,12 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx rou
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docVerify() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docVerify() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Change the user's password by verifying the old one and setting a new one.",
-		Request:     docs.DocJsonStruct(requestVerify{}),
+		Request:     docs.DocJsonPayload(requestVerify{}),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseUserData{}),
+			"200": docs.DocJsonPayload(responseUserData{}),
 		},
 	}
 }
@@ -220,7 +220,7 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx rou
 	}
 
 	if session == nil {
-		return result.Err(http.StatusInternalServerError, nil)
+		return result.Reject(http.StatusInternalServerError)
 	}
 
 	_, _, err = defineSession(w, session)
@@ -233,14 +233,14 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx rou
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docRefresh() docs.DocPayload {
-	return docs.DocPayload{
+func (c *ControllerLogin) docRefresh() docs.DocRoute {
+	return docs.DocRoute{
 		Description: "Refresh the session token using the refresh cookie.",
 		Cookies: docs.DocParameters{
 			REFRESH_COOKIE: REFRESH_COOKIE_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonStruct(responseUserData{}),
+			"200": docs.DocJsonPayload(responseUserData{}),
 		},
 	}
 }
@@ -269,7 +269,7 @@ func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx ro
 	}
 
 	if cookie.Value != session.Refresh {
-		return result.Err(http.StatusUnauthorized, nil)
+		return result.Reject(http.StatusUnauthorized)
 	}
 
 	_, _, err = defineSession(w, session)
