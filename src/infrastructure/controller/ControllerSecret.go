@@ -79,12 +79,12 @@ func (c *ControllerSecret) jsTetris(w http.ResponseWriter, r *http.Request, ctx 
 	path := fmt.Sprintf("%s/%s", TETRIS_PROJECT, jsResource)
 	response, err := http.Get(path)
 	if err != nil {
-		return result.Err(500, err)
+		return result.Err(http.StatusInternalServerError, err)
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return result.Err(500, err)
+		return result.Err(http.StatusInternalServerError, err)
 	}
 
 	resource := string(bodyBytes)

@@ -70,7 +70,7 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 		ids[i] = v.Request.Id
 	}
 
-	return result.Ok(ids)
+	return result.JsonOk(ids)
 }
 
 func (c *ControllerRequest) docSort() docs.DocRoute {
@@ -122,7 +122,7 @@ func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx 
 
 	dtos := c.managerCollection.FindLiteRequestNodes(user, collection)
 
-	return result.Ok(dtos)
+	return result.JsonOk(dtos)
 }
 
 func (c *ControllerRequest) docInsert() docs.DocRoute {
@@ -158,7 +158,7 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx r
 		Response: *dto.FromResponse(response),
 	}
 
-	return result.Ok(dto)
+	return result.JsonOk(dto)
 }
 
 func (c *ControllerRequest) docUpdate() docs.DocRoute {
@@ -223,7 +223,7 @@ func (c *ControllerRequest) find(w http.ResponseWriter, r *http.Request, ctx rou
 		Response: *dto.FromResponse(response),
 	}
 
-	return result.Ok(dto)
+	return result.JsonOk(dto)
 }
 
 func (c *ControllerRequest) docDelete() docs.DocRoute {
@@ -258,5 +258,5 @@ func (c *ControllerRequest) delete(w http.ResponseWriter, r *http.Request, ctx r
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	return result.Ok(response)
+	return result.JsonOk(response)
 }

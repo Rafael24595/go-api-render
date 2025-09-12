@@ -44,5 +44,5 @@ func (c *ControllerFront) client(w http.ResponseWriter, r *http.Request, ctx rou
 
 	http.ServeFile(w, r, path)
 
-	return result.Ok(nil)
+	return result.Accept(http.StatusOK)
 }

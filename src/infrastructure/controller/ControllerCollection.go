@@ -133,7 +133,7 @@ func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Reques
 		ids[i] = v.Id
 	}
 
-	return result.Ok(ids)
+	return result.JsonOk(ids)
 }
 
 func (c *ControllerCollection) docImportTo() docs.DocRoute {
@@ -154,7 +154,7 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 
 	id := r.PathValue(ID_COLLECTION)
 	if id == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
@@ -205,7 +205,7 @@ func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx 
 		ids[i] = v.Collection.Id
 	}
 
-	return result.Ok(ids)
+	return result.JsonOk(ids)
 }
 
 func (c *ControllerCollection) docSortRequests() docs.DocRoute {
@@ -226,7 +226,7 @@ func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Reque
 
 	id := r.PathValue(ID_COLLECTION)
 	if id == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dto, err := jsonDeserialize[requestSortNodes](r)
@@ -260,7 +260,7 @@ func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, c
 
 	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
 
-	return result.Ok(dtos)
+	return result.JsonOk(dtos)
 }
 
 func (c *ControllerCollection) docFind() docs.DocRoute {
@@ -280,12 +280,12 @@ func (c *ControllerCollection) find(w http.ResponseWriter, r *http.Request, ctx 
 
 	id := r.PathValue(ID_COLLECTION)
 	if id == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dto, _ := c.managerCollection.FindDto(user, id)
 
-	return result.Ok(dto)
+	return result.JsonOk(dto)
 }
 
 func (c *ControllerCollection) docFindLite() docs.DocRoute {
@@ -305,12 +305,12 @@ func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, 
 
 	id := r.PathValue(ID_COLLECTION)
 	if id == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	dto, _ := c.managerCollection.FindDtoLite(user, id)
 
-	return result.Ok(dto)
+	return result.JsonOk(dto)
 }
 
 func (c *ControllerCollection) docInsert() docs.DocRoute {
@@ -368,7 +368,7 @@ func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ct
 
 	id := r.PathValue(ID_COLLECTION)
 	if id == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -398,7 +398,7 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 
 	idCollection := r.PathValue(ID_COLLECTION)
 	if idCollection == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -454,12 +454,12 @@ func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx 
 
 	sourceId := r.PathValue(ID_COLLECTION)
 	if sourceId == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	idRequest := r.PathValue(ID_REQUEST)
 	if idRequest == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	target, resultStatus := findUserCollection(user)
@@ -490,12 +490,12 @@ func (c *ControllerCollection) deleteFrom(w http.ResponseWriter, r *http.Request
 
 	idCollection := r.PathValue(ID_COLLECTION)
 	if idCollection == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	idRequest := r.PathValue(ID_REQUEST)
 	if idRequest == "" {
-		return result.Ok(nil)
+		return result.Reject(http.StatusNotFound)
 	}
 
 	group, resultStatus := findUserGroup(user)

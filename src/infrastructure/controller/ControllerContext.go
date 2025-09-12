@@ -83,7 +83,7 @@ func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request,
 
 	dtoContext := dto.FromContext(context)
 
-	return result.Ok(dtoContext)
+	return result.JsonOk(dtoContext)
 }
 
 func (c *ControllerContext) docUpdate() docs.DocRoute {
@@ -132,5 +132,5 @@ func (c *ControllerContext) find(w http.ResponseWriter, r *http.Request, ctx rou
 
 	dtoContext := dto.FromContext(context)
 
-	return result.Ok(dtoContext)
+	return result.JsonOk(dtoContext)
 }
