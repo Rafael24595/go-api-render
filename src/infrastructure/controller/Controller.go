@@ -140,7 +140,7 @@ var docAuthHard = docs.DocGroup{
 
 func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
 	res := c.authSoft(w, r, context)
-	if _, ok := res.Err(); ok {
+	if res.Err() {
 		return res
 	}
 

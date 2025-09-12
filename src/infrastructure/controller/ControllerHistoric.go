@@ -54,7 +54,7 @@ func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx ro
 
 	dtos := c.managerHistoric.FindLite(user, collection)
 
-	return result.Ok(dtos)
+	return result.JsonOk(dtos)
 }
 
 func (c *ControllerHistoric) docInsert() docs.DocRoute {
@@ -88,7 +88,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 			Response: *dtoResponse,
 		}
 
-		return result.Ok(dto)
+		return result.JsonOk(dto)
 	}
 
 	collection, resultStatus := findHistoricCollection(user)
@@ -103,7 +103,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		Response: *dto.FromResponse(response),
 	}
 
-	return result.Ok(resultResponse)
+	return result.JsonOk(resultResponse)
 }
 
 func (c *ControllerHistoric) docDelete() docs.DocRoute {
@@ -138,5 +138,5 @@ func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx 
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	return result.Ok(response)
+	return result.JsonOk(response)
 }

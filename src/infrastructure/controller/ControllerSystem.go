@@ -47,7 +47,7 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx route
 		return result.Reject(http.StatusForbidden)
 	}
 
-	return result.Ok(log.Records())
+	return result.JsonOk(log.Records())
 }
 
 func (c *ControllerSystem) docMetadata() docs.DocRoute {
@@ -71,5 +71,5 @@ func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx 
 		c.router.ViewerSources(),
 		conf.EnableSecrets(),
 	)
-	return result.Ok(response)
+	return result.JsonOk(response)
 }

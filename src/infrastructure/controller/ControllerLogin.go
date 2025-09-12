@@ -68,7 +68,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx rout
 
 	_, _, err = defineSession(w, session)
 	if err != nil {
-		return result.Err(401, err)
+		return result.Err(http.StatusUnauthorized, err)
 	}
 
 	ctx.Put(USER, login.Username)
@@ -125,7 +125,7 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 		FirstTime:   user.Count < 0,
 	}
 
-	return result.Ok(response)
+	return result.JsonOk(response)
 }
 
 func (c *ControllerLogin) docSignin() docs.DocRoute {

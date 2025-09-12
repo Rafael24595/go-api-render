@@ -72,7 +72,7 @@ func (c *ControllerDev) doPayload() docs.DocRoute {
 func (c *ControllerDev) paylaod(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		return result.Err(500, err)
+		return result.Err(http.StatusInternalServerError, err)
 	}
 
 	return result.Ok(string(bodyBytes))

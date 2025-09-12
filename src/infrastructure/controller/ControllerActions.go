@@ -58,5 +58,5 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx r
 		Response: *dto.FromResponse(actionResponse),
 	}
 
-	return result.Ok(response)
+	return result.JsonOk(response)
 }
