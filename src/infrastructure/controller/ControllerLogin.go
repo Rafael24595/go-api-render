@@ -45,15 +45,15 @@ func NewControllerLogin(
 func (c *ControllerLogin) docLogin() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Authenticate user and establish a session with JWT and refresh token cookies.",
-		Request:     docs.DocJsonPayload(requestLogin{}),
+		Request:     docs.DocJsonPayload[requestLogin](),
 		Responses:   c.docUser().Responses,
 	}
 }
 
 func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	login, err := jsonDeserialize[requestLogin](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	login, res := router.InputJson[requestLogin](r)
+	if res != nil {
+		return *res
 	}
 
 	sessions := repository.InstanceManagerSession()
@@ -93,7 +93,7 @@ func (c *ControllerLogin) docUser() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Get the currently authenticated user's information and context.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseUserData{}),
+			"200": docs.DocJsonPayload[responseUserData](),
 		},
 	}
 }
@@ -131,9 +131,9 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx route
 func (c *ControllerLogin) docSignin() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Register a new user using the current user's session context.",
-		Request:     docs.DocJsonPayload(requestSigninUser{}),
+		Request:     docs.DocJsonPayload[requestSigninUser](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseUserData{}),
+			"200": docs.DocJsonPayload[responseUserData](),
 		},
 	}
 }
@@ -141,9 +141,9 @@ func (c *ControllerLogin) docSignin() docs.DocRoute {
 func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	username := findUser(ctx)
 
-	request, err := jsonDeserialize[requestSigninUser](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	request, res := router.InputJson[requestSigninUser](r)
+	if res != nil {
+		return *res
 	}
 
 	sessions := repository.InstanceManagerSession()
@@ -168,7 +168,7 @@ func (c *ControllerLogin) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Delete the current user account and clear session data.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseUserData{}),
+			"200": docs.DocJsonPayload[responseUserData](),
 		},
 	}
 }
@@ -198,9 +198,9 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx rou
 func (c *ControllerLogin) docVerify() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Change the user's password by verifying the old one and setting a new one.",
-		Request:     docs.DocJsonPayload(requestVerify{}),
+		Request:     docs.DocJsonPayload[requestVerify](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseUserData{}),
+			"200": docs.DocJsonPayload[responseUserData](),
 		},
 	}
 }
@@ -208,9 +208,9 @@ func (c *ControllerLogin) docVerify() docs.DocRoute {
 func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	username := findUser(ctx)
 
-	verify, err := jsonDeserialize[requestVerify](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	verify, res := router.InputJson[requestVerify](r)
+	if res != nil {
+		return *res
 	}
 
 	sessions := repository.InstanceManagerSession()
@@ -240,7 +240,7 @@ func (c *ControllerLogin) docRefresh() docs.DocRoute {
 			REFRESH_COOKIE: REFRESH_COOKIE_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseUserData{}),
+			"200": docs.DocJsonPayload[responseUserData](),
 		},
 	}
 }

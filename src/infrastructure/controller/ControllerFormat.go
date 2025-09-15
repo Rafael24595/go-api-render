@@ -47,7 +47,7 @@ func (c *ControllerFormat) docCurl() docs.DocRoute {
 			SW_INLINE:  STATUS_CODE_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }

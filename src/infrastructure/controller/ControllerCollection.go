@@ -103,9 +103,9 @@ func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, c
 func (c *ControllerCollection) docImportItems() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Imports multiple collection objects and associates them with the current user's group.",
-		Request:     docs.DocJsonPayload([]dto.DtoCollection{}),
+		Request:     docs.DocJsonPayload[[]dto.DtoCollection](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]string{}, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonPayload[[]string](ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -113,9 +113,9 @@ func (c *ControllerCollection) docImportItems() docs.DocRoute {
 func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dtos, err := jsonDeserialize[[]dto.DtoCollection](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtos, res := router.InputJson[[]dto.DtoCollection](r)
+	if res != nil {
+		return *res
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -123,7 +123,7 @@ func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Reques
 		return *resultStatus
 	}
 
-	_, collections, err := c.managerGroup.ImportDtoCollections(user, group, *dtos...)
+	_, collections, err := c.managerGroup.ImportDtoCollections(user, group, dtos...)
 	if err != nil {
 		return result.Err(http.StatusBadRequest, err)
 	}
@@ -142,7 +142,7 @@ func (c *ControllerCollection) docImportTo() docs.DocRoute {
 		Parameters: docs.DocParameters{
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
-		Request: docs.DocJsonPayload([]dto.DtoRequest{}),
+		Request: docs.DocJsonPayload[[]dto.DtoRequest](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
@@ -157,9 +157,9 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 		return result.Reject(http.StatusNotFound)
 	}
 
-	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtos, res := router.InputJson[[]dto.DtoRequest](r)
+	if res != nil {
+		return *res
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -167,7 +167,7 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 		return *resultStatus
 	}
 
-	_, collection := c.managerGroup.ImportDtoRequestsById(user, group, id, *dtos)
+	_, collection := c.managerGroup.ImportDtoRequestsById(user, group, id, dtos)
 
 	return result.Ok(collection.Id)
 }
@@ -175,9 +175,9 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerCollection) docSort() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Sorts the collections in the user group according to the provided node structure.",
-		Request:     docs.DocJsonPayload(requestSortNodes{}),
+		Request:     docs.DocJsonPayload[requestSortNodes](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]string{}, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocJsonPayload[[]string](ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -185,14 +185,14 @@ func (c *ControllerCollection) docSort() docs.DocRoute {
 func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dto, err := jsonDeserialize[requestSortNodes](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dto, res := router.InputJson[*requestSortNodes](r)
+	if res != nil {
+		return *res
 	}
 
-	group, resultStatus := findUserGroup(user)
-	if resultStatus != nil {
-		return *resultStatus
+	group, res := findUserGroup(user)
+	if res != nil {
+		return *res
 	}
 	payload := requestSortCollectionToPayload(dto)
 
@@ -214,7 +214,7 @@ func (c *ControllerCollection) docSortRequests() docs.DocRoute {
 		Parameters: docs.DocParameters{
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
-		Request: docs.DocJsonPayload([]requestSortNodes{}),
+		Request: docs.DocJsonPayload[[]requestSortNodes](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
@@ -229,9 +229,9 @@ func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Reque
 		return result.Reject(http.StatusNotFound)
 	}
 
-	dto, err := jsonDeserialize[requestSortNodes](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dto, res := router.InputJson[*requestSortNodes](r)
+	if res != nil {
+		return *res
 	}
 
 	payload := requestSortCollectionToPayload(dto)
@@ -245,7 +245,7 @@ func (c *ControllerCollection) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all collection summaries (lite version) for the current user's group.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]dto.DtoLiteNodeCollection{}),
+			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeCollection](),
 		},
 	}
 }
@@ -270,7 +270,7 @@ func (c *ControllerCollection) docFind() docs.DocRoute {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(dto.DtoCollection{}),
+			"200": docs.DocJsonPayload[dto.DtoCollection](),
 		},
 	}
 }
@@ -295,7 +295,7 @@ func (c *ControllerCollection) docFindLite() docs.DocRoute {
 			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(dto.DtoLiteCollection{}),
+			"200": docs.DocJsonPayload[dto.DtoLiteCollection](),
 		},
 	}
 }
@@ -316,7 +316,7 @@ func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerCollection) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Inserts a new collection into the current user's group.",
-		Request:     docs.DocJsonPayload(domain.Collection{}),
+		Request:     docs.DocJsonPayload[domain.Collection](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
@@ -326,9 +326,9 @@ func (c *ControllerCollection) docInsert() docs.DocRoute {
 func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, err := jsonDeserialize[domain.Collection](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	collection, res := router.InputJson[*domain.Collection](r)
+	if res != nil {
+		return *res
 	}
 
 	group, resultStatus := findUserGroup(user)
@@ -344,7 +344,7 @@ func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ct
 func (c *ControllerCollection) docCollect() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Collects a request from a general context and adds it into the user's active collection.",
-		Request:     docs.DocJsonPayload(requestPushToCollection{}),
+		Request:     docs.DocJsonPayload[requestPushToCollection](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
@@ -406,9 +406,9 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 		return *resultStatus
 	}
 
-	payload, err := jsonDeserialize[requestCloneCollection](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	payload, res := router.InputJson[requestCloneCollection](r)
+	if res != nil {
+		return *res
 	}
 
 	_, collection := c.managerGroup.CloneCollection(user, group, idCollection, payload.CollectionName)
@@ -419,9 +419,9 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	request, err := jsonDeserialize[requestPushToCollection](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	request, res := router.InputJson[*requestPushToCollection](r)
+	if res != nil {
+		return *res
 	}
 
 	group, resultStatus := findUserGroup(user)

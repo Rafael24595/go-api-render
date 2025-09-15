@@ -42,9 +42,9 @@ func NewControllerRequest(
 func (c *ControllerRequest) docImportItems() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Imports multiple requests into the user's default collection.",
-		Request:     docs.DocJsonPayload([]dto.DtoRequest{}),
+		Request:     docs.DocJsonPayload[[]dto.DtoRequest](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]string{}),
+			"200": docs.DocJsonPayload[[]string](),
 		},
 	}
 }
@@ -52,9 +52,9 @@ func (c *ControllerRequest) docImportItems() docs.DocRoute {
 func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dtos, err := jsonDeserialize[[]dto.DtoRequest](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtos, res := router.InputJson[[]dto.DtoRequest](r)
+	if res != nil {
+		return *res
 	}
 
 	collection, resultStatus := findUserCollection(user)
@@ -62,7 +62,7 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 		return *resultStatus
 	}
 
-	collection = c.managerCollection.ImportDtoRequests(user, collection, *dtos)
+	collection = c.managerCollection.ImportDtoRequests(user, collection, dtos)
 	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
 
 	ids := make([]string, len(nodes))
@@ -76,9 +76,9 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerRequest) docSort() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Sorts the requests within the user's default collection based on the provided node structure.",
-		Request:     docs.DocJsonPayload(requestSortNodes{}),
+		Request:     docs.DocJsonPayload[requestSortNodes](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
 	}
 }
@@ -86,9 +86,9 @@ func (c *ControllerRequest) docSort() docs.DocRoute {
 func (c *ControllerRequest) sort(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dto, err := jsonDeserialize[requestSortNodes](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dto, res := router.InputJson[*requestSortNodes](r)
+	if res != nil {
+		return *res
 	}
 
 	collection, resultStatus := findUserCollection(user)
@@ -107,7 +107,7 @@ func (c *ControllerRequest) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeRequest](),
 		},
 	}
 }
@@ -128,9 +128,9 @@ func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerRequest) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Inserts a new request and its response into the user's default collection.",
-		Request:     docs.DocJsonPayload(requestInsertAction{}),
+		Request:     docs.DocJsonPayload[requestInsertAction](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }
@@ -138,9 +138,9 @@ func (c *ControllerRequest) docInsert() docs.DocRoute {
 func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	action, err := jsonDeserialize[requestInsertAction](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	action, res := router.InputJson[requestInsertAction](r)
+	if res != nil {
+		return *res
 	}
 
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
@@ -164,9 +164,9 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx r
 func (c *ControllerRequest) docUpdate() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Updates an existing request in the user's collection.",
-		Request:     docs.DocJsonPayload(dto.DtoRequest{}),
+		Request:     docs.DocJsonPayload[dto.DtoRequest](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(ID_REQUEST, ID_REQUEST_DESCRIPTION),
+			"200": docs.DocText(ID_REQUEST_DESCRIPTION),
 		},
 	}
 }
@@ -174,9 +174,9 @@ func (c *ControllerRequest) docUpdate() docs.DocRoute {
 func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dtoRequest, err := jsonDeserialize[dto.DtoRequest](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtoRequest, res := router.InputJson[*dto.DtoRequest](r)
+	if res != nil {
+		return *res
 	}
 
 	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
@@ -200,7 +200,7 @@ func (c *ControllerRequest) docFind() docs.DocRoute {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }
@@ -233,7 +233,7 @@ func (c *ControllerRequest) docDelete() docs.DocRoute {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }

@@ -38,7 +38,7 @@ func NewControllerContext(
 func (c *ControllerContext) docImportItem() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Imports and merges a new context object for the authenticated user, combining the target and source contexts.",
-		Request:     docs.DocJsonPayload(requestImportContext{}),
+		Request:     docs.DocJsonPayload[requestImportContext](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_CONTEXT_DESCRIPTION),
 		},
@@ -48,9 +48,9 @@ func (c *ControllerContext) docImportItem() docs.DocRoute {
 func (c *ControllerContext) importItem(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dtos, err := jsonDeserialize[requestImportContext](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtos, res := router.InputJson[requestImportContext](r)
+	if res != nil {
+		return *res
 	}
 
 	context := c.managerContext.ImportMerge(user, &dtos.Target, &dtos.Source)
@@ -63,7 +63,7 @@ func (c *ControllerContext) docFindFromUser() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves the current context associated with the authenticated user, based on their collection metadata.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(dto.DtoContext{}),
+			"200": docs.DocJsonPayload[dto.DtoContext](),
 		},
 	}
 }
@@ -89,7 +89,7 @@ func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request,
 func (c *ControllerContext) docUpdate() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Updates an existing context object for the authenticated user using the provided context data.",
-		Request:     docs.DocJsonPayload(dto.DtoContext{}),
+		Request:     docs.DocJsonPayload[dto.DtoContext](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_CONTEXT_DESCRIPTION),
 		},
@@ -99,9 +99,9 @@ func (c *ControllerContext) docUpdate() docs.DocRoute {
 func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	dtoContext, err := jsonDeserialize[dto.DtoContext](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	dtoContext, res := router.InputJson[*dto.DtoContext](r)
+	if res != nil {
+		return *res
 	}
 
 	context := dto.ToContext(dtoContext)

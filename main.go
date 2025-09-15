@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -80,15 +79,13 @@ func listen(config *configuration.Configuration, route *router.Router) {
 }
 
 func serve(config *configuration.Configuration, route *router.Router) error {
-	port := fmt.Sprintf(":%d", config.Port())
 	if !config.EnableTLS() {
-		return route.Listen(port)
+		return route.Listen(config.Port())
 	}
 
-	portTLS := fmt.Sprintf(":%d", config.PortTLS())
 	if config.OnlyTLS() {
-		return route.ListenTLS(portTLS, config.CertTLS(), config.KeyTLS())
+		return route.ListenTLS(config.PortTLS(), config.CertTLS(), config.KeyTLS())
 	}
 
-	return route.ListenWithTLS(port, portTLS, config.CertTLS(), config.KeyTLS())
+	return route.ListenWithTLS(config.Port(), config.PortTLS(), config.CertTLS(), config.KeyTLS())
 }

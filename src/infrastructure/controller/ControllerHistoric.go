@@ -39,7 +39,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload([]dto.DtoLiteNodeRequest{}),
+			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeRequest](),
 		},
 	}
 }
@@ -60,9 +60,9 @@ func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx ro
 func (c *ControllerHistoric) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Inserts a new request/response pair into the historic collection. If the request is not a draft, the full response will be returned.",
-		Request:     docs.DocJsonPayload(requestInsertAction{}),
+		Request:     docs.DocJsonPayload[requestInsertAction](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }
@@ -70,9 +70,9 @@ func (c *ControllerHistoric) docInsert() docs.DocRoute {
 func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
 	user := findUser(ctx)
 
-	action, err := jsonDeserialize[requestInsertAction](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	action, res := router.InputJson[requestInsertAction](r)
+	if res != nil {
+		return *res
 	}
 
 	if action.Request.Status != domain.DRAFT {
@@ -113,7 +113,7 @@ func (c *ControllerHistoric) docDelete() docs.DocRoute {
 			ID_REQUEST: ID_REQUEST_DESCRIPTION,
 		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }
