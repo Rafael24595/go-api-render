@@ -4,7 +4,7 @@ go 1.24.0
 
 require github.com/Rafael24595/go-api-core v0.5.0-rc.8
 
-require github.com/Rafael24595/go-web v0.2.0
+require github.com/Rafael24595/go-web v0.4.0
 
 require github.com/golang-jwt/jwt/v5 v5.3.0
 

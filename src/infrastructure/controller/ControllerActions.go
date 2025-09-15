@@ -31,26 +31,26 @@ func NewControllerActions(router *router.Router) ControllerActions {
 func (c *ControllerActions) docAction() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Executes an HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
-		Request:     docs.DocJsonPayload(requestExecuteAction{}),
+		Request:     docs.DocJsonPayload[requestExecuteAction](),
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload(responseAction{}),
+			"200": docs.DocJsonPayload[responseAction](),
 		},
 	}
 }
 
 func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
-	actionData, err := jsonDeserialize[requestExecuteAction](r)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	actionData, res := router.InputJson[requestExecuteAction](r)
+	if res != nil {
+		return *res
 	}
 
 	actionContext := dto.ToContext(&actionData.Context)
 	actionRequest := dto.ToRequest(&actionData.Request)
 
-	actionResponse, apiErr := core_infrastructure.Client().
+	actionResponse, err := core_infrastructure.Client().
 		FetchWithContext(actionContext, actionRequest)
-	if apiErr != nil {
-		return result.Err(apiErr.Status, err)
+	if err != nil {
+		return result.Err(err.Status, err)
 	}
 
 	response := responseAction{

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -28,7 +27,7 @@ const (
 const BASE_PATH = "/api/v1/"
 
 type Controller struct {
-	router  *router.Router
+	router *router.Router
 }
 
 func NewController(
@@ -39,7 +38,7 @@ func NewController(
 	managerHisotric *repository.ManagerHistoric,
 	managerGroup *repository.ManagerGroup) Controller {
 	instance := Controller{
-		router:  route,
+		router: route,
 	}
 
 	if configuration.Instance().Front.Enabled {
@@ -182,15 +181,6 @@ func findUser(ctx router.Context) string {
 	}
 
 	return user
-}
-
-func jsonDeserialize[T any](r *http.Request) (*T, error) {
-	var item T
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		return nil, err
-	}
-	return &item, nil
 }
 
 func findSession(user string) (*session.Session, *result.Result) {
