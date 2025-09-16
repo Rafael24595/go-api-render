@@ -44,7 +44,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 	}
 }
 
-func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	collection, resultStatus := findHistoricCollection(user)
@@ -67,7 +67,7 @@ func (c *ControllerHistoric) docInsert() docs.DocRoute {
 	}
 }
 
-func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	action, res := router.InputJson[requestInsertAction](r)
@@ -118,7 +118,7 @@ func (c *ControllerHistoric) docDelete() docs.DocRoute {
 	}
 }
 
-func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 

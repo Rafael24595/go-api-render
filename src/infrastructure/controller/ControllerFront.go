@@ -35,14 +35,12 @@ func (c *ControllerFront) docClient() docs.DocRoute {
 	}
 }
 
-func (c *ControllerFront) client(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerFront) client(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	path := "./assets/front" + r.URL.Path
 	isPackage := strings.HasPrefix(path, "package.json")
 	if _, err := os.Stat(path); err != nil || isPackage {
 		path = "./assets/front/index.html"
 	}
 
-	http.ServeFile(w, r, path)
-
-	return result.Accept(http.StatusOK)
+	return result.FileOk(path)
 }

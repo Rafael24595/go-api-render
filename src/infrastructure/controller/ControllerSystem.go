@@ -35,7 +35,7 @@ func (c *ControllerSystem) docLog() docs.DocRoute {
 	}
 }
 
-func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	session, res := findSession(user)
@@ -59,7 +59,7 @@ func (c *ControllerSystem) docMetadata() docs.DocRoute {
 	}
 }
 
-func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerSystem) metadata(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	conf := configuration.Instance()
 	response := makeResponseSystemMetadata(
 		conf.SessionId(),

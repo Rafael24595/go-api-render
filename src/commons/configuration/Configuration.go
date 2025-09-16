@@ -32,12 +32,9 @@ type Configuration struct {
 	enableSecrets bool
 }
 
-func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Any, frontPackage *FrontPackage) Configuration {
+func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Argument, frontPackage *FrontPackage) Configuration {
 	once.Do(func() {
-		debug, ok := kargs["GO_API_DEBUG"].Bool()
-		if !ok {
-			debug = false
-		}
+		debug := kargs["GO_API_DEBUG"].Boold(false)
 
 		port, ok := kargs["GO_API_SERVER_PORT"].Int()
 		if !ok {
@@ -45,8 +42,8 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 			port = defaultPort
 		}
 
-		front, ok := kargs["GO_API_SERVER_FRONT"].Bool()
-		if !ok {
+		front := kargs["GO_API_SERVER_FRONT"].Boold(false)
+		if !front {
 			log.Message("Front flag is not defined; the frontend application will not be displayed")
 			front = false
 		}
@@ -59,10 +56,7 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 			frontPackage.Version = ""
 		}
 
-		enableSecrets, ok := kargs["GO_API_ENABLE_SECRETS"].Bool()
-		if !ok {
-			enableSecrets = false
-		}
+		enableSecrets := kargs["GO_API_ENABLE_SECRETS"].Boold(false)
 
 		instance = &Configuration{
 			Configuration: *core,
@@ -86,23 +80,16 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 	return *instance
 }
 
-func tlsArgs(kargs map[string]utils.Any) (int, string, string, bool) {
+func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
 	if tls, _ := kargs["GO_API_SERVER_ENABLE_TLS"].Bool(); !tls {
 		return 0, "", "", false
 	}
 
-	onlyTLS, _ := kargs["GO_API_SERVER_ONLY_TLS"].Bool()
-	if !onlyTLS {
-		onlyTLS = false
-	}
+	onlyTLS := kargs["GO_API_SERVER_ONLY_TLS"].Boold(false)
+	portTLS := kargs["GO_API_SERVER_PORT_TLS"].Intd(0)
 
-	portTLS, ok := kargs["GO_API_SERVER_PORT_TLS"].Int()
-	if !ok {
-		portTLS = 0
-	}
-
-	certTLS, ok := kargs["GO_API_SERVER_CERT"].String()
-	if !ok || certTLS == "" {
+	certTLS := kargs["GO_API_SERVER_CERT"].String()
+	if certTLS == "" {
 		_, err := os.Stat(defaultCert)
 		if !os.IsNotExist(err) {
 			log.Message("Certificate flag is not defined; using default certificate")
@@ -110,8 +97,8 @@ func tlsArgs(kargs map[string]utils.Any) (int, string, string, bool) {
 		}
 	}
 
-	keyTLS, ok := kargs["GO_API_SERVER_KEY"].String()
-	if !ok || keyTLS == "" {
+	keyTLS := kargs["GO_API_SERVER_KEY"].String()
+	if keyTLS == "" {
 		_, err := os.Stat(defaultKey)
 		if !os.IsNotExist(err) {
 			log.Message("Key flag is not defined; using default key")
@@ -134,7 +121,7 @@ func tlsArgs(kargs map[string]utils.Any) (int, string, string, bool) {
 	return portTLS, certTLS, keyTLS, onlyTLS
 }
 
-func (c *Configuration) originLastVersion(kargs map[string]utils.Any) {
+func (c *Configuration) originLastVersion(kargs map[string]utils.Argument) {
 	releaseTime, ok := kargs["GO_API_FETCH_RELEASE_TIME"].Int()
 	if !ok || releaseTime < 1 {
 		log.Message("Fetch release time is not defined; new releases will not be fetched")
