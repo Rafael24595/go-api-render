@@ -38,7 +38,7 @@ func (c *ControllerActions) docAction() docs.DocRoute {
 	}
 }
 
-func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	actionData, res := router.InputJson[requestExecuteAction](r)
 	if res != nil {
 		return *res

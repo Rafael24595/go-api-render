@@ -50,7 +50,7 @@ func (c *ControllerLogin) docLogin() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	login, res := router.InputJson[requestLogin](r)
 	if res != nil {
 		return *res
@@ -83,7 +83,7 @@ func (c *ControllerLogin) docLogout() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	eraseSession(w)
 	ctx.Put(USER, domain.ANONYMOUS_OWNER)
 	return c.user(w, r, ctx)
@@ -98,7 +98,7 @@ func (c *ControllerLogin) docUser() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
 	sessions := repository.InstanceManagerSession()
@@ -138,7 +138,7 @@ func (c *ControllerLogin) docSignin() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
 	request, res := router.InputJson[requestSigninUser](r)
@@ -173,7 +173,7 @@ func (c *ControllerLogin) docDelete() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
 	sessions := repository.InstanceManagerSession()
@@ -205,7 +205,7 @@ func (c *ControllerLogin) docVerify() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
 	verify, res := router.InputJson[requestVerify](r)
@@ -245,7 +245,7 @@ func (c *ControllerLogin) docRefresh() docs.DocRoute {
 	}
 }
 
-func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	cookie, err := r.Cookie(REFRESH_COOKIE)
 	if err != nil {
 		return result.Err(http.StatusUnauthorized, err)

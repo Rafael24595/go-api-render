@@ -52,7 +52,7 @@ func (c *ControllerFormat) docCurl() docs.DocRoute {
 	}
 }
 
-func (c *ControllerFormat) curl(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerFormat) curl(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	idRequest := r.PathValue(ID_REQUEST)

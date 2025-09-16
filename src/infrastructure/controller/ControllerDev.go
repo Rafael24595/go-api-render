@@ -44,7 +44,7 @@ func (c *ControllerDev) doPlayground() docs.DocRoute {
 	}
 }
 
-func (c *ControllerDev) playground(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerDev) playground(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	timeValue := r.URL.Query().Get(QUERY_TIME)
 	statusValue := r.URL.Query().Get(STATUS_CODE)
 
@@ -69,7 +69,7 @@ func (c *ControllerDev) doPayload() docs.DocRoute {
 	}
 }
 
-func (c *ControllerDev) paylaod(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerDev) paylaod(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)

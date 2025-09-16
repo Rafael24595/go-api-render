@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
@@ -94,7 +93,7 @@ var docAuthSoft = docs.DocGroup{
 	},
 }
 
-func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
+func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
 	user := domain.ANONYMOUS_OWNER
 
 	token, err := r.Cookie(AUTH_COOKIE)
@@ -137,18 +136,18 @@ var docAuthHard = docs.DocGroup{
 	},
 }
 
-func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context router.Context) result.Result {
+func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
 	res := c.authSoft(w, r, context)
 	if res.Err() {
 		return res
 	}
 
-	userInterface, ok := context.Get(USER)
+	userAny, ok := context.Get(USER)
 	if !ok {
 		return result.Reject(http.StatusNotFound)
 	}
 
-	username, ok := (*userInterface).(string)
+	username, ok := userAny.String()
 	if !ok {
 		return result.Reject(http.StatusNotFound)
 	}
@@ -169,18 +168,9 @@ func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context ro
 	return result.Ok(context)
 }
 
-func findUser(ctx router.Context) string {
-	userInterface, exists := ctx.Get(USER)
-	if !exists {
-		return domain.ANONYMOUS_OWNER
-	}
-
-	user, ok := (*userInterface).(string)
-	if !ok {
-		log.Panics("The user type must be a string")
-	}
-
-	return user
+func findUser(ctx *router.Context) string {
+	return ctx.Getz(USER).
+		Stringd(domain.ANONYMOUS_OWNER)
 }
 
 func findSession(user string) (*session.Session, *result.Result) {

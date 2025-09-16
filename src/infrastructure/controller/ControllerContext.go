@@ -45,7 +45,7 @@ func (c *ControllerContext) docImportItem() docs.DocRoute {
 	}
 }
 
-func (c *ControllerContext) importItem(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerContext) importItem(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtos, res := router.InputJson[requestImportContext](r)
@@ -68,7 +68,7 @@ func (c *ControllerContext) docFindFromUser() docs.DocRoute {
 	}
 }
 
-func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	collection, resultStatus := findUserCollection(user)
@@ -96,7 +96,7 @@ func (c *ControllerContext) docUpdate() docs.DocRoute {
 	}
 }
 
-func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtoContext, res := router.InputJson[*dto.DtoContext](r)
@@ -121,7 +121,7 @@ func (c *ControllerContext) docFind() docs.DocRoute {
 	}
 }
 
-func (c *ControllerContext) find(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerContext) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 	idContext := r.PathValue(ID_CONTEXT)
 

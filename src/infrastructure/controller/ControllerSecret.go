@@ -55,7 +55,7 @@ func (c *ControllerSecret) docResource() docs.DocRoute {
 	}
 }
 
-func (c *ControllerSecret) jsTetris(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerSecret) jsTetris(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	jsResource := r.PathValue(JS_RESOURCE)
 	if jsResource == "" {
 		jsResource = "index.html"

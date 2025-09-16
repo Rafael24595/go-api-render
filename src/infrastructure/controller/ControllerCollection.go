@@ -64,7 +64,7 @@ func (c *ControllerCollection) docOpenApi() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	err := r.ParseMultipartForm(10 << 20)
@@ -110,7 +110,7 @@ func (c *ControllerCollection) docImportItems() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	dtos, res := router.InputJson[[]dto.DtoCollection](r)
@@ -149,7 +149,7 @@ func (c *ControllerCollection) docImportTo() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_COLLECTION)
@@ -182,7 +182,7 @@ func (c *ControllerCollection) docSort() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	dto, res := router.InputJson[*requestSortNodes](r)
@@ -221,7 +221,7 @@ func (c *ControllerCollection) docSortRequests() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_COLLECTION)
@@ -250,7 +250,7 @@ func (c *ControllerCollection) docFindAll() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	group, resultStatus := findUserGroup(user)
@@ -275,7 +275,7 @@ func (c *ControllerCollection) docFind() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) find(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_COLLECTION)
@@ -300,7 +300,7 @@ func (c *ControllerCollection) docFindLite() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_COLLECTION)
@@ -323,7 +323,7 @@ func (c *ControllerCollection) docInsert() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	collection, res := router.InputJson[*domain.Collection](r)
@@ -363,7 +363,7 @@ func (c *ControllerCollection) docDelete() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_COLLECTION)
@@ -393,7 +393,7 @@ func (c *ControllerCollection) docClone() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(ID_COLLECTION)
@@ -416,7 +416,7 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 	return result.Ok(collection.Id)
 }
 
-func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	request, res := router.InputJson[*requestPushToCollection](r)
@@ -449,7 +449,7 @@ func (c *ControllerCollection) docTake() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	sourceId := r.PathValue(ID_COLLECTION)
@@ -485,7 +485,7 @@ func (c *ControllerCollection) docDeleteFrom() docs.DocRoute {
 	}
 }
 
-func (c *ControllerCollection) deleteFrom(w http.ResponseWriter, r *http.Request, ctx router.Context) result.Result {
+func (c *ControllerCollection) deleteFrom(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	idCollection := r.PathValue(ID_COLLECTION)

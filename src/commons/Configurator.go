@@ -11,7 +11,7 @@ import (
 )
 
 func Initialize() (*configuration.Configuration, *dependency.DependencyContainer) {
-	kargs := core_commons.ReadEnv(".env")
+	kargs := core_commons.ReadAllEnv(".env")
 	core, container := core_commons.Initialize(kargs)
 	frontPackage := ReadFrontPackage()
 	config := configuration.Initialize(core, kargs, frontPackage)
