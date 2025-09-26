@@ -47,10 +47,15 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx *
 	actionContext := dto.ToContext(&actionData.Context)
 	actionRequest := dto.ToRequest(&actionData.Request)
 
+	status, err := valideRequest(actionRequest)
+	if err != nil {
+		return result.Err(status, err)
+	}
+
 	actionResponse, err := core_infrastructure.Client().
 		FetchWithContext(actionContext, actionRequest)
 	if err != nil {
-		return result.Err(err.Status, err)
+		return result.Err(http.StatusBadRequest, err)
 	}
 
 	response := responseAction{
