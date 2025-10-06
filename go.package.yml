@@ -4,4 +4,4 @@ project:
   name: go-api-render
   version: v0.5.0-rc.23
   dependencies:
-    front: v0.5.0-rc.17
+    front: v0.5.0-rc.18
