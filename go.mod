@@ -2,7 +2,7 @@ module github.com/Rafael24595/go-api-render
 
 go 1.24.0
 
-require github.com/Rafael24595/go-api-core v0.5.0-rc.10
+require github.com/Rafael24595/go-api-core v1.0.0
 
 require github.com/Rafael24595/go-web v0.5.1
 
