@@ -2,7 +2,7 @@ module github.com/Rafael24595/go-api-render
 
 go 1.24.0
 
-require github.com/Rafael24595/go-api-core v1.0.0
+require github.com/Rafael24595/go-api-core v1.1.0
 
 require github.com/Rafael24595/go-web v0.5.1
 
@@ -11,6 +11,7 @@ require github.com/golang-jwt/jwt/v5 v5.3.0
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Rafael24595/go-collections v0.2.3 // indirect
+	github.com/Rafael24595/go-csvt v0.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.22.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.1 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
