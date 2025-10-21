@@ -2,7 +2,7 @@ version: '1.1'
 
 project:
   name: go-api-render
-  version: v1.1.0
+  version: v1.2.0-dev.0
   description: Go API Render
   dependencies:
     front: v1.1.0
