@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/collection"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -316,7 +316,7 @@ func (c *ControllerCollection) findLite(w http.ResponseWriter, r *http.Request, 
 func (c *ControllerCollection) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Inserts a new collection into the current user's group.",
-		Request:     docs.DocJsonPayload[domain.Collection](),
+		Request:     docs.DocJsonPayload[collection.Collection](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
 		},
@@ -326,7 +326,7 @@ func (c *ControllerCollection) docInsert() docs.DocRoute {
 func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, res := router.InputJson[*domain.Collection](r)
+	collection, res := router.InputJson[*collection.Collection](r)
 	if res != nil {
 		return *res
 	}

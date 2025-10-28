@@ -7,6 +7,8 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
+	"github.com/Rafael24595/go-api-core/src/domain/collection"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
@@ -94,7 +96,7 @@ var docAuthSoft = docs.DocGroup{
 }
 
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
-	user := domain.ANONYMOUS_OWNER
+	user := action.ANONYMOUS_OWNER
 
 	token, err := r.Cookie(AUTH_COOKIE)
 	if err != nil {
@@ -170,7 +172,7 @@ func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context *r
 
 func findUser(ctx *router.Context) string {
 	return ctx.Getz(USER).
-		Stringd(domain.ANONYMOUS_OWNER)
+		Stringd(action.ANONYMOUS_OWNER)
 }
 
 func findSession(user string) (*session.Session, *result.Result) {
@@ -183,7 +185,7 @@ func findSession(user string) (*session.Session, *result.Result) {
 	return session, nil
 }
 
-func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
+func findHistoricCollection(user string) (*collection.Collection, *result.Result) {
 	sessions := repository.InstanceManagerSession()
 	collection, err := sessions.FindUserHistoric(user)
 	if err != nil {
@@ -193,7 +195,7 @@ func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
 	return collection, nil
 }
 
-func findUserCollection(user string) (*domain.Collection, *result.Result) {
+func findUserCollection(user string) (*collection.Collection, *result.Result) {
 	sessions := repository.InstanceManagerSession()
 	collection, err := sessions.FindUserCollection(user)
 	if err != nil {

@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
 )
 
-func valideRequest(request *domain.Request) (int, error) {
+func valideRequest(request *action.Request) (int, error) {
 	uri := strings.TrimSpace(request.Uri)
 
 	if _, err := url.ParseRequestURI(uri); err != nil {

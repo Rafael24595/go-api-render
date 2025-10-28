@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	action_domain "github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -145,7 +145,7 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx *
 
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
-	if request.Status == domain.FINAL {
+	if request.Status == action_domain.FINAL {
 		collection, resultStatus := findUserCollection(user)
 		if resultStatus != nil {
 			return *resultStatus
@@ -180,7 +180,7 @@ func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx *
 	}
 
 	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
-	if request.Status == domain.FINAL {
+	if request.Status == action_domain.FINAL {
 		collection, resultStatus := findUserCollection(user)
 		if resultStatus != nil {
 			return *resultStatus

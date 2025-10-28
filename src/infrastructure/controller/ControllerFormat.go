@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/context"
 	"github.com/Rafael24595/go-api-core/src/domain/formatter"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
@@ -96,7 +96,7 @@ func (c *ControllerFormat) curl(w http.ResponseWriter, r *http.Request, ctx *rou
 	return c.toCurlWithContext(context, request, inline)
 }
 
-func (c *ControllerFormat) toCurl(request *domain.Request, inline bool) result.Result {
+func (c *ControllerFormat) toCurl(request *action.Request, inline bool) result.Result {
 	curl, err := formatter.ToCurl(request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
@@ -104,7 +104,7 @@ func (c *ControllerFormat) toCurl(request *domain.Request, inline bool) result.R
 	return result.Ok(curl)
 }
 
-func (c *ControllerFormat) toCurlWithContext(context *context.Context, request *domain.Request, inline bool) result.Result {
+func (c *ControllerFormat) toCurlWithContext(context *context.Context, request *action.Request, inline bool) result.Result {
 	curl, err := formatter.ToCurlWithContext(context, request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)

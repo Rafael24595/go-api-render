@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	action_domain "github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -75,7 +75,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		return *res
 	}
 
-	if action.Request.Status != domain.DRAFT {
+	if action.Request.Status != action_domain.DRAFT {
 		response := c.managerRequest.InsertResponse(user, dto.ToResponse(&action.Response))
 
 		var dtoResponse *dto.DtoResponse

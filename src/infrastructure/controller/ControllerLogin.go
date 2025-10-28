@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/session"
-	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-web/router"
@@ -85,7 +85,7 @@ func (c *ControllerLogin) docLogout() docs.DocRoute {
 
 func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	eraseSession(w)
-	ctx.Put(USER, domain.ANONYMOUS_OWNER)
+	ctx.Put(USER, action.ANONYMOUS_OWNER)
 	return c.user(w, r, ctx)
 }
 
@@ -190,7 +190,7 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *ro
 
 	eraseSession(w)
 
-	ctx.Put(USER, domain.ANONYMOUS_OWNER)
+	ctx.Put(USER, action.ANONYMOUS_OWNER)
 
 	return c.user(w, r, ctx)
 }
