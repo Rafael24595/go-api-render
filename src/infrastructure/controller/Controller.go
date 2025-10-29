@@ -37,7 +37,8 @@ func NewController(
 	managerContext *repository.ManagerContext,
 	managerCollection *repository.ManagerCollection,
 	managerHisotric *repository.ManagerHistoric,
-	managerGroup *repository.ManagerGroup) Controller {
+	managerGroup *repository.ManagerGroup,
+	managerEndPoint *repository.ManagerEndPoint) Controller {
 	instance := Controller{
 		router: route,
 	}
@@ -81,6 +82,7 @@ func NewController(
 	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerGroup)
 	NewControllerFormat(route, managerRequest, managerContext)
+	NewControllerMock(route, managerEndPoint)
 
 	return instance
 }
