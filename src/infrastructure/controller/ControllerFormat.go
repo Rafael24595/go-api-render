@@ -6,7 +6,7 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/context"
-	"github.com/Rafael24595/go-api-core/src/domain/formatter"
+	"github.com/Rafael24595/go-api-core/src/domain/formatter/curl"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
@@ -97,7 +97,7 @@ func (c *ControllerFormat) curl(w http.ResponseWriter, r *http.Request, ctx *rou
 }
 
 func (c *ControllerFormat) toCurl(request *action.Request, inline bool) result.Result {
-	curl, err := formatter.ToCurl(request, inline)
+	curl, err := curl.Marshal(request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
@@ -105,7 +105,7 @@ func (c *ControllerFormat) toCurl(request *action.Request, inline bool) result.R
 }
 
 func (c *ControllerFormat) toCurlWithContext(context *context.Context, request *action.Request, inline bool) result.Result {
-	curl, err := formatter.ToCurlWithContext(context, request, inline)
+	curl, err := curl.MarshalContext(context, request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
