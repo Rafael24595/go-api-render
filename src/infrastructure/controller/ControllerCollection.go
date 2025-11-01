@@ -167,7 +167,8 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 		return *resultStatus
 	}
 
-	_, collection := c.managerGroup.ImportDtoRequestsById(user, group, id, dtos)
+	reqs := dto.ToRequests(dtos...)
+	_, collection := c.managerGroup.ImportRequestsById(user, group, id, reqs...)
 
 	return result.Ok(collection.Id)
 }
@@ -498,13 +499,7 @@ func (c *ControllerCollection) deleteFrom(w http.ResponseWriter, r *http.Request
 		return result.Reject(http.StatusNotFound)
 	}
 
-	group, resultStatus := findUserGroup(user)
-	if resultStatus != nil {
-		return *resultStatus
-	}
-
 	collection, _, _ := c.managerCollection.DeleteRequestFromCollectionById(user, idCollection, idRequest)
-	c.managerGroup.ResolveCollectionReferences(user, group)
 
 	return result.Ok(collection.Id)
 }

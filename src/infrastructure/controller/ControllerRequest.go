@@ -62,7 +62,8 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 		return *resultStatus
 	}
 
-	collection = c.managerCollection.ImportDtoRequests(user, collection, dtos)
+	reqs := dto.ToRequests(dtos...)
+	collection = c.managerCollection.ImportRequests(user, collection, reqs...)
 	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
 
 	ids := make([]string, len(nodes))
