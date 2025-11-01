@@ -81,7 +81,8 @@ func NewController(
 	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerGroup)
-	NewControllerFormat(route, managerRequest, managerContext)
+	NewControllerCurl(route, managerRequest, managerCollection, 
+		managerGroup, managerContext)
 	NewControllerMock(route, managerEndPoint)
 
 	return instance
