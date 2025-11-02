@@ -19,7 +19,7 @@ const SW_INLINE_DESCRIPTION = "Inline flag"
 const SW_RAW = "raw"
 const SW_RAW_DESCRIPTION = "Raw flag"
 
-const CURL_COMMAND_DESCRIPTION = "CURL command"
+const CURL_COMMAND_DESCRIPTION = "CURL commands"
 
 type ControllerCurl struct {
 	router            *router.Router
@@ -45,8 +45,7 @@ func NewControllerCurl(
 
 	router.
 		RouteDocument(http.MethodGet, instance.encodeCurl, "curl/request/{%s}", instance.docEncodeCurl()).
-		RouteDocument(http.MethodPost, instance.decodeCurl, "curl/request", instance.docDecodeCurl()).
-		RouteDocument(http.MethodPost, instance.decodeCurlToCollection, "curl/collection/{%s}", instance.docDecodeCurlToCollection())
+		RouteDocument(http.MethodPost, instance.decodeCurl, "curl/request", instance.docDecodeCurl())
 
 	return instance
 }
@@ -126,8 +125,11 @@ func (c *ControllerCurl) toCurlWithContext(context *context.Context, request *ac
 func (c *ControllerCurl) docDecodeCurl() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Parses and imports an HTTP request from a cURL command. The provided cURL string is decoded into a structured request object and stored in the user's general collection.",
+		Query: docs.DocParameters{
+			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		},
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[string](CURL_COMMAND_DESCRIPTION),
+			"200": docs.DocJsonPayload[[]string](CURL_COMMAND_DESCRIPTION),
 		},
 	}
 }
@@ -135,62 +137,45 @@ func (c *ControllerCurl) docDecodeCurl() docs.DocRoute {
 func (c *ControllerCurl) decodeCurl(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	bytes, res := router.InputText(r)
+	curls, res := router.InputJson[[]string](r)
 	if res != nil {
 		return *res
 	}
 
-	req, err := curl.Unmarshal(bytes)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
+	reqs := make([]action.Request, 0)
+	for _, v := range curls {
+		req, err := curl.Unmarshal([]byte(v))
+		if err != nil {
+			return result.Err(http.StatusUnprocessableEntity, err)
+		}
+		reqs = append(reqs, *req)
 	}
 
-	collection, resultStatus := findUserCollection(user)
-	if resultStatus != nil {
-		return *resultStatus
+	if coll := r.PathValue(ID_COLLECTION); coll != "" {
+		return c.decodeCurlToCollection(user, coll, reqs)
 	}
-
-	c.managerCollection.ImportRequests(user, collection, *req)
-
-	return result.Ok(string(bytes))
+	
+	return c.decodeCurlToGlobal(user, reqs)
 }
 
-func (c *ControllerCurl) docDecodeCurlToCollection() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Parses and imports an HTTP request from a cURL command. The provided cURL string is decoded into a structured request object and stored in the user's specific collection.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
-		},
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[string](CURL_COMMAND_DESCRIPTION),
-		},
-	}
-}
-
-func (c *ControllerCurl) decodeCurlToCollection(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	user := findUser(ctx)
-
-	id := r.PathValue(ID_COLLECTION)
-	if id == "" {
-		return result.Reject(http.StatusNotFound)
-	}
-
-	bytes, res := router.InputText(r)
-	if res != nil {
-		return *res
-	}
-
-	req, err := curl.Unmarshal(bytes)
-	if err != nil {
-		return result.Err(http.StatusUnprocessableEntity, err)
-	}
-
+func (c *ControllerCurl) decodeCurlToCollection(coll, user string, reqs []action.Request) result.Result {
 	group, resultStatus := findUserGroup(user)
 	if resultStatus != nil {
 		return *resultStatus
 	}
 
-	c.managerGroup.ImportRequestsById(user, group, id, *req)
+	c.managerGroup.ImportRequestsById(user, group, coll, reqs...)
 
-	return result.Ok(string(bytes))
+	return result.Ok(reqs)
+}
+
+func (c *ControllerCurl) decodeCurlToGlobal(user string, reqs []action.Request) result.Result {
+	collection, resultStatus := findUserCollection(user)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	c.managerCollection.ImportRequests(user, collection, reqs...)
+
+	return result.Ok(reqs)
 }
