@@ -38,7 +38,8 @@ func NewController(
 	managerCollection *repository.ManagerCollection,
 	managerHisotric *repository.ManagerHistoric,
 	managerGroup *repository.ManagerGroup,
-	managerEndPoint *repository.ManagerEndPoint) Controller {
+	managerEndPoint *repository.ManagerEndPoint,
+	managerToken *repository.ManagerToken) Controller {
 	instance := Controller{
 		router: route,
 	}
@@ -62,7 +63,8 @@ func NewController(
 			"historic",
 			"request",
 			"collection",
-			"format",
+			"curl",
+			"token",
 		).
 		Cors(router.PermissiveCors())
 
@@ -84,6 +86,7 @@ func NewController(
 	NewControllerCurl(route, managerRequest, managerCollection, 
 		managerGroup, managerContext)
 	NewControllerMock(route, managerEndPoint)
+	NewControllerToken(route, managerToken)
 
 	return instance
 }
