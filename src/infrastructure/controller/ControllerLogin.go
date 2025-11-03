@@ -33,11 +33,11 @@ func NewControllerLogin(
 	router.
 		RouteDocument(http.MethodPost, instance.login, "login", instance.docLogin()).
 		RouteDocument(http.MethodDelete, instance.logout, "login", instance.docLogout()).
+		RouteDocument(http.MethodGet, instance.refresh, "refresh", instance.docRefresh()).
 		RouteDocument(http.MethodGet, instance.user, "user", instance.docUser()).
 		RouteDocument(http.MethodPost, instance.signin, "user", instance.docSignin()).
 		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete()).
-		RouteDocument(http.MethodPut, instance.verify, "user/verify", instance.docVerify()).
-		RouteDocument(http.MethodGet, instance.refresh, "token/refresh", instance.docRefresh())
+		RouteDocument(http.MethodPut, instance.verify, "user/verify", instance.docVerify())
 
 	return instance
 }
@@ -89,6 +89,55 @@ func (c *ControllerLogin) logout(w http.ResponseWriter, r *http.Request, ctx *ro
 	return c.user(w, r, ctx)
 }
 
+func (c *ControllerLogin) docRefresh() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Refresh the session token using the refresh cookie.",
+		Cookies: docs.DocParameters{
+			REFRESH_COOKIE: REFRESH_COOKIE_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[responseUserData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	cookie, err := r.Cookie(REFRESH_COOKIE)
+	if err != nil {
+		return result.Err(http.StatusUnauthorized, err)
+	}
+
+	claims, err := auth.ValidateJWT(cookie.Value)
+	if err != nil {
+		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
+			eraseSession(w)
+		}
+		return result.Err(http.StatusUnauthorized, err)
+	}
+
+	user := claims.Username
+
+	sessions := repository.InstanceManagerSession()
+	session, exists := sessions.Find(user)
+	if !exists {
+		err = errors.New("user not exists")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	if cookie.Value != session.Refresh {
+		return result.Reject(http.StatusUnauthorized)
+	}
+
+	_, _, err = defineSession(w, session)
+	if err != nil {
+		return result.Err(http.StatusBadRequest, err)
+	}
+
+	ctx.Put(USER, user)
+
+	return c.user(w, r, ctx)
+}
+
 func (c *ControllerLogin) docUser() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Get the currently authenticated user's information and context.",
@@ -120,9 +169,8 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 		History:     user.History,
 		Collection:  user.Collection,
 		Context:     collection.Context,
-		IsProtected: user.IsProtected,
-		IsAdmin:     user.IsAdmin,
 		FirstTime:   user.Count < 0,
+		Roles:       user.Roles,
 	}
 
 	return result.JsonOk(response)
@@ -154,7 +202,12 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *ro
 		return result.Err(http.StatusNotFound, err)
 	}
 
-	session, err := sessions.Insert(user, request.Username, request.Password1, request.IsAdmin)
+	roles := make([]session.Role, 0)
+	if request.IsAdmin {
+		roles = append(roles, session.ROLE_ADMIN)
+	}
+
+	session, err := sessions.Insert(user, request.Username, request.Password1, roles)
 	if err != nil {
 		return result.Err(http.StatusUnprocessableEntity, err)
 	}
@@ -233,55 +286,6 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx *ro
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docRefresh() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Refresh the session token using the refresh cookie.",
-		Cookies: docs.DocParameters{
-			REFRESH_COOKIE: REFRESH_COOKIE_DESCRIPTION,
-		},
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[responseUserData](),
-		},
-	}
-}
-
-func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	cookie, err := r.Cookie(REFRESH_COOKIE)
-	if err != nil {
-		return result.Err(http.StatusUnauthorized, err)
-	}
-
-	claims, err := auth.ValidateJWT(cookie.Value)
-	if err != nil {
-		if claims != nil && 0 >= time.Until(claims.ExpiresAt.Time) {
-			eraseSession(w)
-		}
-		return result.Err(http.StatusUnauthorized, err)
-	}
-
-	user := claims.Username
-
-	sessions := repository.InstanceManagerSession()
-	session, exists := sessions.Find(user)
-	if !exists {
-		err = errors.New("user not exists")
-		return result.Err(http.StatusNotFound, err)
-	}
-
-	if cookie.Value != session.Refresh {
-		return result.Reject(http.StatusUnauthorized)
-	}
-
-	_, _, err = defineSession(w, session)
-	if err != nil {
-		return result.Err(http.StatusBadRequest, err)
-	}
-
-	ctx.Put(USER, user)
-
-	return c.user(w, r, ctx)
-}
-
 func defineSession(w http.ResponseWriter, session *session.Session) (string, string, error) {
 	sessions := repository.InstanceManagerSession()
 
@@ -311,7 +315,7 @@ func defineSession(w http.ResponseWriter, session *session.Session) (string, str
 	http.SetCookie(w, &http.Cookie{
 		Name:     REFRESH_COOKIE,
 		Value:    refresh,
-		Path:     fmt.Sprintf("%stoken/refresh", BASE_PATH),
+		Path:     fmt.Sprintf("%srefresh", BASE_PATH),
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
@@ -339,7 +343,7 @@ func eraseSession(w http.ResponseWriter) http.ResponseWriter {
 	http.SetCookie(w, &http.Cookie{
 		Name:     REFRESH_COOKIE,
 		Value:    "",
-		Path:     fmt.Sprintf("%stoken/refresh", BASE_PATH),
+		Path:     fmt.Sprintf("%srefresh", BASE_PATH),
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HttpOnly: true,

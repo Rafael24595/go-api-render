@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
@@ -38,12 +39,12 @@ func (c *ControllerSystem) docLog() docs.DocRoute {
 func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	session, res := findSession(user)
+	sess, res := findSession(user)
 	if res != nil {
 		return *res
 	}
 
-	if !session.IsAdmin {
+	if !sess.HasRole(session.ROLE_ADMIN) {
 		return result.Reject(http.StatusForbidden)
 	}
 
