@@ -1,11 +1,11 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/Rafael24595/go-collections v0.2.3 h1:bN+EzgWXh98cAGXjXSd0hGC2KyjBUmssrss9zTdCfd8=
-github.com/Rafael24595/go-collections v0.2.3/go.mod h1:XanWz5msL1Wf4gv2PkApCW2EaRLzM/VUVUBCNewo/j8=
+github.com/Rafael24595/go-collections v0.2.4 h1:q88QRn5YALxeHn1vfU8OZzT2R0rqjtcklaOy4P0X1WY=
+github.com/Rafael24595/go-collections v0.2.4/go.mod h1:X9aAFvQP7Plo+Czy49reqNZSikoo0jggEG88dyhzAoE=
 github.com/Rafael24595/go-csvt v0.2.0 h1:TqNLF0ASAEoPiKpG5SotQRITBnRb0yr6J0FhYa8unQ0=
 github.com/Rafael24595/go-csvt v0.2.0/go.mod h1:/If27Y6+Hngm8lHVK9CNAbcTce/4wwthcnp7I1wZS7s=
-github.com/Rafael24595/go-web v0.6.0 h1:nVx+XlMHjhWwU8CekdQ24dmZopgxsEh6yg6KoJA5YuE=
-github.com/Rafael24595/go-web v0.6.0/go.mod h1:/2sQ/GqLdTz9Hqc/QTLgGPCTs2cBXYKwHQzcR/Qwg+Y=
+github.com/Rafael24595/go-web v0.6.2 h1:E2sDqvN4n98w9X7V7OAST8F/qcDk0wQjK+xTOoCZ/CE=
+github.com/Rafael24595/go-web v0.6.2/go.mod h1:kTG4qEBjjKOvdff5Lz/Wwg3UlxMZ3JkHS1CdMErdTJ0=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-openapi/jsonpointer v0.22.1 h1:sHYI1He3b9NqJ4wXLoJDKmUmHkWy/L7rtEo92JUxBNk=
@@ -14,7 +14,7 @@ github.com/go-openapi/jsonreference v0.21.2 h1:Wxjda4M/BBQllegefXrY/9aq1fxBA8sI5
 github.com/go-openapi/jsonreference v0.21.2/go.mod h1:pp3PEjIsJ9CZDGCNOyXIQxsNuroxm8FAJ/+quA0yKzQ=
 github.com/go-openapi/spec v0.22.0 h1:xT/EsX4frL3U09QviRIZXvkh80yibxQmtoEvyqug0Tw=
 github.com/go-openapi/spec v0.22.0/go.mod h1:K0FhKxkez8YNS94XzF8YKEMULbFrRw4m15i2YUht4L0=
-github.com/go-openapi/swag v0.25.1 h1:6uwVsx+/OuvFVPqfQmOOPsqTcm5/GkBhNwLqIR916n8=
+github.com/go-openapi/swag v0.19.15 h1:D2NRCBzS9/pEY3gP9Nl8aDqGUcPFrwG2p+CNFrLyrCM=
 github.com/go-openapi/swag/conv v0.25.1 h1:+9o8YUg6QuqqBM5X6rYL/p1dpWeZRhoIt9x7CCP+he0=
 github.com/go-openapi/swag/conv v0.25.1/go.mod h1:Z1mFEGPfyIKPu0806khI3zF+/EUXde+fdeksUl2NiDs=
 github.com/go-openapi/swag/jsonname v0.25.1 h1:Sgx+qbwa4ej6AomWC6pEfXrA6uP2RkaNjA9BR8a1RJU=
