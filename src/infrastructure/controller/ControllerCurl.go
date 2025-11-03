@@ -151,14 +151,14 @@ func (c *ControllerCurl) decodeCurl(w http.ResponseWriter, r *http.Request, ctx 
 		reqs = append(reqs, *req)
 	}
 
-	if coll := r.PathValue(ID_COLLECTION); coll != "" {
+	if coll := r.URL.Query().Get(ID_COLLECTION); coll != "" {
 		return c.decodeCurlToCollection(user, coll, reqs)
 	}
 	
 	return c.decodeCurlToGlobal(user, reqs)
 }
 
-func (c *ControllerCurl) decodeCurlToCollection(coll, user string, reqs []action.Request) result.Result {
+func (c *ControllerCurl) decodeCurlToCollection(user, coll string, reqs []action.Request) result.Result {
 	group, resultStatus := findUserGroup(user)
 	if resultStatus != nil {
 		return *resultStatus
