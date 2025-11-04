@@ -10,6 +10,9 @@ import (
 	"github.com/Rafael24595/go-web/router/result"
 )
 
+const AUTH_TOKEN = "go_user_token"
+const AUTH_TOKEN_DESCRIPTION = "User cookie token"
+
 const ID_TOKEN = "token"
 const ID_TOKEN_DESCRIPTION = "Token ID"
 
@@ -29,31 +32,45 @@ func NewControllerToken(
 	}
 
 	router.
-		RouteDocument(http.MethodGet, instance.findTokens, "token", instance.docFindTokens()).
-		RouteDocument(http.MethodPost, instance.insertTokens, "token", instance.docInsertToken()).
-		RouteDocument(http.MethodDelete, instance.deleteToken, "token/{%s}", instance.docDeleteToken())
+		RouteDocument(http.MethodGet, instance.scopes, "scopes", instance.docScopes()).
+		RouteDocument(http.MethodGet, instance.find, "token", instance.docFind()).
+		RouteDocument(http.MethodPost, instance.insert, "token", instance.docInsert()).
+		RouteDocument(http.MethodDelete, instance.delete, "token/{%s}", instance.docDelete())
 
 	return instance
 }
 
-func (c *ControllerToken) docFindTokens() docs.DocRoute {
+func (c *ControllerToken) docScopes() docs.DocRoute {
 	return docs.DocRoute{
-		Description: "",
+		Description: "Returns all token scopes.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]token.Scope](),
+		},
+	}
+}
+
+func (c *ControllerToken) scopes(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	return result.JsonOk(token.ListScopes())
+}
+
+func (c *ControllerToken) docFind() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Returns all tokens associated with the authenticated user.",
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[[]token.LiteToken](),
 		},
 	}
 }
 
-func (c *ControllerToken) findTokens(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+func (c *ControllerToken) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 	tokens := c.managerToken.FindAll(user)
 	return result.JsonOk(tokens)
 }
 
-func (c *ControllerToken) docInsertToken() docs.DocRoute {
+func (c *ControllerToken) docInsert() docs.DocRoute {
 	return docs.DocRoute{
-		Description: "",
+		Description: "Creates a new token for the authenticated user.",
 		Request:     docs.DocJsonPayload[token.LiteToken](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(RAW_TOKEN_DESCRIPTION),
@@ -61,12 +78,16 @@ func (c *ControllerToken) docInsertToken() docs.DocRoute {
 	}
 }
 
-func (c *ControllerToken) insertTokens(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+func (c *ControllerToken) insert(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	token, res := router.InputJson[token.LiteToken](r)
 	if res != nil {
 		return *res
+	}
+
+	if token.Name == "" {
+		return result.TextErr(http.StatusUnprocessableEntity, "the token name is not specified")
 	}
 
 	raw, tkn := c.managerToken.Insert(user, &token)
@@ -77,9 +98,9 @@ func (c *ControllerToken) insertTokens(w http.ResponseWriter, r *http.Request, c
 	return result.Ok(raw)
 }
 
-func (c *ControllerToken) docDeleteToken() docs.DocRoute {
+func (c *ControllerToken) docDelete() docs.DocRoute {
 	return docs.DocRoute{
-		Description: "",
+		Description: "Deletes the token specified by its ID.",
 		Parameters: docs.DocParameters{
 			ID_TOKEN: ID_TOKEN_DESCRIPTION,
 		},
@@ -89,7 +110,7 @@ func (c *ControllerToken) docDeleteToken() docs.DocRoute {
 	}
 }
 
-func (c *ControllerToken) deleteToken(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+func (c *ControllerToken) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
 	id := r.PathValue(ID_TOKEN)

@@ -3,12 +3,14 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/collection"
+	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
@@ -28,7 +30,8 @@ const (
 const BASE_PATH = "/api/v1/"
 
 type Controller struct {
-	router *router.Router
+	router       *router.Router
+	managerToken *repository.ManagerToken
 }
 
 func NewController(
@@ -41,7 +44,8 @@ func NewController(
 	managerEndPoint *repository.ManagerEndPoint,
 	managerToken *repository.ManagerToken) Controller {
 	instance := Controller{
-		router: route,
+		router:       route,
+		managerToken: managerToken,
 	}
 
 	if configuration.Instance().Front.Enabled {
@@ -83,9 +87,9 @@ func NewController(
 	NewControllerHistoric(route, managerRequest, managerHisotric)
 	NewControllerContext(route, managerContext)
 	NewControllerCollection(route, managerCollection, managerGroup)
-	NewControllerCurl(route, managerRequest, managerCollection, 
+	NewControllerCurl(route, managerRequest, managerCollection,
 		managerGroup, managerContext)
-	NewControllerMock(route, managerEndPoint)
+	NewControllerMock(route, managerToken, managerEndPoint)
 	NewControllerToken(route, managerToken)
 
 	return instance
@@ -103,6 +107,11 @@ var docAuthSoft = docs.DocGroup{
 
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
 	user := action.ANONYMOUS_OWNER
+	
+	if owner, res := c.authToken(r); res.Ok() {
+		context.Put(USER, owner)
+		return result.Ok(context)
+	}
 
 	token, err := r.Cookie(AUTH_COOKIE)
 	if err != nil {
@@ -142,6 +151,32 @@ var docAuthHard = docs.DocGroup{
 		"404": docs.DocText(AUTH_404),
 		"406": docs.DocText(AUTH_406),
 	},
+}
+
+func (c *Controller) authToken(r *http.Request) (string, result.Result) {
+	cookie, err := r.Cookie(AUTH_TOKEN)
+	if err != nil {
+		return "", result.Err(http.StatusUnauthorized, err)
+	}
+
+	if cookie == nil {
+		return "", result.Reject(http.StatusUnauthorized)
+	}
+
+	tkn, ok := c.managerToken.FindGlobal(cookie.Value)
+	if !ok {
+		return "", result.Err(http.StatusForbidden, err)
+	}
+
+	if tkn.IsExipred() {
+		return "", result.TextErr(http.StatusUnauthorized, "the provided token has expired")
+	}
+
+	if !slices.Contains(tkn.Scopes, token.ScopeAPIToken) {
+		return "", result.TextErr(http.StatusUnauthorized, "the provided token does not have the necessary permissions")
+	}
+
+	return tkn.Owner, result.Next()
 }
 
 func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {

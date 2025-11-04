@@ -17,6 +17,7 @@ import (
 
 const AUTH_COOKIE = "go_api_token"
 const AUTH_COOKIE_DESCRIPTION = "Session cookie token"
+
 const REFRESH_COOKIE = "go_api_refresh"
 const REFRESH_COOKIE_DESCRIPTION = "User refresh token"
 
@@ -164,13 +165,13 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 	}
 
 	response := responseUserData{
-		Username:    user.Username,
-		Timestamp:   user.Timestamp,
-		History:     user.History,
-		Collection:  user.Collection,
-		Context:     collection.Context,
-		FirstTime:   user.Count < 0,
-		Roles:       user.Roles,
+		Username:   user.Username,
+		Timestamp:  user.Timestamp,
+		History:    user.History,
+		Collection: user.Collection,
+		Context:    collection.Context,
+		FirstTime:  user.Count < 0,
+		Roles:      user.Roles,
 	}
 
 	return result.JsonOk(response)
