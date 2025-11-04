@@ -78,7 +78,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 	if action.Request.Status != action_domain.DRAFT {
 		response := c.managerRequest.InsertResponse(user, dto.ToResponse(&action.Response))
 
-		var dtoResponse *dto.DtoResponse
+		dtoResponse := &dto.DtoResponse{}
 		if response != nil {
 			dtoResponse = dto.FromResponse(response)
 		}
