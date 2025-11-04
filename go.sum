@@ -2,10 +2,10 @@ github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Rafael24595/go-collections v0.2.4 h1:q88QRn5YALxeHn1vfU8OZzT2R0rqjtcklaOy4P0X1WY=
 github.com/Rafael24595/go-collections v0.2.4/go.mod h1:X9aAFvQP7Plo+Czy49reqNZSikoo0jggEG88dyhzAoE=
-github.com/Rafael24595/go-csvt v0.2.0 h1:TqNLF0ASAEoPiKpG5SotQRITBnRb0yr6J0FhYa8unQ0=
-github.com/Rafael24595/go-csvt v0.2.0/go.mod h1:/If27Y6+Hngm8lHVK9CNAbcTce/4wwthcnp7I1wZS7s=
-github.com/Rafael24595/go-web v0.6.2 h1:E2sDqvN4n98w9X7V7OAST8F/qcDk0wQjK+xTOoCZ/CE=
-github.com/Rafael24595/go-web v0.6.2/go.mod h1:kTG4qEBjjKOvdff5Lz/Wwg3UlxMZ3JkHS1CdMErdTJ0=
+github.com/Rafael24595/go-csvt v0.2.1 h1:AfBTiR9wEcMWAYd7c49WTVMQj5clr+GFrFwcGCIu2gc=
+github.com/Rafael24595/go-csvt v0.2.1/go.mod h1:E8AQN/mbH+LOvO794NTS2K8C7+jZnMnelS+kFuQAS44=
+github.com/Rafael24595/go-web v0.6.3 h1:U4qTCWjvG5ZGy32ihideC+sOxv8wMMtmI3yVmAB2zyM=
+github.com/Rafael24595/go-web v0.6.3/go.mod h1:kTG4qEBjjKOvdff5Lz/Wwg3UlxMZ3JkHS1CdMErdTJ0=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-openapi/jsonpointer v0.22.1 h1:sHYI1He3b9NqJ4wXLoJDKmUmHkWy/L7rtEo92JUxBNk=

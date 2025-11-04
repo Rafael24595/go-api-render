@@ -4,14 +4,14 @@ go 1.25.3
 
 require github.com/Rafael24595/go-api-core v1.1.0
 
-require github.com/Rafael24595/go-web v0.6.2
+require github.com/Rafael24595/go-web v0.6.3
 
 require github.com/golang-jwt/jwt/v5 v5.3.0
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Rafael24595/go-collections v0.2.4 // indirect
-	github.com/Rafael24595/go-csvt v0.2.0 // indirect
+	github.com/Rafael24595/go-csvt v0.2.1 // indirect
 	github.com/go-openapi/jsonpointer v0.22.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.2 // indirect
 	github.com/go-openapi/spec v0.22.0 // indirect
@@ -35,5 +35,3 @@ require (
 	golang.org/x/tools v0.38.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/Rafael24595/go-api-core => ../go-api-core
