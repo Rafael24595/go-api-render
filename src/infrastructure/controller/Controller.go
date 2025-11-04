@@ -98,6 +98,7 @@ func NewController(
 var docAuthSoft = docs.DocGroup{
 	Cookies: docs.DocParameters{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+		AUTH_TOKEN:  AUTH_TOKEN_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
 		"401": docs.DocText(AUTH_401),
@@ -107,7 +108,7 @@ var docAuthSoft = docs.DocGroup{
 
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
 	user := action.ANONYMOUS_OWNER
-	
+
 	if owner, res := c.authToken(r); res.Ok() {
 		context.Put(USER, owner)
 		return result.Ok(context)
@@ -158,7 +159,7 @@ func (c *Controller) authToken(r *http.Request) (string, result.Result) {
 	if !conf.EnableUserToken() {
 		return "", result.TextErr(http.StatusUnauthorized, "auth token authentication is not allowed")
 	}
-	
+
 	cookie, err := r.Cookie(AUTH_TOKEN)
 	if err != nil {
 		return "", result.Err(http.StatusUnauthorized, err)
