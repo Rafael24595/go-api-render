@@ -21,15 +21,16 @@ var (
 
 type Configuration struct {
 	core_configuration.Configuration
-	Release       *core_configuration.Release
-	Front         FrontPackage
-	debug         bool
-	port          int
-	onlyTLS       bool
-	portTLS       int
-	certTLS       string
-	keyTLS        string
-	enableSecrets bool
+	Release         *core_configuration.Release
+	Front           FrontPackage
+	debug           bool
+	port            int
+	onlyTLS         bool
+	portTLS         int
+	certTLS         string
+	keyTLS          string
+	enableSecrets   bool
+	enableUserToken bool
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Argument, frontPackage *FrontPackage) Configuration {
@@ -57,17 +58,19 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		}
 
 		enableSecrets := kargs["GO_API_ENABLE_SECRETS"].Boold(false)
+		enableUserToken := kargs["GO_API_ENABLE_USER_TOKEN"].Boold(false)
 
 		instance = &Configuration{
-			Configuration: *core,
-			Front:         *frontPackage,
-			debug:         debug,
-			port:          port,
-			onlyTLS:       onlyTLS,
-			portTLS:       portTLS,
-			certTLS:       certTLS,
-			keyTLS:        keyTLS,
-			enableSecrets: enableSecrets,
+			Configuration:   *core,
+			Front:           *frontPackage,
+			debug:           debug,
+			port:            port,
+			onlyTLS:         onlyTLS,
+			portTLS:         portTLS,
+			certTLS:         certTLS,
+			keyTLS:          keyTLS,
+			enableSecrets:   enableSecrets,
+			enableUserToken: enableUserToken,
 		}
 
 		go instance.originLastVersion(kargs)
@@ -196,4 +199,8 @@ func (c Configuration) KeyTLS() string {
 
 func (c Configuration) EnableSecrets() bool {
 	return c.enableSecrets
+}
+
+func (c Configuration) EnableUserToken() bool {
+	return c.enableUserToken
 }

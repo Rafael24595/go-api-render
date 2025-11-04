@@ -154,6 +154,11 @@ var docAuthHard = docs.DocGroup{
 }
 
 func (c *Controller) authToken(r *http.Request) (string, result.Result) {
+	conf := configuration.Instance()
+	if !conf.EnableUserToken() {
+		return "", result.TextErr(http.StatusUnauthorized, "auth token authentication is not allowed")
+	}
+	
 	cookie, err := r.Cookie(AUTH_TOKEN)
 	if err != nil {
 		return "", result.Err(http.StatusUnauthorized, err)
