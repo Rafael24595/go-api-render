@@ -37,13 +37,13 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 	once.Do(func() {
 		debug := kargs["GO_API_DEBUG"].Boold(false)
 
-		port, ok := kargs["GO_API_SERVER_PORT"].Int()
+		port, ok := kargs["GAR_SERVER_PORT"].Int()
 		if !ok {
 			log.Messagef("Custom port flag is not defined; using default port %d", defaultPort)
 			port = defaultPort
 		}
 
-		front := kargs["GO_API_SERVER_FRONT"].Boold(false)
+		front := kargs["GAR_SERVER_FRONT"].Boold(false)
 		if !front {
 			log.Message("Front flag is not defined; the frontend application will not be displayed")
 			front = false
@@ -57,8 +57,8 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 			frontPackage.Version = ""
 		}
 
-		enableSecrets := kargs["GO_API_ENABLE_SECRETS"].Boold(false)
-		enableUserToken := kargs["GO_API_ENABLE_USER_TOKEN"].Boold(false)
+		enableSecrets := kargs["GAR_MISC_SECRETS"].Boold(false)
+		enableUserToken := kargs["GAR_AUTH_USER_TOKEN"].Boold(false)
 
 		instance = &Configuration{
 			Configuration:   *core,
@@ -84,14 +84,14 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 }
 
 func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
-	if tls, _ := kargs["GO_API_SERVER_ENABLE_TLS"].Bool(); !tls {
+	if tls, _ := kargs["GAR_SERVER_TLS"].Bool(); !tls {
 		return 0, "", "", false
 	}
 
-	onlyTLS := kargs["GO_API_SERVER_ONLY_TLS"].Boold(false)
-	portTLS := kargs["GO_API_SERVER_PORT_TLS"].Intd(0)
+	onlyTLS := kargs["GAR_SERVER_TLS_ONLY"].Boold(false)
+	portTLS := kargs["GAR_SERVER_TLS_PORT"].Intd(0)
 
-	certTLS := kargs["GO_API_SERVER_CERT"].String()
+	certTLS := kargs["GAR_SERVER_TLS_CERT"].String()
 	if certTLS == "" {
 		_, err := os.Stat(defaultCert)
 		if !os.IsNotExist(err) {
@@ -100,7 +100,7 @@ func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
 		}
 	}
 
-	keyTLS := kargs["GO_API_SERVER_KEY"].String()
+	keyTLS := kargs["GAR_SERVER_TLS_KEY"].String()
 	if keyTLS == "" {
 		_, err := os.Stat(defaultKey)
 		if !os.IsNotExist(err) {
@@ -125,7 +125,7 @@ func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
 }
 
 func (c *Configuration) originLastVersion(kargs map[string]utils.Argument) {
-	releaseTime, ok := kargs["GO_API_FETCH_RELEASE_TIME"].Int()
+	releaseTime, ok := kargs["GAR_RELEASE_TIME"].Int()
 	if !ok || releaseTime < 1 {
 		log.Message("Fetch release time is not defined; new releases will not be fetched")
 		return
