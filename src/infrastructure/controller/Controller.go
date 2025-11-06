@@ -60,6 +60,7 @@ func NewController(
 		).
 		GroupContextualizerDocument(instance.authHard, docAuthHard,
 			"system/log",
+			"system/cmd",
 			"action",
 			"import",
 			"sort",
