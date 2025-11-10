@@ -246,7 +246,7 @@ func (c *ControllerCollection) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all collection summaries (lite version) for the current user's group.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeCollection](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]dto.DtoLiteNodeCollection]](),
 		},
 	}
 }
@@ -261,7 +261,9 @@ func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, c
 
 	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
 
-	return result.JsonOk(dtos)
+	sign := signPayload(user, dtos)
+
+	return result.JsonOk(sign)
 }
 
 func (c *ControllerCollection) docFind() docs.DocRoute {

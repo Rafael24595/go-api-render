@@ -108,7 +108,7 @@ func (c *ControllerRequest) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeRequest](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]dto.DtoLiteNodeRequest]](),
 		},
 	}
 }
@@ -123,7 +123,8 @@ func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx 
 
 	dtos := c.managerCollection.FindLiteRequestNodes(user, collection)
 
-	return result.JsonOk(dtos)
+	sign := signPayload(user, dtos)
+	return result.JsonOk(sign)
 }
 
 func (c *ControllerRequest) docInsert() docs.DocRoute {

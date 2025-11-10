@@ -9,6 +9,18 @@ import (
 	"github.com/Rafael24595/go-web/router/docs"
 )
 
+type responseSignedPaylaod[T any] struct {
+	Owner   string `json:"owner"`
+	Payload T      `json:"payload"`
+}
+
+func signPayload[T any](owner string, payload T) responseSignedPaylaod[T] {
+	return responseSignedPaylaod[T]{
+		Owner: owner,
+		Payload: payload,
+	}
+}
+
 type responseAction struct {
 	Request  dto.DtoRequest  `json:"request"`
 	Response dto.DtoResponse `json:"response"`

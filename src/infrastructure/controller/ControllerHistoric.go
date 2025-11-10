@@ -39,7 +39,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeRequest](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]dto.DtoLiteNodeRequest]](),
 		},
 	}
 }
@@ -54,7 +54,8 @@ func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx *r
 
 	dtos := c.managerHistoric.FindLite(user, collection)
 
-	return result.JsonOk(dtos)
+	sign := signPayload(user, dtos)
+	return result.JsonOk(sign)
 }
 
 func (c *ControllerHistoric) docInsert() docs.DocRoute {
