@@ -75,7 +75,7 @@ func (c *ControllerSystem) cmd(w http.ResponseWriter, r *http.Request, ctx *rout
 	}
 
 	if !sess.HasRole(session.ROLE_ADMIN) {
-		return result.Reject(http.StatusForbidden)
+		return result.TextErr(http.StatusForbidden, "the user does not have privileges to execute cmd actions")
 	}
 
 	cmd, res := router.InputText(r)
