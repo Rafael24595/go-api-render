@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"regexp"
 	"sync"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 const defaultPort = 8080
 const defaultCert = "./cert/cert.pem"
 const defaultKey = "./cert/key.pem"
+
+const devRelease = `^(v\d.*\d*.\d*)-(dev.\d*)$`
 
 var (
 	instance *Configuration
@@ -155,7 +158,8 @@ func fetchLastVersion(c *Configuration) {
 
 	release := core_configuration.OriginLastVersion("Rafael24595", "go-api-render")
 	if release != nil {
-		if release.TagName != c.Project.Version {
+		re := regexp.MustCompile(devRelease)
+		if !re.MatchString(release.TagName) && release.TagName != c.Project.Version {
 			log.Messagef("New release has been found %s", release.TagName)
 		}
 		c.Release = release
