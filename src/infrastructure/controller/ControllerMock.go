@@ -40,6 +40,7 @@ func NewControllerMock(
 	}
 
 	router.
+		RouteDocument(http.MethodGet, instance.findAll, "mock", instance.docFindAll()).
 		RouteDocument(http.MethodPost, instance.insert, "mock", instance.docInsert()).
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -54,10 +55,28 @@ func NewControllerMock(
 	return instance
 }
 
+func (c *ControllerMock) docFindAll() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Retrieves all user mock end-points.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]mock.EndPoint]](),
+		},
+	}
+}
+
+func (c *ControllerMock) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	endPoints := c.managerEndPoint.FindAll(user)
+
+	sign := signPayload(user, endPoints)
+	return result.JsonOk(sign)
+}
+
 func (c *ControllerMock) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Creates a new mock end-poin for the authenticated user.",
-		Request: docs.DocJsonPayload[mock.EndPoint](),
+		Request:     docs.DocJsonPayload[mock.EndPoint](),
 		Responses: docs.DocResponses{
 			"200": docs.DocText(END_POINT_ID_DESCRIPTION),
 		},
