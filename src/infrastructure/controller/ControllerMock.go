@@ -130,8 +130,12 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 
 	w.WriteHeader(response.Status)
 
-	for k, v := range response.Headers {
-		w.Header().Set(k, v)
+	for _, v := range response.Headers {
+		if !v.Status {
+			continue
+		}
+
+		w.Header().Set(v.Key, v.Value)
 	}
 
 	_, err := w.Write([]byte(response.Body))
