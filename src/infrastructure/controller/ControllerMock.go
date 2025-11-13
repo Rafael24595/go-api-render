@@ -86,14 +86,14 @@ func (c *ControllerMock) docInsert() docs.DocRoute {
 func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	endPoint, res := router.InputJson[mock.EndPoint](r)
+	endPoint, res := router.InputJson[mock.EndPointFull](r)
 	if res != nil {
 		return *res
 	}
 
-	endPointResult := c.managerEndPoint.Insert(user, &endPoint)
+	endPointResult, errs := c.managerEndPoint.Insert(user, &endPoint)
 	if endPointResult == nil {
-		return result.TextErr(http.StatusInternalServerError, "cannot generate the token")
+		return result.JsonErr(http.StatusUnprocessableEntity, errs)
 	}
 
 	return result.Ok(endPointResult.Id)
@@ -138,7 +138,10 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 		w.Header().Set(v.Key, v.Value)
 	}
 
-	_, err := w.Write([]byte(response.Body))
+	contentType := response.Body.ContentType.ToHeader()
+	w.Header().Set("Content-Type", contentType)
+
+	_, err := w.Write([]byte(response.Body.Payload))
 	if err != nil {
 		log.Errorf("Error writing response: %s", err.Error())
 	}
