@@ -7,6 +7,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
+	"github.com/Rafael24595/go-api-core/src/domain/mock/swr"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -20,8 +21,10 @@ const OWNER_NAME_DESCRIPTION = "Owner name"
 const END_POINT = "point"
 const END_POINT_DESCRIPTION = "End point path"
 
-const END_POINT_ID = "endpoint"
-const END_POINT_ID_DESCRIPTION = "End point ID"
+const ID_END_POINT = "endpoint"
+const ID_END_POINT_DESCRIPTION = "End point ID"
+
+const SWR_INPUT_DESCRIPTION = "SWR sentence"
 
 type ControllerMock struct {
 	router          *router.Router
@@ -40,7 +43,10 @@ func NewControllerMock(
 	}
 
 	router.
+		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/request/step", instance.docBridgeStep()).
+		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/request/cond", instance.docBridgeCond()).
 		RouteDocument(http.MethodGet, instance.findAll, "mock", instance.docFindAll()).
+		RouteDocument(http.MethodGet, instance.find, "mock/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock", instance.docInsert()).
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -53,6 +59,60 @@ func NewControllerMock(
 		RouteDocument(http.MethodTrace, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall())
 
 	return instance
+}
+
+func (c *ControllerMock) docBridgeStep() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Translated the text input of SWR into a Steps vector.",
+		Request:     docs.DocText(SWR_INPUT_DESCRIPTION),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]swr.Step](),
+			"422": docs.DocJsonPayload[[]string](),
+		},
+	}
+}
+
+func (c *ControllerMock) bridgeStep(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	input, res := router.InputText(r)
+	if res != nil {
+		return *res
+	}
+
+	steps, errs := swr.UnmarshalWithOptions(string(input), swr.UnmarshalOpts{
+		Evalue: true,
+	})
+	if len(errs) > 0 {
+		return result.Err(http.StatusUnprocessableEntity, errs...)
+	}
+
+	return result.JsonOk(steps)
+}
+
+func (c *ControllerMock) docBridgeCond() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Translated the steps input into a SWR sentence.",
+		Request:     docs.DocJsonPayload[[]swr.Step](),
+		Responses: docs.DocResponses{
+			"200": docs.DocText(SWR_INPUT_DESCRIPTION),
+			"422": docs.DocJsonPayload[[]string](),
+		},
+	}
+}
+
+func (c *ControllerMock) bridgeCond(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	steps, res := router.InputJson[[]swr.Step](r)
+	if res != nil {
+		return *res
+	}
+
+	output, errs := swr.MarshalWithOptions(steps, swr.MarshalOpts{
+		Evalue: true,
+	})
+	if len(errs) > 0 {
+		return result.Err(http.StatusUnprocessableEntity, errs...)
+	}
+
+	return result.TextOk(output)
 }
 
 func (c *ControllerMock) docFindAll() docs.DocRoute {
@@ -73,12 +133,36 @@ func (c *ControllerMock) findAll(w http.ResponseWriter, r *http.Request, ctx *ro
 	return result.JsonOk(sign)
 }
 
+func (c *ControllerMock) docFind() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Finds a specific mock end-point by ID.",
+		Parameters: docs.DocParameters{
+			ID_END_POINT: END_POINT_DESCRIPTION,
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[mock.EndPointFull](),
+		},
+	}
+}
+
+func (c *ControllerMock) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	id := r.PathValue(ID_END_POINT)
+
+	endPoint, ok := c.managerEndPoint.Find(user, id)
+	if !ok {
+		return result.Reject(http.StatusNotFound)
+	}
+
+	return result.JsonOk(endPoint)
+}
+
 func (c *ControllerMock) docInsert() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Creates a new mock end-poin for the authenticated user.",
 		Request:     docs.DocJsonPayload[mock.EndPoint](),
 		Responses: docs.DocResponses{
-			"200": docs.DocText(END_POINT_ID_DESCRIPTION),
+			"200": docs.DocText(ID_END_POINT_DESCRIPTION),
 		},
 	}
 }
