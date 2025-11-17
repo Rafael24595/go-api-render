@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 )
@@ -83,4 +84,15 @@ func requestSortCollectionToPayload(payload *requestSortNodes) repository.Payloa
 	return repository.PayloadSortNodes{
 		Nodes: nodes,
 	}
+}
+
+func requestNodeToNodeReference(payload ...requestNode) []domain.NodeReference {
+	nodes := make([]domain.NodeReference, len(payload))
+	for i, v := range payload {
+		nodes[i] = domain.NodeReference{
+			Order: v.Order,
+			Item:  v.Item,
+		}
+	}
+	return nodes
 }

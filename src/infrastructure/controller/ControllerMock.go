@@ -10,6 +10,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/mock/swr"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	"github.com/Rafael24595/go-collections/collection"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -43,8 +44,9 @@ func NewControllerMock(
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/request/step", instance.docBridgeStep()).
-		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/request/cond", instance.docBridgeCond()).
+		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/response/step", instance.docBridgeStep()).
+		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/response/cond", instance.docBridgeCond()).
+		RouteDocument(http.MethodPut, instance.sortEndPoint, "sort/mock/endpoint", instance.docSortEndPoint()).
 		RouteDocument(http.MethodGet, instance.findAll, "mock", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "mock/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock", instance.docInsert()).
@@ -113,6 +115,34 @@ func (c *ControllerMock) bridgeCond(w http.ResponseWriter, r *http.Request, ctx 
 	}
 
 	return result.TextOk(output)
+}
+
+func (c *ControllerMock) docSortEndPoint() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Sorts the user's end-point collection based on the provided lite structure.",
+		Request:     docs.DocJsonPayload[[]requestNode](),
+		Responses: docs.DocResponses{
+			"200": docs.DocText(ID_END_POINT_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerMock) sortEndPoint(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	dto, res := router.InputJson[[]requestNode](r)
+	if res != nil {
+		return *res
+	}
+
+	payload := requestNodeToNodeReference(dto...)
+
+	endPoints := c.managerEndPoint.Sort(user, payload)
+	ids := collection.MapToVector(endPoints, func(e mock.EndPoint) string {
+		return e.Id
+	})
+
+	return result.Ok(ids.Collect())
 }
 
 func (c *ControllerMock) docFindAll() docs.DocRoute {
