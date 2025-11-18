@@ -229,7 +229,7 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 	point := r.PathValue(END_POINT)
 
 	endPoint, ok := c.managerEndPoint.FindByRequest(owner, domain.HttpMethod(method), point)
-	if !ok || endPoint == nil {
+	if !ok || endPoint == nil || !endPoint.Status {
 		return result.Reject(http.StatusNotFound)
 	}
 
@@ -242,7 +242,7 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 		return *res
 	}
 
-	w.WriteHeader(response.Status)
+	w.WriteHeader(response.Code)
 
 	for _, v := range response.Headers {
 		if !v.Status {
