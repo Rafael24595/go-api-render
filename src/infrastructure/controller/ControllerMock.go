@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
@@ -166,8 +167,8 @@ func (c *ControllerMock) findAll(w http.ResponseWriter, r *http.Request, ctx *ro
 func (c *ControllerMock) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Finds a specific mock end-point by ID.",
-		Parameters: docs.DocParameters{
-			ID_END_POINT: END_POINT_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_END_POINT, END_POINT_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[mock.EndPointFull](),
@@ -216,9 +217,9 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 func (c *ControllerMock) docMockCall() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Executes a mock HTTP action using a custom context and request configuration. This simulates a request as it would be processed by the client, returning the full request and response objects.",
-		Parameters: docs.DocParameters{
-			OWNER_NAME: OWNER_NAME_DESCRIPTION,
-			END_POINT:  END_POINT_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(OWNER_NAME, OWNER_NAME_DESCRIPTION),
+			docs.Parameter(END_POINT, END_POINT_DESCRIPTION),
 		},
 	}
 }
@@ -294,7 +295,36 @@ func (c *ControllerMock) authRequest(r *http.Request, owner string, endPoint *mo
 }
 
 func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) (*mock.Response, *result.Result) {
-	//TODO: Find one response based on the payload value or return the default.
-	response := endPoint.DefaultResponse()
-	return &response, nil
+	payload, res := router.InputText(r)
+	if res != nil {
+		return nil, res
+	}
+
+	headers := collection.MapToDictionary(r.Header, func(k string, h []string) string {
+		return strings.Join(h, ", ")
+	})
+
+	vecResp := collection.VectorFromList(endPoint.Responses)
+	dicResp := collection.VectorMapToDictionary(vecResp, func(r mock.Response) (string, mock.Response) {
+		return r.Condition, r
+	})
+
+	key, ok := swr.MatchRequirement(dicResp.Keys(), string(payload), headers.Collect())
+	if ok {
+		response, _ := dicResp.Get(key)
+		if response.Status {
+			return response, nil
+		}
+	}
+
+	response, ok := vecResp.FindOne(func(r mock.Response) bool {
+		return r.Name == mock.DefaultResponse
+	})
+
+	if !ok {
+		res := result.TextErr(http.StatusNotFound, "the resource does not have a defined default response")
+		return nil, &res
+	}
+
+	return response, nil
 }
