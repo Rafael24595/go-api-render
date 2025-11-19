@@ -45,8 +45,8 @@ func (c *ControllerSecret) docPlay() docs.DocRoute {
 func (c *ControllerSecret) docResource() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves a specific static asset (HTML, JS, or CSS file) from a remote GitHub repository that hosts the Tetris game.",
-		Parameters: docs.DocParameters{
-			JS_RESOURCE: JS_RESOURCE_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(JS_RESOURCE, JS_RESOURCE_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocText("The raw content of the requested static file (HTML, JS, CSS)."),

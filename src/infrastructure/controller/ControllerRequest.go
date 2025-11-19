@@ -198,8 +198,8 @@ func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx *
 func (c *ControllerRequest) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Finds a specific request and its response by request ID.",
-		Parameters: docs.DocParameters{
-			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[responseAction](),
@@ -231,8 +231,8 @@ func (c *ControllerRequest) find(w http.ResponseWriter, r *http.Request, ctx *ro
 func (c *ControllerRequest) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes a specific request from the user's collection by ID.",
-		Parameters: docs.DocParameters{
-			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[responseAction](),

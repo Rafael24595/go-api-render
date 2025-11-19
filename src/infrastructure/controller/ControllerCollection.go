@@ -139,8 +139,8 @@ func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Reques
 func (c *ControllerCollection) docImportTo() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Imports a list of requests and adds them to an existing collection identified by ID.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Request: docs.DocJsonPayload[[]dto.DtoRequest](),
 		Responses: docs.DocResponses{
@@ -212,8 +212,8 @@ func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerCollection) docSortRequests() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Sorts the requests inside a specific collection based on the provided node order.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Request: docs.DocJsonPayload[[]requestSortNodes](),
 		Responses: docs.DocResponses{
@@ -269,8 +269,8 @@ func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, c
 func (c *ControllerCollection) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches a full collection by ID, including all associated metadata, context and requests.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[dto.DtoCollection](),
@@ -294,8 +294,8 @@ func (c *ControllerCollection) find(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerCollection) docFindLite() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches a lite version of a collection by ID, including basic metadata but excluding full context and request data.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[dto.DtoLiteCollection](),
@@ -357,8 +357,8 @@ func (c *ControllerCollection) docCollect() docs.DocRoute {
 func (c *ControllerCollection) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes a collection by ID from the current user's group.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
@@ -387,8 +387,8 @@ func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ct
 func (c *ControllerCollection) docClone() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Creates a duplicate of a collection, assigning it a new name and preserving all its structure and requests.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
@@ -442,9 +442,9 @@ func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, c
 func (c *ControllerCollection) docTake() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Moves a request from one collection to the user's active collection.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
-			ID_REQUEST:    ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
@@ -478,9 +478,9 @@ func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerCollection) docDeleteFrom() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes a specific request from a collection by ID.",
-		Parameters: docs.DocParameters{
-			ID_COLLECTION: ID_COLLECTION_DESCRIPTION,
-			ID_REQUEST:    ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),

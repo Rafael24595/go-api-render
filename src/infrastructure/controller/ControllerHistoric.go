@@ -110,8 +110,8 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerHistoric) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes a historic request entry by ID. Returns the removed request and response.",
-		Parameters: docs.DocParameters{
-			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[responseAction](),

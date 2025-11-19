@@ -115,8 +115,8 @@ func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx *
 func (c *ControllerContext) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves a specific context by its ID for the authenticated user.",
-		Parameters: docs.DocParameters{
-			ID_CONTEXT: ID_CONTEXT_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_CONTEXT, ID_CONTEXT_DESCRIPTION),
 		},
 	}
 }

@@ -101,8 +101,8 @@ func (c *ControllerToken) insert(w http.ResponseWriter, r *http.Request, ctx *ro
 func (c *ControllerToken) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes the token specified by its ID.",
-		Parameters: docs.DocParameters{
-			ID_TOKEN: ID_TOKEN_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_TOKEN, ID_TOKEN_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[token.LiteToken](),

@@ -53,8 +53,8 @@ func NewControllerCurl(
 func (c *ControllerCurl) docEncodeCurl() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Generates a cURL command representing a previously saved HTTP request. Optionally applies a specific context for variable resolution and environment configuration. Supports raw and inline modes for flexible output formatting.",
-		Parameters: docs.DocParameters{
-			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Query: docs.DocParameters{
 			ID_CONTEXT: ID_CONTEXT_DESCRIPTION,
@@ -154,7 +154,7 @@ func (c *ControllerCurl) decodeCurl(w http.ResponseWriter, r *http.Request, ctx 
 	if coll := r.URL.Query().Get(ID_COLLECTION); coll != "" {
 		return c.decodeCurlToCollection(user, coll, reqs)
 	}
-	
+
 	return c.decodeCurlToGlobal(user, reqs)
 }
 
