@@ -7,6 +7,7 @@ import (
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
 	"github.com/Rafael24595/go-api-core/src/domain/mock/swr"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
@@ -48,9 +49,9 @@ func NewControllerMock(
 		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/response/step", instance.docBridgeStep()).
 		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/response/cond", instance.docBridgeCond()).
 		RouteDocument(http.MethodPut, instance.sortEndPoint, "sort/mock/endpoint", instance.docSortEndPoint()).
-		RouteDocument(http.MethodGet, instance.findAll, "mock", instance.docFindAll()).
-		RouteDocument(http.MethodGet, instance.find, "mock/{%s}", instance.docFind()).
-		RouteDocument(http.MethodPost, instance.insert, "mock", instance.docInsert()).
+		RouteDocument(http.MethodGet, instance.findAll, "mock/endpoint", instance.docFindAll()).
+		RouteDocument(http.MethodGet, instance.find, "mock/endpoint/{%s}", instance.docFind()).
+		RouteDocument(http.MethodPost, instance.insert, "mock/endpoint", instance.docInsert()).
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodPost, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -265,7 +266,8 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 }
 
 func (c *ControllerMock) authRequest(r *http.Request, owner string, endPoint *mock.EndPoint) result.Result {
-	if !endPoint.Safe {
+	if !endPoint.Safe ||
+		owner == action.ANONYMOUS_OWNER && owner == endPoint.Owner {
 		return result.Next()
 	}
 
