@@ -27,6 +27,7 @@ type ControllerCurl struct {
 	managerCollection *repository.ManagerCollection
 	managerGroup      *repository.ManagerGroup
 	managerContext    *repository.ManagerContext
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerCurl(
@@ -34,13 +35,15 @@ func NewControllerCurl(
 	managerRequest *repository.ManagerRequest,
 	managerCollection *repository.ManagerCollection,
 	managerGroup *repository.ManagerGroup,
-	managerContext *repository.ManagerContext) ControllerCurl {
+	managerContext *repository.ManagerContext,
+	managerClientData *repository.ManagerClientData) ControllerCurl {
 	instance := ControllerCurl{
 		router:            router,
 		managerRequest:    managerRequest,
 		managerGroup:      managerGroup,
 		managerCollection: managerCollection,
 		managerContext:    managerContext,
+		managerClientData: managerClientData,
 	}
 
 	router.
@@ -90,7 +93,7 @@ func (c *ControllerCurl) encodeCurl(w http.ResponseWriter, r *http.Request, ctx 
 
 	context_id := r.URL.Query().Get(ID_CONTEXT)
 	if context_id == "" {
-		collection, resultStatus := findUserCollection(user)
+		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -159,7 +162,7 @@ func (c *ControllerCurl) decodeCurl(w http.ResponseWriter, r *http.Request, ctx 
 }
 
 func (c *ControllerCurl) decodeCurlToCollection(user, coll string, reqs []action.Request) result.Result {
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -170,7 +173,7 @@ func (c *ControllerCurl) decodeCurlToCollection(user, coll string, reqs []action
 }
 
 func (c *ControllerCurl) decodeCurlToGlobal(user string, reqs []action.Request) result.Result {
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

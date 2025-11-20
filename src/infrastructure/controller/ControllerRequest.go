@@ -15,16 +15,19 @@ type ControllerRequest struct {
 	router            *router.Router
 	managerRequest    *repository.ManagerRequest
 	managerCollection *repository.ManagerCollection
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerRequest(
 	router *router.Router,
 	managerRequest *repository.ManagerRequest,
-	managerCollection *repository.ManagerCollection) ControllerRequest {
+	managerCollection *repository.ManagerCollection,
+	managerClientData *repository.ManagerClientData) ControllerRequest {
 	instance := ControllerRequest{
 		router:            router,
 		managerRequest:    managerRequest,
 		managerCollection: managerCollection,
+		managerClientData: managerClientData,
 	}
 
 	router.
@@ -57,7 +60,7 @@ func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, 
 		return *res
 	}
 
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -92,7 +95,7 @@ func (c *ControllerRequest) sort(w http.ResponseWriter, r *http.Request, ctx *ro
 		return *res
 	}
 
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -116,7 +119,7 @@ func (c *ControllerRequest) docFindAll() docs.DocRoute {
 func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -148,7 +151,7 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx *
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	if request.Status == action_domain.FINAL {
-		collection, resultStatus := findUserCollection(user)
+		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -183,7 +186,7 @@ func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx *
 
 	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
 	if request.Status == action_domain.FINAL {
-		collection, resultStatus := findUserCollection(user)
+		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -244,7 +247,7 @@ func (c *ControllerRequest) delete(w http.ResponseWriter, r *http.Request, ctx *
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

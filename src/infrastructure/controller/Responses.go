@@ -29,9 +29,6 @@ type responseAction struct {
 type responseUserData struct {
 	Username   string         `json:"username"`
 	Timestamp  int64          `json:"timestamp"`
-	History    string         `json:"history"`
-	Collection string         `json:"collection"`
-	Context    string         `json:"context"`
 	FirstTime  bool           `json:"first_time"`
 	Roles      []session.Role `json:"roles"`
 }

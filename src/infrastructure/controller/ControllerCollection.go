@@ -21,16 +21,19 @@ type ControllerCollection struct {
 	router            *router.Router
 	managerCollection *repository.ManagerCollection
 	managerGroup      *repository.ManagerGroup
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerCollection(
 	router *router.Router,
 	managerCollection *repository.ManagerCollection,
-	managerGroup *repository.ManagerGroup) ControllerCollection {
+	managerGroup *repository.ManagerGroup,
+	managerClientData *repository.ManagerClientData) ControllerCollection {
 	instance := ControllerCollection{
 		router:            router,
 		managerCollection: managerCollection,
 		managerGroup:      managerGroup,
+		managerClientData: managerClientData,
 	}
 
 	instance.router.
@@ -87,7 +90,7 @@ func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, c
 		return result.Err(http.StatusInternalServerError, err)
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -118,7 +121,7 @@ func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Reques
 		return *res
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -162,7 +165,7 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 		return *res
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -191,7 +194,7 @@ func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx 
 		return *res
 	}
 
-	group, res := findUserGroup(user)
+	group, res := findUserCollections(user, c.managerClientData)
 	if res != nil {
 		return *res
 	}
@@ -254,7 +257,7 @@ func (c *ControllerCollection) docFindAll() docs.DocRoute {
 func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -334,7 +337,7 @@ func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ct
 		return *res
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -374,7 +377,7 @@ func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ct
 		return result.Reject(http.StatusNotFound)
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -404,7 +407,7 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 		return result.Reject(http.StatusNotFound)
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -427,7 +430,7 @@ func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, c
 		return *res
 	}
 
-	group, resultStatus := findUserGroup(user)
+	group, resultStatus := findUserCollections(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -465,7 +468,7 @@ func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx 
 		return result.Reject(http.StatusNotFound)
 	}
 
-	target, resultStatus := findUserCollection(user)
+	target, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

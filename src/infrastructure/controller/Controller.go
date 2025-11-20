@@ -42,7 +42,8 @@ func NewController(
 	managerHisotric *repository.ManagerHistoric,
 	managerGroup *repository.ManagerGroup,
 	managerEndPoint *repository.ManagerEndPoint,
-	managerToken *repository.ManagerToken) Controller {
+	managerToken *repository.ManagerToken,
+	managerClientData *repository.ManagerClientData) Controller {
 	instance := Controller{
 		router:       route,
 		managerToken: managerToken,
@@ -70,6 +71,7 @@ func NewController(
 			"collection",
 			"curl",
 			"token",
+			"mock/endpoint",
 		).
 		Cors(router.PermissiveCors())
 
@@ -84,12 +86,12 @@ func NewController(
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
-	NewControllerRequest(route, managerRequest, managerCollection)
-	NewControllerHistoric(route, managerRequest, managerHisotric)
-	NewControllerContext(route, managerContext)
-	NewControllerCollection(route, managerCollection, managerGroup)
+	NewControllerRequest(route, managerRequest, managerCollection, managerClientData)
+	NewControllerHistoric(route, managerRequest, managerHisotric, managerClientData)
+	NewControllerContext(route, managerContext, managerClientData)
+	NewControllerCollection(route, managerCollection, managerGroup, managerClientData)
 	NewControllerCurl(route, managerRequest, managerCollection,
-		managerGroup, managerContext)
+		managerGroup, managerContext, managerClientData)
 	NewControllerMock(route, managerToken, managerEndPoint)
 	NewControllerToken(route, managerToken)
 
@@ -233,9 +235,8 @@ func findSession(user string) (*session.Session, *result.Result) {
 	return session, nil
 }
 
-func findHistoricCollection(user string) (*collection.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserHistoric(user)
+func findTransientCollection(user string, client *repository.ManagerClientData) (*collection.Collection, *result.Result) {
+	collection, err := client.FindTransient(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result
@@ -243,9 +244,8 @@ func findHistoricCollection(user string) (*collection.Collection, *result.Result
 	return collection, nil
 }
 
-func findUserCollection(user string) (*collection.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserCollection(user)
+func findPersistentCollection(user string, client *repository.ManagerClientData) (*collection.Collection, *result.Result) {
+	collection, err := client.FindPersistent(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result
@@ -254,9 +254,8 @@ func findUserCollection(user string) (*collection.Collection, *result.Result) {
 	return collection, nil
 }
 
-func findUserGroup(user string) (*domain.Group, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	group, err := sessions.FindUserGroup(user)
+func findUserCollections(user string, client *repository.ManagerClientData) (*domain.Group, *result.Result) {
+	group, err := client.FindCollections(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result

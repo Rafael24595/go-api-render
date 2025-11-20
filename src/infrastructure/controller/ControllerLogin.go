@@ -159,17 +159,9 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 		return result.Err(http.StatusNotFound, err)
 	}
 
-	collection, err := sessions.FindUserCollection(user.Username)
-	if err != nil {
-		return result.Err(http.StatusInternalServerError, err)
-	}
-
 	response := responseUserData{
 		Username:   user.Username,
 		Timestamp:  user.Timestamp,
-		History:    user.History,
-		Collection: user.Collection,
-		Context:    collection.Context,
 		FirstTime:  user.Count < 0,
 		Roles:      user.Roles,
 	}

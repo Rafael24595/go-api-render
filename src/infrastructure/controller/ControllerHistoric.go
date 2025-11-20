@@ -12,19 +12,22 @@ import (
 )
 
 type ControllerHistoric struct {
-	router          *router.Router
-	managerRequest  *repository.ManagerRequest
-	managerHistoric *repository.ManagerHistoric
+	router            *router.Router
+	managerRequest    *repository.ManagerRequest
+	managerHistoric   *repository.ManagerHistoric
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerHistoric(
 	router *router.Router,
 	managerRequest *repository.ManagerRequest,
-	managerHistoric *repository.ManagerHistoric) ControllerHistoric {
+	managerHistoric *repository.ManagerHistoric,
+	managerClientData *repository.ManagerClientData) ControllerHistoric {
 	instance := ControllerHistoric{
-		router:          router,
-		managerRequest:  managerRequest,
-		managerHistoric: managerHistoric,
+		router:            router,
+		managerRequest:    managerRequest,
+		managerHistoric:   managerHistoric,
+		managerClientData: managerClientData,
 	}
 
 	router.
@@ -47,7 +50,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -92,7 +95,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		return result.JsonOk(dto)
 	}
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -123,7 +126,7 @@ func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx 
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
