@@ -42,6 +42,7 @@ func NewController(
 	managerHisotric *repository.ManagerHistoric,
 	managerGroup *repository.ManagerGroup,
 	managerEndPoint *repository.ManagerEndPoint,
+	managerMetrics *repository.ManagerMetrics,
 	managerToken *repository.ManagerToken,
 	managerClientData *repository.ManagerClientData) Controller {
 	instance := Controller{
@@ -90,9 +91,9 @@ func NewController(
 	NewControllerHistoric(route, managerRequest, managerHisotric, managerClientData)
 	NewControllerContext(route, managerContext, managerClientData)
 	NewControllerCollection(route, managerCollection, managerGroup, managerClientData)
-	NewControllerCurl(route, managerRequest, managerCollection,
-		managerGroup, managerContext, managerClientData)
-	NewControllerMock(route, managerToken, managerEndPoint)
+	NewControllerCurl(route, managerRequest, managerCollection, managerGroup,
+		 managerContext, managerClientData)
+	NewControllerMock(route, managerToken, managerEndPoint, managerMetrics)
 	NewControllerToken(route, managerToken)
 
 	return instance

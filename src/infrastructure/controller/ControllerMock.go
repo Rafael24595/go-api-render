@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
@@ -33,16 +34,19 @@ type ControllerMock struct {
 	router          *router.Router
 	managerToken    *repository.ManagerToken
 	managerEndPoint *repository.ManagerEndPoint
+	managerMetrics  *repository.ManagerMetrics
 }
 
 func NewControllerMock(
 	router *router.Router,
 	managerToken *repository.ManagerToken,
-	managerEndPoint *repository.ManagerEndPoint) ControllerMock {
+	managerEndPoint *repository.ManagerEndPoint,
+	managerMetrics *repository.ManagerMetrics) ControllerMock {
 	instance := ControllerMock{
 		router:          router,
 		managerToken:    managerToken,
 		managerEndPoint: managerEndPoint,
+		managerMetrics:  managerMetrics,
 	}
 
 	router.
@@ -52,6 +56,7 @@ func NewControllerMock(
 		RouteDocument(http.MethodGet, instance.findAll, "mock/endpoint", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "mock/endpoint/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock/endpoint", instance.docInsert()).
+		RouteDocument(http.MethodGet, instance.findMetrics, "mock/metrics/endpoint/{%s}", instance.docFindMetrics()).
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodPost, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -181,7 +186,7 @@ func (c *ControllerMock) find(w http.ResponseWriter, r *http.Request, ctx *route
 	user := findUser(ctx)
 	id := r.PathValue(ID_END_POINT)
 
-	endPoint, ok := c.managerEndPoint.Find(user, id)
+	endPoint, ok := c.managerEndPoint.FindFull(user, id)
 	if !ok {
 		return result.Reject(http.StatusNotFound)
 	}
@@ -207,12 +212,49 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 		return *res
 	}
 
+	oldEndPoint, _ := c.managerEndPoint.Find(user, endPoint.Id)
+
 	endPointResult, errs := c.managerEndPoint.Insert(user, &endPoint)
 	if endPointResult == nil {
 		return result.JsonErr(http.StatusUnprocessableEntity, errs)
 	}
 
+	if oldEndPoint == nil {
+		oldEndPoint = endPointResult
+	}
+
+	go c.managerMetrics.ResolveStatus(user, endPointResult, endPointResult)
+
 	return result.Ok(endPointResult.Id)
+}
+
+func (c *ControllerMock) docFindMetrics() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Finds a specific mock end-point metrics by ID.",
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_END_POINT, END_POINT_DESCRIPTION),
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[mock.Metrics](),
+		},
+	}
+}
+
+func (c *ControllerMock) findMetrics(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	id := r.PathValue(ID_END_POINT)
+
+	endPoint, ok := c.managerEndPoint.Find(user, id)
+	if !ok {
+		return result.JsonOk(http.StatusNotFound)
+	}
+
+	metrics, ok := c.managerMetrics.Find(user, endPoint)
+	if metrics == nil && !ok {
+		return result.JsonOk(mock.EmptyMetrics(endPoint))
+	}
+
+	return result.JsonOk(metrics)
 }
 
 func (c *ControllerMock) docMockCall() docs.DocRoute {
@@ -230,6 +272,7 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 	owner := r.PathValue(OWNER_NAME)
 	point := r.PathValue(END_POINT)
 
+	start := time.Now().UnixMilli()
 	endPoint, ok := c.managerEndPoint.FindByRequest(owner, domain.HttpMethod(method), point)
 	if !ok || endPoint == nil || !endPoint.Status {
 		return result.Reject(http.StatusNotFound)
@@ -261,6 +304,10 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 	if err != nil {
 		log.Errorf("Error writing response: %s", err.Error())
 	}
+
+	end := time.Now().UnixMilli()
+
+	go c.managerMetrics.ResolveRequest(owner, endPoint, response, end-start)
 
 	return result.Continue()
 }
