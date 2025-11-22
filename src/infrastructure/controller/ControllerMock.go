@@ -216,7 +216,7 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 
 	endPointResult, errs := c.managerEndPoint.Insert(user, &endPoint)
 	if endPointResult == nil {
-		return result.JsonErr(http.StatusUnprocessableEntity, errs)
+		return result.Err(http.StatusUnprocessableEntity, errs...)
 	}
 
 	if oldEndPoint == nil {
