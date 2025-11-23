@@ -57,6 +57,7 @@ func NewControllerMock(
 		RouteDocument(http.MethodGet, instance.find, "mock/endpoint/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock/endpoint", instance.docInsert()).
 		RouteDocument(http.MethodGet, instance.findMetrics, "mock/metrics/endpoint/{%s}", instance.docFindMetrics()).
+		RouteDocument(http.MethodDelete, instance.removeMetrics, "mock/metrics/endpoint/{%s}", instance.docRemoveMetrics()).
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodPost, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -253,6 +254,32 @@ func (c *ControllerMock) findMetrics(w http.ResponseWriter, r *http.Request, ctx
 	if metrics == nil && !ok {
 		return result.JsonOk(mock.EmptyMetrics(endPoint))
 	}
+
+	return result.JsonOk(metrics)
+}
+
+func (c *ControllerMock) docRemoveMetrics() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Deletes a specific mock end-point metrics by ID.",
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_END_POINT, END_POINT_DESCRIPTION),
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[mock.Metrics](),
+		},
+	}
+}
+
+func (c *ControllerMock) removeMetrics(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	id := r.PathValue(ID_END_POINT)
+
+	endPoint, ok := c.managerEndPoint.Find(user, id)
+	if !ok {
+		return result.JsonOk(http.StatusNotFound)
+	}
+
+	metrics := c.managerMetrics.Delete(user, endPoint)
 
 	return result.JsonOk(metrics)
 }
