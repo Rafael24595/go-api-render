@@ -380,23 +380,7 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 		return strings.Join(h, ", ")
 	})
 
-	vecResp := collection.VectorFromList(endPoint.Responses)
-	dicResp := collection.VectorMapToDictionary(vecResp, func(r mock.Response) (string, mock.Response) {
-		return r.Condition, r
-	})
-
-	key, ok := swr.MatchRequirement(dicResp.Keys(), string(payload), headers.Collect())
-	if ok {
-		response, _ := dicResp.Get(key)
-		if response.Status {
-			return response, nil
-		}
-	}
-
-	response, ok := vecResp.FindOne(func(r mock.Response) bool {
-		return r.Name == mock.DefaultResponse
-	})
-
+	response, ok := mock.FindResponse(string(payload), headers.Collect(), endPoint)
 	if !ok {
 		res := result.TextErr(http.StatusNotFound, "the resource does not have a defined default response")
 		return nil, &res
