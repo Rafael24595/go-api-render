@@ -37,11 +37,15 @@ func NewControllerCollection(
 	}
 
 	instance.router.
+		RouteDocument(http.MethodPut, instance.sort, "sort/collection", instance.docSort()).
+		RouteDocument(http.MethodPut, instance.sortRequests, "sort/collection/{%s}/request", instance.docSortRequests()).
+
+		RouteDocument(http.MethodGet, instance.exportAll, "export/collection", instance.docExportAll()).
+		RouteDocument(http.MethodPost, instance.exportMany, "export/collection", instance.docExportMany()).
 		RouteDocument(http.MethodPost, instance.openApi, "import/openapi", instance.docOpenApi()).
 		RouteDocument(http.MethodPost, instance.importItems, "import/collection", instance.docImportItems()).
 		RouteDocument(http.MethodPost, instance.importTo, "import/collection/{%s}", instance.docImportTo()).
-		RouteDocument(http.MethodPut, instance.sort, "sort/collection", instance.docSort()).
-		RouteDocument(http.MethodPut, instance.sortRequests, "sort/collection/{%s}/request", instance.docSortRequests()).
+
 		RouteDocument(http.MethodGet, instance.findAll, "collection", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "collection/{%s}", instance.docFind()).
 		RouteDocument(http.MethodGet, instance.findLite, "collection/{%s}/lite", instance.docFindLite()).
@@ -53,6 +57,120 @@ func NewControllerCollection(
 		RouteDocument(http.MethodDelete, instance.deleteFrom, "collection/{%s}/request/{%s}", instance.docDeleteFrom())
 
 	return instance
+}
+
+func (c *ControllerCollection) docSort() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Sorts the collections in the user group according to the provided node structure.",
+		Request:     docs.DocJsonPayload[requestSortNodes](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]string](ID_COLLECTION_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	dto, res := router.InputJson[*requestSortNodes](r)
+	if res != nil {
+		return *res
+	}
+
+	group, res := findUserCollections(user, c.managerClientData)
+	if res != nil {
+		return *res
+	}
+	payload := requestSortCollectionToPayload(dto)
+
+	group = c.managerGroup.SortCollections(user, group, payload)
+
+	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
+
+	ids := make([]string, len(dtos))
+	for i, v := range dtos {
+		ids[i] = v.Collection.Id
+	}
+
+	return result.JsonOk(ids)
+}
+
+func (c *ControllerCollection) docSortRequests() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Sorts the requests inside a specific collection based on the provided node order.",
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
+		},
+		Request: docs.DocJsonPayload[[]requestSortNodes](),
+		Responses: docs.DocResponses{
+			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	id := r.PathValue(ID_COLLECTION)
+	if id == "" {
+		return result.Reject(http.StatusNotFound)
+	}
+
+	dto, res := router.InputJson[*requestSortNodes](r)
+	if res != nil {
+		return *res
+	}
+
+	payload := requestSortCollectionToPayload(dto)
+
+	collection := c.managerCollection.SortCollectionRequestById(user, id, payload)
+
+	return result.Ok(collection.Id)
+}
+
+func (c *ControllerCollection) docExportAll() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Exports all collections for the authenticated user.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]dto.DtoRequest](),
+		},
+	}
+}
+
+func (c *ControllerCollection) exportAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	group, resultStatus := findUserCollections(user, c.managerClientData)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	dtos := c.managerCollection.Export(user, group.Nodes...)
+
+	return result.JsonOk(dtos)
+}
+
+func (c *ControllerCollection) docExportMany() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Exports defined collections for the authenticated user.",
+		Request:     docs.DocJsonPayload[[]string](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]dto.DtoRequest](),
+		},
+	}
+}
+
+func (c *ControllerCollection) exportMany(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	ids, res := router.InputJson[[]string](r)
+	if res != nil {
+		return *res
+	}
+
+	dtos := c.managerCollection.ExportList(user, ids...)
+
+	return result.JsonOk(dtos)
 }
 
 func (c *ControllerCollection) docOpenApi() docs.DocRoute {
@@ -172,75 +290,6 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 
 	reqs := dto.ToRequests(dtos...)
 	_, collection := c.managerGroup.ImportRequestsById(user, group, id, reqs...)
-
-	return result.Ok(collection.Id)
-}
-
-func (c *ControllerCollection) docSort() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Sorts the collections in the user group according to the provided node structure.",
-		Request:     docs.DocJsonPayload[requestSortNodes](),
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]string](ID_COLLECTION_DESCRIPTION),
-		},
-	}
-}
-
-func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	user := findUser(ctx)
-
-	dto, res := router.InputJson[*requestSortNodes](r)
-	if res != nil {
-		return *res
-	}
-
-	group, res := findUserCollections(user, c.managerClientData)
-	if res != nil {
-		return *res
-	}
-	payload := requestSortCollectionToPayload(dto)
-
-	group = c.managerGroup.SortCollections(user, group, payload)
-
-	dtos := c.managerCollection.FindLiteCollectionNodes(user, group.Nodes)
-
-	ids := make([]string, len(dtos))
-	for i, v := range dtos {
-		ids[i] = v.Collection.Id
-	}
-
-	return result.JsonOk(ids)
-}
-
-func (c *ControllerCollection) docSortRequests() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Sorts the requests inside a specific collection based on the provided node order.",
-		Parameters: docs.DocOrderParameters{
-			docs.Parameter(ID_COLLECTION, ID_COLLECTION_DESCRIPTION),
-		},
-		Request: docs.DocJsonPayload[[]requestSortNodes](),
-		Responses: docs.DocResponses{
-			"200": docs.DocText(ID_COLLECTION_DESCRIPTION),
-		},
-	}
-}
-
-func (c *ControllerCollection) sortRequests(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	user := findUser(ctx)
-
-	id := r.PathValue(ID_COLLECTION)
-	if id == "" {
-		return result.Reject(http.StatusNotFound)
-	}
-
-	dto, res := router.InputJson[*requestSortNodes](r)
-	if res != nil {
-		return *res
-	}
-
-	payload := requestSortCollectionToPayload(dto)
-
-	collection := c.managerCollection.SortCollectionRequestById(user, id, payload)
 
 	return result.Ok(collection.Id)
 }

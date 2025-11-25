@@ -50,14 +50,23 @@ func NewControllerMock(
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/response/step", instance.docBridgeStep()).
-		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/response/cond", instance.docBridgeCond()).
+		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/response/to/step", instance.docBridgeStep()).
+		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/response/from/step", instance.docBridgeCond()).
+		
 		RouteDocument(http.MethodPut, instance.sortEndPoint, "sort/mock/endpoint", instance.docSortEndPoint()).
+		
+		RouteDocument(http.MethodGet, instance.exportAll, "export/mock/endpoint", instance.docExportAll()).
+		RouteDocument(http.MethodPost, instance.exportMany, "export/mock/endpoint", instance.docExportMany()).
+		RouteDocument(http.MethodPost, instance.importMany, "import/mock/endpoint", instance.docImportMany()).
+
 		RouteDocument(http.MethodGet, instance.findAll, "mock/endpoint", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "mock/endpoint/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock/endpoint", instance.docInsert()).
+		RouteDocument(http.MethodDelete, instance.remove, "mock/endpoint/{%s}", instance.docRemove()).
+
 		RouteDocument(http.MethodGet, instance.findMetrics, "mock/metrics/endpoint/{%s}", instance.docFindMetrics()).
 		RouteDocument(http.MethodDelete, instance.removeMetrics, "mock/metrics/endpoint/{%s}", instance.docRemoveMetrics()).
+
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodPost, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -153,6 +162,65 @@ func (c *ControllerMock) sortEndPoint(w http.ResponseWriter, r *http.Request, ct
 	return result.Ok(ids.Collect())
 }
 
+func (c *ControllerMock) docExportAll() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Export all mock end-points for the authenticated user.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]mock.EndPoint](),
+		},
+	}
+}
+
+func (c *ControllerMock) exportAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	endPoints := c.managerEndPoint.Export(user)
+	return result.JsonOk(endPoints)
+}
+
+func (c *ControllerMock) docExportMany() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Export defined mock end-points for the authenticated user.",
+		Request: docs.DocJsonPayload[[]string](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]mock.EndPoint](),
+		},
+	}
+}
+
+func (c *ControllerMock) exportMany(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	ids, res := router.InputJson[[]string](r)
+	if res != nil {
+		return *res
+	}
+
+	endPoints := c.managerEndPoint.ExportList(user, ids...)
+	return result.JsonOk(endPoints)
+}
+
+func (c *ControllerMock) docImportMany() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Import all provided mock end-points for the authenticated user.",
+		Request: docs.DocJsonPayload[[]mock.EndPoint](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]string](),
+		},
+	}
+}
+
+func (c *ControllerMock) importMany(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	endPoints, res := router.InputJson[[]mock.EndPoint](r)
+	if res != nil {
+		return *res
+	}
+
+	ids := c.managerEndPoint.Import(user, endPoints)
+	return result.JsonOk(ids)
+}
+
 func (c *ControllerMock) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all user mock end-points.",
@@ -227,6 +295,30 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 	go c.managerMetrics.ResolveStatus(user, endPointResult, endPointResult)
 
 	return result.Ok(endPointResult.Id)
+}
+
+func (c *ControllerMock) docRemove() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Deletes a specific mock end-point by ID.",
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_END_POINT, END_POINT_DESCRIPTION),
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocText(ID_END_POINT_DESCRIPTION),
+		},
+	}
+}
+
+func (c *ControllerMock) remove(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	id := r.PathValue(ID_END_POINT)
+
+	endPoint := c.managerEndPoint.Delete(user, id)
+	if endPoint == nil {
+		return result.Reject(http.StatusNotFound)
+	}
+
+	return result.JsonOk(endPoint)
 }
 
 func (c *ControllerMock) docFindMetrics() docs.DocRoute {

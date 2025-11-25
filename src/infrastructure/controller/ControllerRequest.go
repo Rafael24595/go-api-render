@@ -31,8 +31,12 @@ func NewControllerRequest(
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.importItems, "import/request", instance.docImportItems()).
 		RouteDocument(http.MethodPut, instance.sort, "sort/request", instance.docSort()).
+
+		RouteDocument(http.MethodGet, instance.exportAll, "export/request", instance.docExportAll()).
+		RouteDocument(http.MethodPost, instance.exportMany, "export/request", instance.docExportMany()).
+		RouteDocument(http.MethodPost, instance.importMany, "import/request", instance.docImportMany()).
+		
 		RouteDocument(http.MethodGet, instance.findAll, "request", instance.docFindAll()).
 		RouteDocument(http.MethodPost, instance.insert, "request", instance.docInsert()).
 		RouteDocument(http.MethodPut, instance.update, "request", instance.docUpdate()).
@@ -40,41 +44,6 @@ func NewControllerRequest(
 		RouteDocument(http.MethodDelete, instance.delete, "request/{%s}", instance.docDelete())
 
 	return instance
-}
-
-func (c *ControllerRequest) docImportItems() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Imports multiple requests into the user's default collection.",
-		Request:     docs.DocJsonPayload[[]dto.DtoRequest](),
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]string](),
-		},
-	}
-}
-
-func (c *ControllerRequest) importItems(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	user := findUser(ctx)
-
-	dtos, res := router.InputJson[[]dto.DtoRequest](r)
-	if res != nil {
-		return *res
-	}
-
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
-	if resultStatus != nil {
-		return *resultStatus
-	}
-
-	reqs := dto.ToRequests(dtos...)
-	collection = c.managerCollection.ImportRequests(user, collection, reqs...)
-	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
-
-	ids := make([]string, len(nodes))
-	for i, v := range nodes {
-		ids[i] = v.Request.Id
-	}
-
-	return result.JsonOk(ids)
 }
 
 func (c *ControllerRequest) docSort() docs.DocRoute {
@@ -105,6 +74,88 @@ func (c *ControllerRequest) sort(w http.ResponseWriter, r *http.Request, ctx *ro
 	collection = c.managerCollection.SortCollectionRequest(user, collection, payload)
 
 	return result.Ok(collection.Id)
+}
+
+func (c *ControllerRequest) docExportAll() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Exports all requests from the user's default collection.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]dto.DtoRequest](),
+		},
+	}
+}
+
+func (c *ControllerRequest) exportAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	reqs := c.managerRequest.Export(user, collection.Nodes...)
+	dtos := dto.FromRequests(reqs...)
+
+	return result.JsonOk(dtos)
+}
+
+func (c *ControllerRequest) docExportMany() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Exports defined requests from the user's default collection.",
+		Request:     docs.DocJsonPayload[[]string](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]dto.DtoRequest](),
+		},
+	}
+}
+
+func (c *ControllerRequest) exportMany(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	ids, res := router.InputJson[[]string](r)
+	if res != nil {
+		return *res
+	}
+
+	reqs := c.managerRequest.ExportList(user, ids...)
+	dtos := dto.FromRequests(reqs...)
+
+	return result.JsonOk(dtos)
+}
+
+func (c *ControllerRequest) docImportMany() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Imports multiple requests into the user's default collection.",
+		Request:     docs.DocJsonPayload[[]dto.DtoRequest](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[[]string](),
+		},
+	}
+}
+
+func (c *ControllerRequest) importMany(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+
+	dtos, res := router.InputJson[[]dto.DtoRequest](r)
+	if res != nil {
+		return *res
+	}
+
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	if resultStatus != nil {
+		return *resultStatus
+	}
+
+	reqs := dto.ToRequests(dtos...)
+	collection = c.managerCollection.ImportRequests(user, collection, reqs...)
+	nodes := c.managerCollection.FindLiteRequestNodes(user, collection)
+
+	ids := make([]string, len(nodes))
+	for i, v := range nodes {
+		ids[i] = v.Request.Id
+	}
+
+	return result.JsonOk(ids)
 }
 
 func (c *ControllerRequest) docFindAll() docs.DocRoute {
