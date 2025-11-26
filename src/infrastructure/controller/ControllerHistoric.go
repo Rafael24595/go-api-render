@@ -42,7 +42,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[responseSignedPaylaod[[]dto.DtoLiteNodeRequest]](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]action_domain.NodeRequestLite]](),
 		},
 	}
 }

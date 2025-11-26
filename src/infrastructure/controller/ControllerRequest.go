@@ -36,7 +36,7 @@ func NewControllerRequest(
 		RouteDocument(http.MethodGet, instance.exportAll, "export/request", instance.docExportAll()).
 		RouteDocument(http.MethodPost, instance.exportMany, "export/request", instance.docExportMany()).
 		RouteDocument(http.MethodPost, instance.importMany, "import/request", instance.docImportMany()).
-		
+
 		RouteDocument(http.MethodGet, instance.findAll, "request", instance.docFindAll()).
 		RouteDocument(http.MethodPost, instance.insert, "request", instance.docInsert()).
 		RouteDocument(http.MethodPut, instance.update, "request", instance.docUpdate()).
@@ -162,7 +162,7 @@ func (c *ControllerRequest) docFindAll() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves all request nodes (lite version) from the user's default collection.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[responseSignedPaylaod[[]dto.DtoLiteNodeRequest]](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]action_domain.NodeRequestLite]](),
 		},
 	}
 }
