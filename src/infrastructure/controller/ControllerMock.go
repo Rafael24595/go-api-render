@@ -408,7 +408,7 @@ func (c *ControllerMock) call(w http.ResponseWriter, r *http.Request, ctx *route
 
 	w.WriteHeader(response.Code)
 
-	for _, v := range response.Headers {
+	for _, v := range response.Arguments {
 		if !v.Status {
 			continue
 		}
@@ -472,7 +472,11 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 		return strings.Join(h, ", ")
 	})
 
-	response, ok := mock.FindResponse(string(payload), headers.Collect(), endPoint)
+	queries := collection.MapToDictionary(r.URL.Query(), func(k string, h []string) string {
+		return strings.Join(h, ", ")
+	})
+
+	response, ok := mock.FindResponse(string(payload), headers.Merge(queries).Collect(), endPoint)
 	if !ok {
 		res := result.TextErr(http.StatusNotFound, "the resource does not have a defined default response")
 		return nil, &res
