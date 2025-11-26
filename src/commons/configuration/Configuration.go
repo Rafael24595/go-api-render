@@ -208,3 +208,17 @@ func (c Configuration) EnableSecrets() bool {
 func (c Configuration) EnableUserToken() bool {
 	return c.enableUserToken
 }
+
+func (c Configuration) DefaultProtocol() string {
+	if c.EnableTLS() {
+		return "https"
+	}
+	return "http"
+}
+
+func (c Configuration) DefaultPort() int {
+	if c.EnableTLS() {
+		return c.PortTLS()
+	}
+	return c.Port()
+}

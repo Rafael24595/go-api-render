@@ -92,7 +92,7 @@ func NewController(
 	NewControllerContext(route, managerContext, managerClientData)
 	NewControllerCollection(route, managerCollection, managerGroup, managerClientData)
 	NewControllerCurl(route, managerRequest, managerCollection, managerGroup,
-		 managerContext, managerClientData)
+		 managerContext, managerEndPoint, managerClientData)
 	NewControllerMock(route, managerToken, managerEndPoint, managerMetrics)
 	NewControllerToken(route, managerToken)
 
