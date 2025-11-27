@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -12,7 +13,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
 	"github.com/Rafael24595/go-api-core/src/domain/mock/swr"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
+	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-collections/collection"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
@@ -50,23 +53,24 @@ func NewControllerMock(
 	}
 
 	router.
-		RouteDocument(http.MethodPost, instance.bridgeStep, "bridge/mock/response/to/step", instance.docBridgeStep()).
-		RouteDocument(http.MethodPost, instance.bridgeCond, "bridge/mock/response/from/step", instance.docBridgeCond()).
-		
+		RouteDocument(http.MethodPost, instance.bridgeStpToCnd, "bridge/mock/response/to/step", instance.docBridgeStpToCnd()).
+		RouteDocument(http.MethodPost, instance.bridgeCndToStp, "bridge/mock/response/from/step", instance.docBridgeCndToStp()).
+		RouteDocument(http.MethodGet, instance.bridgeEndToReq, "bridge/mock/endpoint/{%s}/to/request", instance.docBridgeEndToReq()).
+		//
 		RouteDocument(http.MethodPut, instance.sortEndPoint, "sort/mock/endpoint", instance.docSortEndPoint()).
-		
+		//
 		RouteDocument(http.MethodGet, instance.exportAll, "export/mock/endpoint", instance.docExportAll()).
 		RouteDocument(http.MethodPost, instance.exportMany, "export/mock/endpoint", instance.docExportMany()).
 		RouteDocument(http.MethodPost, instance.importMany, "import/mock/endpoint", instance.docImportMany()).
-
+		//
 		RouteDocument(http.MethodGet, instance.findAll, "mock/endpoint", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "mock/endpoint/{%s}", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "mock/endpoint", instance.docInsert()).
 		RouteDocument(http.MethodDelete, instance.remove, "mock/endpoint/{%s}", instance.docRemove()).
-
+		//
 		RouteDocument(http.MethodGet, instance.findMetrics, "mock/metrics/endpoint/{%s}", instance.docFindMetrics()).
 		RouteDocument(http.MethodDelete, instance.removeMetrics, "mock/metrics/endpoint/{%s}", instance.docRemoveMetrics()).
-
+		//
 		RouteDocument(http.MethodGet, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodHead, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
 		RouteDocument(http.MethodPost, instance.call, "mock/call/{%s}/{%s...}", instance.docMockCall()).
@@ -80,7 +84,7 @@ func NewControllerMock(
 	return instance
 }
 
-func (c *ControllerMock) docBridgeStep() docs.DocRoute {
+func (c *ControllerMock) docBridgeStpToCnd() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Translated the text input of SWR into a Steps vector.",
 		Request:     docs.DocText(SWR_INPUT_DESCRIPTION),
@@ -91,7 +95,7 @@ func (c *ControllerMock) docBridgeStep() docs.DocRoute {
 	}
 }
 
-func (c *ControllerMock) bridgeStep(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+func (c *ControllerMock) bridgeStpToCnd(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	input, res := router.InputText(r)
 	if res != nil {
 		return *res
@@ -107,7 +111,7 @@ func (c *ControllerMock) bridgeStep(w http.ResponseWriter, r *http.Request, ctx 
 	return result.JsonOk(steps)
 }
 
-func (c *ControllerMock) docBridgeCond() docs.DocRoute {
+func (c *ControllerMock) docBridgeCndToStp() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Translated the steps input into a SWR sentence.",
 		Request:     docs.DocJsonPayload[[]swr.Step](),
@@ -118,7 +122,7 @@ func (c *ControllerMock) docBridgeCond() docs.DocRoute {
 	}
 }
 
-func (c *ControllerMock) bridgeCond(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+func (c *ControllerMock) bridgeCndToStp(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	steps, res := router.InputJson[[]swr.Step](r)
 	if res != nil {
 		return *res
@@ -132,6 +136,39 @@ func (c *ControllerMock) bridgeCond(w http.ResponseWriter, r *http.Request, ctx 
 	}
 
 	return result.TextOk(output)
+}
+
+func (c *ControllerMock) docBridgeEndToReq() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Translated the steps input into a SWR sentence.",
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_END_POINT, END_POINT_DESCRIPTION),
+		},
+		Responses: docs.DocResponses{
+			"200": docs.DocText(SWR_INPUT_DESCRIPTION),
+			"422": docs.DocJsonPayload[[]string](),
+		},
+	}
+}
+
+func (c *ControllerMock) bridgeEndToReq(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	user := findUser(ctx)
+	id := r.PathValue(ID_END_POINT)
+
+	if id == "" {
+		return result.Reject(http.StatusNotFound)
+	}
+
+	endPoint, ok := c.managerEndPoint.Find(user, id)
+	if !ok {
+		return result.Reject(http.StatusNotFound)
+	}
+
+	server := mockEndPointPath(endPoint)
+	request := mock.ToRequest(server, endPoint)
+	dto := dto.FromRequest(request)
+
+	return result.JsonOk(dto)
 }
 
 func (c *ControllerMock) docSortEndPoint() docs.DocRoute {
@@ -180,7 +217,7 @@ func (c *ControllerMock) exportAll(w http.ResponseWriter, r *http.Request, ctx *
 func (c *ControllerMock) docExportMany() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Export defined mock end-points for the authenticated user.",
-		Request: docs.DocJsonPayload[[]string](),
+		Request:     docs.DocJsonPayload[[]string](),
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[[]mock.EndPoint](),
 		},
@@ -202,7 +239,7 @@ func (c *ControllerMock) exportMany(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerMock) docImportMany() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Import all provided mock end-points for the authenticated user.",
-		Request: docs.DocJsonPayload[[]mock.EndPoint](),
+		Request:     docs.DocJsonPayload[[]mock.EndPoint](),
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[[]string](),
 		},
@@ -483,4 +520,11 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 	}
 
 	return response, nil
+}
+
+func mockEndPointPath(endPoint *mock.EndPoint) string {
+	config := configuration.Instance()
+	protocol := config.DefaultProtocol()
+	port := config.DefaultPort()
+	return fmt.Sprintf("%s://localhost:%d/api/v1/mock/call/%s", protocol, port, endPoint.Owner)
 }

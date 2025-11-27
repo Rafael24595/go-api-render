@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/formatter/curl"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
-	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -203,17 +201,14 @@ func (c *ControllerCurl) toCurlWithContext(context *context.Context, request *ac
 }
 
 func (c *ControllerCurl) endPointToCurl(endPoint *mock.EndPoint, inline bool) result.Result {
-	config := configuration.Instance()
-	protocol := config.DefaultProtocol()
-	port := config.DefaultPort()
-
-	server := fmt.Sprintf("%s://localhost:%d/api/v1/mock/call/%s", protocol, port, endPoint.Owner)
-
+	server := mockEndPointPath(endPoint)
 	request := mock.ToRequest(server, endPoint)
+
 	curl, err := curl.Marshal(request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
+
 	return result.Ok(curl)
 }
 
