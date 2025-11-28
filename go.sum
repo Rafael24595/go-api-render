@@ -4,8 +4,8 @@ github.com/Rafael24595/go-collections v0.5.1 h1:bYgKai6doZxFJexDlGWaM9xl+KSPm58h
 github.com/Rafael24595/go-collections v0.5.1/go.mod h1:X9aAFvQP7Plo+Czy49reqNZSikoo0jggEG88dyhzAoE=
 github.com/Rafael24595/go-csvt v0.2.3 h1:uKl7RbQGtG1ZGNUdccTQWyTqzVQFa8/SAAjhVDEtGxc=
 github.com/Rafael24595/go-csvt v0.2.3/go.mod h1:sBdvIkHy18xzicq5Phtr92ULj3e/aELDjhR1EkVTEbM=
-github.com/Rafael24595/go-web v0.7.2 h1:OatVDZ6+fdVpuHXksEPeupqe6FRg+jlaQzPCEgmhsOc=
-github.com/Rafael24595/go-web v0.7.2/go.mod h1:NDrNXNuDOZec+iW0X/HPh2naPAWYtr/BjcxoRWrw1gU=
+github.com/Rafael24595/go-web v0.7.3 h1:EGrUOG2OQ+O4sOv32lQKyMT4ME+qGfsd0D7bHXtZZW4=
+github.com/Rafael24595/go-web v0.7.3/go.mod h1:Sweoknxkfys5XAZ3Lprb+LdV2vRoWzMInkUv4iot57Y=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-openapi/jsonpointer v0.22.1 h1:sHYI1He3b9NqJ4wXLoJDKmUmHkWy/L7rtEo92JUxBNk=
