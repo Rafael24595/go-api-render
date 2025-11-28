@@ -201,13 +201,8 @@ func (c *ControllerCurl) toCurlWithContext(context *context.Context, request *ac
 }
 
 func (c *ControllerCurl) endPointToCurl(endPoint *mock.EndPoint, inline bool) result.Result {
-	server := mockEndPointPath(endPoint)
-	request := mock.ToRequest(server, endPoint)
-
-	if endPoint.Safe {
-		request.Cookie.Put(AUTH_TOKEN, AUTH_TOKEN)
-	}
-
+	request := endPointToRequest(endPoint)
+	
 	curl, err := curl.Marshal(request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)

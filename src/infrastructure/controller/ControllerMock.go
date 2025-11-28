@@ -164,8 +164,7 @@ func (c *ControllerMock) bridgeEndToReq(w http.ResponseWriter, r *http.Request, 
 		return result.Reject(http.StatusNotFound)
 	}
 
-	server := mockEndPointPath(endPoint)
-	request := mock.ToRequest(server, endPoint)
+	request := endPointToRequest(endPoint)
 	dto := dto.FromRequest(request)
 
 	return result.JsonOk(dto)
@@ -520,6 +519,17 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 	}
 
 	return response, nil
+}
+
+func endPointToRequest(endPoint *mock.EndPoint) *action.Request {
+	server := mockEndPointPath(endPoint)
+	request := mock.ToRequest(server, endPoint)
+
+	if endPoint.Safe {
+		request.Cookie.Put(AUTH_TOKEN, AUTH_TOKEN)
+	}
+
+	return request
 }
 
 func mockEndPointPath(endPoint *mock.EndPoint) string {
