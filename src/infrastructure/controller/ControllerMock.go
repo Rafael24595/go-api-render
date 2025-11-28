@@ -376,7 +376,7 @@ func (c *ControllerMock) findMetrics(w http.ResponseWriter, r *http.Request, ctx
 
 	endPoint, ok := c.managerEndPoint.Find(user, id)
 	if !ok {
-		return result.JsonOk(http.StatusNotFound)
+		return result.Err(http.StatusNotFound)
 	}
 
 	metrics, ok := c.managerMetrics.Find(user, endPoint)
@@ -475,7 +475,7 @@ func (c *ControllerMock) authRequest(r *http.Request, owner string, endPoint *mo
 	}
 
 	cookie, err := r.Cookie(AUTH_TOKEN)
-	if err == nil {
+	if err != nil {
 		return result.Err(http.StatusUnauthorized, err)
 	}
 
