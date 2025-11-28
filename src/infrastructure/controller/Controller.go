@@ -73,6 +73,7 @@ func NewController(
 			"curl",
 			"token",
 			"mock/endpoint",
+			"mock/metrics/",
 			"bridge/mock/endpoint",
 		).
 		Cors(router.PermissiveCors())
