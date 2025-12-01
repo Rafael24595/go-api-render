@@ -3,10 +3,14 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/domain"
+	"github.com/Rafael24595/go-api-core/src/domain/action"
+	"github.com/Rafael24595/go-api-core/src/domain/collection"
+	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
@@ -26,7 +30,8 @@ const (
 const BASE_PATH = "/api/v1/"
 
 type Controller struct {
-	router *router.Router
+	router       *router.Router
+	managerToken *repository.ManagerToken
 }
 
 func NewController(
@@ -35,9 +40,14 @@ func NewController(
 	managerContext *repository.ManagerContext,
 	managerCollection *repository.ManagerCollection,
 	managerHisotric *repository.ManagerHistoric,
-	managerGroup *repository.ManagerGroup) Controller {
+	managerGroup *repository.ManagerGroup,
+	managerEndPoint *repository.ManagerEndPoint,
+	managerMetrics *repository.ManagerMetrics,
+	managerToken *repository.ManagerToken,
+	managerClientData *repository.ManagerClientData) Controller {
 	instance := Controller{
-		router: route,
+		router:       route,
+		managerToken: managerToken,
 	}
 
 	if configuration.Instance().Front.Enabled {
@@ -52,6 +62,7 @@ func NewController(
 		).
 		GroupContextualizerDocument(instance.authHard, docAuthHard,
 			"system/log",
+			"system/cmd",
 			"action",
 			"import",
 			"sort",
@@ -59,7 +70,11 @@ func NewController(
 			"historic",
 			"request",
 			"collection",
-			"format",
+			"curl",
+			"token",
+			"mock/endpoint",
+			"mock/metrics/",
+			"bridge/mock/endpoint",
 		).
 		Cors(router.PermissiveCors())
 
@@ -74,11 +89,14 @@ func NewController(
 	NewControllerSystem(route)
 	NewControllerLogin(route)
 	NewControllerActions(route)
-	NewControllerRequest(route, managerRequest, managerCollection)
-	NewControllerHistoric(route, managerRequest, managerHisotric)
-	NewControllerContext(route, managerContext)
-	NewControllerCollection(route, managerCollection, managerGroup)
-	NewControllerFormat(route, managerRequest, managerContext)
+	NewControllerRequest(route, managerRequest, managerCollection, managerClientData)
+	NewControllerHistoric(route, managerRequest, managerHisotric, managerClientData)
+	NewControllerContext(route, managerContext, managerClientData)
+	NewControllerCollection(route, managerCollection, managerGroup, managerClientData)
+	NewControllerCurl(route, managerRequest, managerCollection, managerGroup,
+		 managerContext, managerEndPoint, managerClientData)
+	NewControllerMock(route, managerToken, managerEndPoint, managerMetrics)
+	NewControllerToken(route, managerToken)
 
 	return instance
 }
@@ -86,6 +104,7 @@ func NewController(
 var docAuthSoft = docs.DocGroup{
 	Cookies: docs.DocParameters{
 		AUTH_COOKIE: AUTH_COOKIE_DESCRIPTION,
+		AUTH_TOKEN:  AUTH_TOKEN_DESCRIPTION,
 	},
 	Responses: docs.DocResponses{
 		"401": docs.DocText(AUTH_401),
@@ -94,7 +113,12 @@ var docAuthSoft = docs.DocGroup{
 }
 
 func (c *Controller) authSoft(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
-	user := domain.ANONYMOUS_OWNER
+	user := action.ANONYMOUS_OWNER
+
+	if owner, res := c.authToken(r); res.Ok() {
+		context.Put(USER, owner)
+		return result.Ok(context)
+	}
 
 	token, err := r.Cookie(AUTH_COOKIE)
 	if err != nil {
@@ -136,6 +160,37 @@ var docAuthHard = docs.DocGroup{
 	},
 }
 
+func (c *Controller) authToken(r *http.Request) (string, result.Result) {
+	conf := configuration.Instance()
+	if !conf.EnableUserToken() {
+		return "", result.TextErr(http.StatusUnauthorized, "auth token authentication is not allowed")
+	}
+
+	cookie, err := r.Cookie(AUTH_TOKEN)
+	if err != nil {
+		return "", result.Err(http.StatusUnauthorized, err)
+	}
+
+	if cookie == nil {
+		return "", result.Reject(http.StatusUnauthorized)
+	}
+
+	tkn, ok := c.managerToken.FindGlobal(cookie.Value)
+	if !ok {
+		return "", result.Err(http.StatusForbidden, err)
+	}
+
+	if tkn.IsExipred() {
+		return "", result.TextErr(http.StatusUnauthorized, "the provided token has expired")
+	}
+
+	if !slices.Contains(tkn.Scopes, token.ScopeAPIToken) {
+		return "", result.TextErr(http.StatusUnauthorized, "the provided token does not have the necessary permissions")
+	}
+
+	return tkn.Owner, result.Next()
+}
+
 func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context *router.Context) result.Result {
 	res := c.authSoft(w, r, context)
 	if res.Err() {
@@ -170,7 +225,7 @@ func (c *Controller) authHard(w http.ResponseWriter, r *http.Request, context *r
 
 func findUser(ctx *router.Context) string {
 	return ctx.Getz(USER).
-		Stringd(domain.ANONYMOUS_OWNER)
+		Stringd(action.ANONYMOUS_OWNER)
 }
 
 func findSession(user string) (*session.Session, *result.Result) {
@@ -183,9 +238,8 @@ func findSession(user string) (*session.Session, *result.Result) {
 	return session, nil
 }
 
-func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserHistoric(user)
+func findTransientCollection(user string, client *repository.ManagerClientData) (*collection.Collection, *result.Result) {
+	collection, err := client.FindTransient(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result
@@ -193,9 +247,8 @@ func findHistoricCollection(user string) (*domain.Collection, *result.Result) {
 	return collection, nil
 }
 
-func findUserCollection(user string) (*domain.Collection, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	collection, err := sessions.FindUserCollection(user)
+func findPersistentCollection(user string, client *repository.ManagerClientData) (*collection.Collection, *result.Result) {
+	collection, err := client.FindPersistent(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result
@@ -204,9 +257,8 @@ func findUserCollection(user string) (*domain.Collection, *result.Result) {
 	return collection, nil
 }
 
-func findUserGroup(user string) (*domain.Group, *result.Result) {
-	sessions := repository.InstanceManagerSession()
-	group, err := sessions.FindUserGroup(user)
+func findUserCollections(user string, client *repository.ManagerClientData) (*domain.Group, *result.Result) {
+	group, err := client.FindCollections(user)
 	if err != nil {
 		result := result.Err(http.StatusInternalServerError, err)
 		return nil, &result

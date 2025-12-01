@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"regexp"
 	"sync"
 	"time"
 
@@ -14,6 +15,8 @@ const defaultPort = 8080
 const defaultCert = "./cert/cert.pem"
 const defaultKey = "./cert/key.pem"
 
+const devRelease = `^(v\d.*\d*.\d*)-(dev.\d*)$`
+
 var (
 	instance *Configuration
 	once     sync.Once
@@ -21,28 +24,29 @@ var (
 
 type Configuration struct {
 	core_configuration.Configuration
-	Release       *core_configuration.Release
-	Front         FrontPackage
-	debug         bool
-	port          int
-	onlyTLS       bool
-	portTLS       int
-	certTLS       string
-	keyTLS        string
-	enableSecrets bool
+	Release         *core_configuration.Release
+	Front           FrontPackage
+	debug           bool
+	port            int
+	onlyTLS         bool
+	portTLS         int
+	certTLS         string
+	keyTLS          string
+	enableSecrets   bool
+	enableUserToken bool
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Argument, frontPackage *FrontPackage) Configuration {
 	once.Do(func() {
 		debug := kargs["GO_API_DEBUG"].Boold(false)
 
-		port, ok := kargs["GO_API_SERVER_PORT"].Int()
+		port, ok := kargs["GAR_SERVER_PORT"].Int()
 		if !ok {
 			log.Messagef("Custom port flag is not defined; using default port %d", defaultPort)
 			port = defaultPort
 		}
 
-		front := kargs["GO_API_SERVER_FRONT"].Boold(false)
+		front := kargs["GAR_SERVER_FRONT"].Boold(false)
 		if !front {
 			log.Message("Front flag is not defined; the frontend application will not be displayed")
 			front = false
@@ -56,18 +60,20 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 			frontPackage.Version = ""
 		}
 
-		enableSecrets := kargs["GO_API_ENABLE_SECRETS"].Boold(false)
+		enableSecrets := kargs["GAR_MISC_SECRETS"].Boold(false)
+		enableUserToken := kargs["GAR_AUTH_USER_TOKEN"].Boold(false)
 
 		instance = &Configuration{
-			Configuration: *core,
-			Front:         *frontPackage,
-			debug:         debug,
-			port:          port,
-			onlyTLS:       onlyTLS,
-			portTLS:       portTLS,
-			certTLS:       certTLS,
-			keyTLS:        keyTLS,
-			enableSecrets: enableSecrets,
+			Configuration:   *core,
+			Front:           *frontPackage,
+			debug:           debug,
+			port:            port,
+			onlyTLS:         onlyTLS,
+			portTLS:         portTLS,
+			certTLS:         certTLS,
+			keyTLS:          keyTLS,
+			enableSecrets:   enableSecrets,
+			enableUserToken: enableUserToken,
 		}
 
 		go instance.originLastVersion(kargs)
@@ -81,14 +87,14 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 }
 
 func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
-	if tls, _ := kargs["GO_API_SERVER_ENABLE_TLS"].Bool(); !tls {
+	if tls, _ := kargs["GAR_SERVER_TLS"].Bool(); !tls {
 		return 0, "", "", false
 	}
 
-	onlyTLS := kargs["GO_API_SERVER_ONLY_TLS"].Boold(false)
-	portTLS := kargs["GO_API_SERVER_PORT_TLS"].Intd(0)
+	onlyTLS := kargs["GAR_SERVER_TLS_ONLY"].Boold(false)
+	portTLS := kargs["GAR_SERVER_TLS_PORT"].Intd(0)
 
-	certTLS := kargs["GO_API_SERVER_CERT"].String()
+	certTLS := kargs["GAR_SERVER_TLS_CERT"].String()
 	if certTLS == "" {
 		_, err := os.Stat(defaultCert)
 		if !os.IsNotExist(err) {
@@ -97,7 +103,7 @@ func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
 		}
 	}
 
-	keyTLS := kargs["GO_API_SERVER_KEY"].String()
+	keyTLS := kargs["GAR_SERVER_TLS_KEY"].String()
 	if keyTLS == "" {
 		_, err := os.Stat(defaultKey)
 		if !os.IsNotExist(err) {
@@ -122,7 +128,7 @@ func tlsArgs(kargs map[string]utils.Argument) (int, string, string, bool) {
 }
 
 func (c *Configuration) originLastVersion(kargs map[string]utils.Argument) {
-	releaseTime, ok := kargs["GO_API_FETCH_RELEASE_TIME"].Int()
+	releaseTime, ok := kargs["GAR_RELEASE_TIME"].Int()
 	if !ok || releaseTime < 1 {
 		log.Message("Fetch release time is not defined; new releases will not be fetched")
 		return
@@ -152,7 +158,8 @@ func fetchLastVersion(c *Configuration) {
 
 	release := core_configuration.OriginLastVersion("Rafael24595", "go-api-render")
 	if release != nil {
-		if release.TagName != c.Project.Version {
+		re := regexp.MustCompile(devRelease)
+		if !re.MatchString(release.TagName) && release.TagName != c.Project.Version {
 			log.Messagef("New release has been found %s", release.TagName)
 		}
 		c.Release = release
@@ -196,4 +203,22 @@ func (c Configuration) KeyTLS() string {
 
 func (c Configuration) EnableSecrets() bool {
 	return c.enableSecrets
+}
+
+func (c Configuration) EnableUserToken() bool {
+	return c.enableUserToken
+}
+
+func (c Configuration) DefaultProtocol() string {
+	if c.EnableTLS() {
+		return "https"
+	}
+	return "http"
+}
+
+func (c Configuration) DefaultPort() int {
+	if c.EnableTLS() {
+		return c.PortTLS()
+	}
+	return c.Port()
 }

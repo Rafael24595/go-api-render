@@ -32,7 +32,11 @@ func main() {
 		container.ManagerContext,
 		container.ManagerCollection,
 		container.ManagerHistoric,
-		container.ManagerGroup)
+		container.ManagerGroup,
+		container.ManagerEndPoint,
+		container.ManagerMetrics,
+		container.ManagerToken,
+		container.ManagerClientData)
 
 	go listen(config, route)
 

@@ -3,10 +3,23 @@ package controller
 import (
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router/docs"
 )
+
+type responseSignedPaylaod[T any] struct {
+	Owner   string `json:"owner"`
+	Payload T      `json:"payload"`
+}
+
+func signPayload[T any](owner string, payload T) responseSignedPaylaod[T] {
+	return responseSignedPaylaod[T]{
+		Owner: owner,
+		Payload: payload,
+	}
+}
 
 type responseAction struct {
 	Request  dto.DtoRequest  `json:"request"`
@@ -14,14 +27,10 @@ type responseAction struct {
 }
 
 type responseUserData struct {
-	Username    string `json:"username"`
-	Timestamp   int64  `json:"timestamp"`
-	History     string `json:"history"`
-	Collection  string `json:"collection"`
-	Context     string `json:"context"`
-	IsProtected bool   `json:"is_protected"`
-	IsAdmin     bool   `json:"is_admin"`
-	FirstTime   bool   `json:"first_time"`
+	Username   string         `json:"username"`
+	Timestamp  int64          `json:"timestamp"`
+	FirstTime  bool           `json:"first_time"`
+	Roles      []session.Role `json:"roles"`
 }
 
 type responseSystemMetadata struct {

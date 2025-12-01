@@ -14,16 +14,19 @@ const ID_CONTEXT = "id_context"
 const ID_CONTEXT_DESCRIPTION = "Context ID"
 
 type ControllerContext struct {
-	router         *router.Router
-	managerContext *repository.ManagerContext
+	router            *router.Router
+	managerContext    *repository.ManagerContext
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerContext(
 	router *router.Router,
-	managerContext *repository.ManagerContext) ControllerContext {
+	managerContext *repository.ManagerContext,
+	managerClientData *repository.ManagerClientData) ControllerContext {
 	instance := ControllerContext{
-		router:         router,
-		managerContext: managerContext,
+		router:            router,
+		managerContext:    managerContext,
+		managerClientData: managerClientData,
 	}
 
 	instance.router.
@@ -71,7 +74,7 @@ func (c *ControllerContext) docFindFromUser() docs.DocRoute {
 func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findUserCollection(user)
+	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -115,8 +118,8 @@ func (c *ControllerContext) update(w http.ResponseWriter, r *http.Request, ctx *
 func (c *ControllerContext) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Retrieves a specific context by its ID for the authenticated user.",
-		Parameters: docs.DocParameters{
-			ID_CONTEXT: ID_CONTEXT_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_CONTEXT, ID_CONTEXT_DESCRIPTION),
 		},
 	}
 }

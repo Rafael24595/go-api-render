@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Rafael24595/go-api-core/src/domain"
+	action_domain "github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -12,19 +12,22 @@ import (
 )
 
 type ControllerHistoric struct {
-	router          *router.Router
-	managerRequest  *repository.ManagerRequest
-	managerHistoric *repository.ManagerHistoric
+	router            *router.Router
+	managerRequest    *repository.ManagerRequest
+	managerHistoric   *repository.ManagerHistoric
+	managerClientData *repository.ManagerClientData
 }
 
 func NewControllerHistoric(
 	router *router.Router,
 	managerRequest *repository.ManagerRequest,
-	managerHistoric *repository.ManagerHistoric) ControllerHistoric {
+	managerHistoric *repository.ManagerHistoric,
+	managerClientData *repository.ManagerClientData) ControllerHistoric {
 	instance := ControllerHistoric{
-		router:          router,
-		managerRequest:  managerRequest,
-		managerHistoric: managerHistoric,
+		router:            router,
+		managerRequest:    managerRequest,
+		managerHistoric:   managerHistoric,
+		managerClientData: managerClientData,
 	}
 
 	router.
@@ -39,7 +42,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Fetches the list of historic requests for the current user, in lightweight format.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]dto.DtoLiteNodeRequest](),
+			"200": docs.DocJsonPayload[responseSignedPaylaod[[]action_domain.NodeRequestLite]](),
 		},
 	}
 }
@@ -47,14 +50,15 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
 
 	dtos := c.managerHistoric.FindLite(user, collection)
 
-	return result.JsonOk(dtos)
+	sign := signPayload(user, dtos)
+	return result.JsonOk(sign)
 }
 
 func (c *ControllerHistoric) docInsert() docs.DocRoute {
@@ -75,10 +79,10 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		return *res
 	}
 
-	if action.Request.Status != domain.DRAFT {
+	if action.Request.Status != action_domain.DRAFT {
 		response := c.managerRequest.InsertResponse(user, dto.ToResponse(&action.Response))
 
-		var dtoResponse *dto.DtoResponse
+		dtoResponse := &dto.DtoResponse{}
 		if response != nil {
 			dtoResponse = dto.FromResponse(response)
 		}
@@ -91,7 +95,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		return result.JsonOk(dto)
 	}
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -109,8 +113,8 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 func (c *ControllerHistoric) docDelete() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Deletes a historic request entry by ID. Returns the removed request and response.",
-		Parameters: docs.DocParameters{
-			ID_REQUEST: ID_REQUEST_DESCRIPTION,
+		Parameters: docs.DocOrderParameters{
+			docs.Parameter(ID_REQUEST, ID_REQUEST_DESCRIPTION),
 		},
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[responseAction](),
@@ -122,7 +126,7 @@ func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx 
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := findHistoricCollection(user)
+	collection, resultStatus := findTransientCollection(user, c.managerClientData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
