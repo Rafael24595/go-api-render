@@ -101,7 +101,7 @@ func (c *ControllerMock) bridgeStpToCnd(w http.ResponseWriter, r *http.Request, 
 		return *res
 	}
 
-	steps, errs := swr.UnmarshalWithOptions(string(input), swr.UnmarshalOpts{
+	steps, errs := swr.UnmarshalWithOptions(input, swr.UnmarshalOpts{
 		Evalue: true,
 	})
 	if len(errs) > 0 {
@@ -512,7 +512,7 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 		return strings.Join(h, ", ")
 	})
 
-	response, ok := mock.FindResponse(string(payload), headers.Merge(queries).Collect(), endPoint)
+	response, ok := mock.FindResponse(payload, headers.Merge(queries).Collect(), endPoint)
 	if !ok {
 		res := result.TextErr(http.StatusNotFound, "the resource does not have a defined default response")
 		return nil, &res

@@ -83,7 +83,7 @@ func (c *ControllerSystem) cmd(w http.ResponseWriter, r *http.Request, ctx *rout
 		return *res
 	}
 
-	message, err := command.Exec(string(cmd))
+	message, err := command.Exec(user, cmd)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
