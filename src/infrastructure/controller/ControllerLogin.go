@@ -34,11 +34,13 @@ func NewControllerLogin(
 	router.
 		RouteDocument(http.MethodPost, instance.login, "login", instance.docLogin()).
 		RouteDocument(http.MethodDelete, instance.logout, "login", instance.docLogout()).
+		//
 		RouteDocument(http.MethodGet, instance.refresh, "refresh", instance.docRefresh()).
+		//
 		RouteDocument(http.MethodGet, instance.user, "user", instance.docUser()).
 		RouteDocument(http.MethodPost, instance.signin, "user", instance.docSignin()).
-		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete()).
-		RouteDocument(http.MethodPut, instance.verify, "user/verify", instance.docVerify())
+		RouteDocument(http.MethodPut, instance.verify, "user", instance.docVerify()).
+		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete())
 
 	return instance
 }
@@ -210,37 +212,6 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *ro
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docDelete() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Delete the current user account and clear session data.",
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[responseUserData](),
-		},
-	}
-}
-
-func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	username := findUser(ctx)
-
-	sessions := repository.InstanceManagerSession()
-
-	user, exists := sessions.Find(username)
-	if !exists {
-		err := errors.New("user not found")
-		return result.Err(http.StatusNotFound, err)
-	}
-
-	if _, err := sessions.Delete(user); err != nil {
-		return result.Err(http.StatusForbidden, err)
-	}
-
-	eraseSession(w)
-
-	ctx.Put(USER, action.ANONYMOUS_OWNER)
-
-	return c.user(w, r, ctx)
-}
-
 func (c *ControllerLogin) docVerify() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Change the user's password by verifying the old one and setting a new one.",
@@ -275,6 +246,37 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx *ro
 	}
 
 	ctx.Put(USER, session.Username)
+
+	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) docDelete() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Delete the current user account and clear session data.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[responseUserData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+
+	sessions := repository.InstanceManagerSession()
+
+	user, exists := sessions.Find(username)
+	if !exists {
+		err := errors.New("user not found")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	if _, err := sessions.Delete(user); err != nil {
+		return result.Err(http.StatusForbidden, err)
+	}
+
+	eraseSession(w)
+
+	ctx.Put(USER, action.ANONYMOUS_OWNER)
 
 	return c.user(w, r, ctx)
 }
