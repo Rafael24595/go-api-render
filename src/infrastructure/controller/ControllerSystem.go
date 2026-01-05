@@ -137,6 +137,7 @@ func (c *ControllerSystem) cmdComp(w http.ResponseWriter, r *http.Request, ctx *
 		Message:     data.Message,
 		Application: data.Application,
 		Position:    data.Position,
+		Lenght:      data.Lenght,
 	}
 
 	return result.JsonOk(response)

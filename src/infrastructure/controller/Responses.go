@@ -85,4 +85,5 @@ type cmdCompHelp struct {
 	Message     string `json:"message"`
 	Application string `json:"application"`
 	Position    int    `json:"position"`
+	Lenght      int    `json:"lenght"`
 }
