@@ -118,7 +118,7 @@ func (c *ControllerSystem) cmdComp(w http.ResponseWriter, r *http.Request, ctx *
 
 	step := -1
 	if raw := r.URL.Query().Get(CMD_QUERY_POSITION); raw != "" {
-		if result, err := strconv.ParseInt(raw, 10, 0); err != nil {
+		if result, err := strconv.ParseInt(raw, 10, 0); err == nil {
 			step = int(result)
 		}
 	}
