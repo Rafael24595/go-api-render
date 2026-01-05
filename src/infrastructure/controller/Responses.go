@@ -16,7 +16,7 @@ type responseSignedPaylaod[T any] struct {
 
 func signPayload[T any](owner string, payload T) responseSignedPaylaod[T] {
 	return responseSignedPaylaod[T]{
-		Owner: owner,
+		Owner:   owner,
 		Payload: payload,
 	}
 }
@@ -27,10 +27,10 @@ type responseAction struct {
 }
 
 type responseUserData struct {
-	Username   string         `json:"username"`
-	Timestamp  int64          `json:"timestamp"`
-	FirstTime  bool           `json:"first_time"`
-	Roles      []session.Role `json:"roles"`
+	Username  string         `json:"username"`
+	Timestamp int64          `json:"timestamp"`
+	FirstTime bool           `json:"first_time"`
+	Roles     []session.Role `json:"roles"`
 }
 
 type responseSystemMetadata struct {
@@ -79,4 +79,10 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64,
 		ViewerSources: viewer,
 		EnableSecrets: enableSecrets,
 	}
+}
+
+type cmdCompHelp struct {
+	Message     string `json:"message"`
+	Application string `json:"application"`
+	Position    int    `json:"position"`
 }
