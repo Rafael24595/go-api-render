@@ -10,6 +10,8 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
+	"github.com/Rafael24595/go-api-render/src/domain/web"
+	render_repository "github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -23,12 +25,15 @@ const REFRESH_COOKIE_DESCRIPTION = "User refresh token"
 
 type ControllerLogin struct {
 	router *router.Router
+	managerWeb *render_repository.ManagerWeb
 }
 
 func NewControllerLogin(
-	router *router.Router) ControllerLogin {
+	router *router.Router,
+	managerWeb *render_repository.ManagerWeb) ControllerLogin {
 	instance := ControllerLogin{
 		router: router,
+		managerWeb: managerWeb,
 	}
 
 	router.
@@ -40,7 +45,10 @@ func NewControllerLogin(
 		RouteDocument(http.MethodGet, instance.user, "user", instance.docUser()).
 		RouteDocument(http.MethodPost, instance.signin, "user", instance.docSignin()).
 		RouteDocument(http.MethodPut, instance.verify, "user", instance.docVerify()).
-		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete())
+		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete()).
+		//
+		RouteDocument(http.MethodGet, instance.findWebData, "user/web", instance.docFindWebData()).
+		RouteDocument(http.MethodPost, instance.resolveWebData, "user/web", instance.docResolveWebData())
 
 	return instance
 }
@@ -274,11 +282,50 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *ro
 		return result.Err(http.StatusForbidden, err)
 	}
 
+	c.managerWeb.Delete(username)
+
 	eraseSession(w)
 
 	ctx.Put(USER, action.ANONYMOUS_OWNER)
 
 	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) docFindWebData() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Get the currently authenticated user's web data.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[web.WebData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) findWebData(_ http.ResponseWriter, _ *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+	webData, _ := c.managerWeb.FindByOwner(username)
+	return result.JsonOk(webData)
+}
+
+func (c *ControllerLogin) docResolveWebData() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Updates the currently authenticated user's web data.",
+		Request: docs.DocJsonPayload[web.WebData](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[web.WebData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) resolveWebData(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+
+	input, res := router.InputJson[web.WebData](r)
+	if res != nil {
+		return *res
+	}
+
+	output := c.managerWeb.Resolve(username, &input)
+	return result.JsonOk(output)
 }
 
 func defineSession(w http.ResponseWriter, session *session.Session) (string, string, error) {

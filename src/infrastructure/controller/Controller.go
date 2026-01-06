@@ -12,6 +12,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/collection"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	render_repository "github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router"
@@ -44,7 +45,8 @@ func NewController(
 	managerEndPoint *repository.ManagerEndPoint,
 	managerMetrics *repository.ManagerMetrics,
 	managerToken *repository.ManagerToken,
-	managerClientData *repository.ManagerClientData) Controller {
+	managerClientData *repository.ManagerClientData,
+	managerWeb *render_repository.ManagerWeb) Controller {
 	instance := Controller{
 		router:       route,
 		managerToken: managerToken,
@@ -87,7 +89,7 @@ func NewController(
 	}
 
 	NewControllerSystem(route)
-	NewControllerLogin(route)
+	NewControllerLogin(route, managerWeb)
 	NewControllerActions(route)
 	NewControllerRequest(route, managerRequest, managerCollection, managerClientData)
 	NewControllerHistoric(route, managerRequest, managerHisotric, managerClientData)
