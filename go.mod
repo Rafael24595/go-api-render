@@ -5,8 +5,9 @@ go 1.25.3
 require (
 	github.com/Rafael24595/go-api-core v1.2.1
 	github.com/Rafael24595/go-collections v0.5.1
-	github.com/Rafael24595/go-web v0.7.4
+	github.com/Rafael24595/go-web v0.8.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/google/uuid v1.6.0
 )
 
 require (
@@ -22,7 +23,6 @@ require (
 	github.com/go-openapi/swag/stringutils v0.25.4 // indirect
 	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/swaggo/files/v2 v2.0.2 // indirect
 	github.com/swaggo/http-swagger/v2 v2.0.2 // indirect
 	github.com/swaggo/swag v1.16.6 // indirect

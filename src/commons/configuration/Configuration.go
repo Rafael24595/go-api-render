@@ -34,6 +34,7 @@ type Configuration struct {
 	keyTLS          string
 	enableSecrets   bool
 	enableUserToken bool
+	WebDataLimit    int64
 }
 
 func Initialize(core *core_configuration.Configuration, kargs map[string]utils.Argument, frontPackage *FrontPackage) Configuration {
@@ -63,6 +64,8 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 		enableSecrets := kargs["GAR_MISC_SECRETS"].Boold(false)
 		enableUserToken := kargs["GAR_AUTH_USER_TOKEN"].Boold(false)
 
+		webDataLimit := kargs["GAR_WEB_DATA_LIMIT"].Int64d(0)
+
 		instance = &Configuration{
 			Configuration:   *core,
 			Front:           *frontPackage,
@@ -74,6 +77,7 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 			keyTLS:          keyTLS,
 			enableSecrets:   enableSecrets,
 			enableUserToken: enableUserToken,
+			WebDataLimit:    webDataLimit,
 		}
 
 		go instance.originLastVersion(kargs)

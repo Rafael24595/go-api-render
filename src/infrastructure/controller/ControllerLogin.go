@@ -10,6 +10,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/domain/web"
 	render_repository "github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
@@ -24,7 +25,7 @@ const REFRESH_COOKIE = "go_api_refresh"
 const REFRESH_COOKIE_DESCRIPTION = "User refresh token"
 
 type ControllerLogin struct {
-	router *router.Router
+	router     *router.Router
 	managerWeb *render_repository.ManagerWeb
 }
 
@@ -32,7 +33,7 @@ func NewControllerLogin(
 	router *router.Router,
 	managerWeb *render_repository.ManagerWeb) ControllerLogin {
 	instance := ControllerLogin{
-		router: router,
+		router:     router,
 		managerWeb: managerWeb,
 	}
 
@@ -170,10 +171,10 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 	}
 
 	response := responseUserData{
-		Username:   user.Username,
-		Timestamp:  user.Timestamp,
-		FirstTime:  user.Count < 0,
-		Roles:      user.Roles,
+		Username:  user.Username,
+		Timestamp: user.Timestamp,
+		FirstTime: user.Count < 0,
+		Roles:     user.Roles,
 	}
 
 	return result.JsonOk(response)
@@ -309,7 +310,7 @@ func (c *ControllerLogin) findWebData(_ http.ResponseWriter, _ *http.Request, ct
 func (c *ControllerLogin) docResolveWebData() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Updates the currently authenticated user's web data.",
-		Request: docs.DocJsonPayload[web.WebData](),
+		Request:     docs.DocJsonPayload[web.WebData](),
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[web.WebData](),
 		},
@@ -319,7 +320,12 @@ func (c *ControllerLogin) docResolveWebData() docs.DocRoute {
 func (c *ControllerLogin) resolveWebData(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
-	input, res := router.InputJson[web.WebData](r)
+	opts := router.InputOpts{
+		Limit:  configuration.Instance().WebDataLimit,
+		Strict: true,
+	}
+	
+	input, res := router.InputJsonWithOpts[web.WebData](w, r, opts)
 	if res != nil {
 		return *res
 	}
