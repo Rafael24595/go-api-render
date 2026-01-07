@@ -22,6 +22,15 @@ func (m *ManagerWeb) FindByOwner(owner string) (*web_domain.WebData, bool) {
 }
 
 func (m *ManagerWeb) Resolve(owner string, webData *web_domain.WebData) *web_domain.WebData {
+	if owner != "" && webData.Owner != owner {
+		webData, _ = m.FindByOwner(owner)
+		return webData
+	}
+
+	if result, ok := m.web.FindByOwner(owner); ok && result != nil {
+		result.Data = webData.Data
+		webData = result
+	}
 	return m.web.Resolve(owner, webData)
 }
 

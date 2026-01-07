@@ -119,9 +119,13 @@ func (r *RepositoryMemory) Resolve(owner string, webData *web_domain.WebData) *w
 func (r *RepositoryMemory) insert(owner string, webData *web_domain.WebData) *web_domain.WebData {
 	webData.Owner = owner
 
+	now := time.Now().UnixMilli()
+
 	if webData.Timestamp == 0 {
-		webData.Timestamp = time.Now().UnixMilli()
+		webData.Timestamp = now
 	}
+
+	webData.Modified = now
 
 	r.collection.Put(webData.Id, *webData)
 
