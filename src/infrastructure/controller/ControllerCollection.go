@@ -39,13 +39,13 @@ func NewControllerCollection(
 	instance.router.
 		RouteDocument(http.MethodPut, instance.sort, "sort/collection", instance.docSort()).
 		RouteDocument(http.MethodPut, instance.sortRequests, "sort/collection/{%s}/request", instance.docSortRequests()).
-
+		//
 		RouteDocument(http.MethodGet, instance.exportAll, "export/collection", instance.docExportAll()).
 		RouteDocument(http.MethodPost, instance.exportMany, "export/collection", instance.docExportMany()).
 		RouteDocument(http.MethodPost, instance.openApi, "import/openapi", instance.docOpenApi()).
 		RouteDocument(http.MethodPost, instance.importItems, "import/collection", instance.docImportItems()).
 		RouteDocument(http.MethodPost, instance.importTo, "import/collection/{%s}", instance.docImportTo()).
-
+		//
 		RouteDocument(http.MethodGet, instance.findAll, "collection", instance.docFindAll()).
 		RouteDocument(http.MethodGet, instance.find, "collection/{%s}", instance.docFind()).
 		RouteDocument(http.MethodGet, instance.findLite, "collection/{%s}/lite", instance.docFindLite()).

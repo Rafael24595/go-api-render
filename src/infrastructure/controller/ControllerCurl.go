@@ -180,7 +180,7 @@ func (c *ControllerCurl) encodeEndPoint(w http.ResponseWriter, r *http.Request, 
 	swInline := r.URL.Query().Get(SW_INLINE)
 	inline := strings.ToLower(swInline) == "true"
 
-	return c.endPointToCurl(endPoint, inline)
+	return c.endPointToCurl(r.Host, endPoint, inline)
 }
 
 func (c *ControllerCurl) toCurl(request *action.Request, inline bool) result.Result {
@@ -200,8 +200,8 @@ func (c *ControllerCurl) toCurlWithContext(context *context.Context, request *ac
 	return result.Ok(curl)
 }
 
-func (c *ControllerCurl) endPointToCurl(endPoint *mock.EndPoint, inline bool) result.Result {
-	request := endPointToRequest(endPoint)
+func (c *ControllerCurl) endPointToCurl(host string, endPoint *mock.EndPoint, inline bool) result.Result {
+	request := endPointToRequest(host, endPoint)
 	
 	curl, err := curl.Marshal(request, inline)
 	if err != nil {

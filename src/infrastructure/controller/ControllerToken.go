@@ -33,6 +33,7 @@ func NewControllerToken(
 
 	router.
 		RouteDocument(http.MethodGet, instance.scopes, "scopes", instance.docScopes()).
+		//
 		RouteDocument(http.MethodGet, instance.find, "token", instance.docFind()).
 		RouteDocument(http.MethodPost, instance.insert, "token", instance.docInsert()).
 		RouteDocument(http.MethodDelete, instance.delete, "token/{%s}", instance.docDelete())

@@ -10,6 +10,9 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
+	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-api-render/src/domain/web"
+	render_repository "github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -22,23 +25,31 @@ const REFRESH_COOKIE = "go_api_refresh"
 const REFRESH_COOKIE_DESCRIPTION = "User refresh token"
 
 type ControllerLogin struct {
-	router *router.Router
+	router     *router.Router
+	managerWeb *render_repository.ManagerWeb
 }
 
 func NewControllerLogin(
-	router *router.Router) ControllerLogin {
+	router *router.Router,
+	managerWeb *render_repository.ManagerWeb) ControllerLogin {
 	instance := ControllerLogin{
-		router: router,
+		router:     router,
+		managerWeb: managerWeb,
 	}
 
 	router.
 		RouteDocument(http.MethodPost, instance.login, "login", instance.docLogin()).
 		RouteDocument(http.MethodDelete, instance.logout, "login", instance.docLogout()).
+		//
 		RouteDocument(http.MethodGet, instance.refresh, "refresh", instance.docRefresh()).
+		//
 		RouteDocument(http.MethodGet, instance.user, "user", instance.docUser()).
 		RouteDocument(http.MethodPost, instance.signin, "user", instance.docSignin()).
+		RouteDocument(http.MethodPut, instance.verify, "user", instance.docVerify()).
 		RouteDocument(http.MethodDelete, instance.delete, "user", instance.docDelete()).
-		RouteDocument(http.MethodPut, instance.verify, "user/verify", instance.docVerify())
+		//
+		RouteDocument(http.MethodGet, instance.findWebData, "user/web", instance.docFindWebData()).
+		RouteDocument(http.MethodPost, instance.resolveWebData, "user/web", instance.docResolveWebData())
 
 	return instance
 }
@@ -160,10 +171,10 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 	}
 
 	response := responseUserData{
-		Username:   user.Username,
-		Timestamp:  user.Timestamp,
-		FirstTime:  user.Count < 0,
-		Roles:      user.Roles,
+		Username:  user.Username,
+		Timestamp: user.Timestamp,
+		FirstTime: user.Count < 0,
+		Roles:     user.Roles,
 	}
 
 	return result.JsonOk(response)
@@ -210,37 +221,6 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *ro
 	return c.user(w, r, ctx)
 }
 
-func (c *ControllerLogin) docDelete() docs.DocRoute {
-	return docs.DocRoute{
-		Description: "Delete the current user account and clear session data.",
-		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[responseUserData](),
-		},
-	}
-}
-
-func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
-	username := findUser(ctx)
-
-	sessions := repository.InstanceManagerSession()
-
-	user, exists := sessions.Find(username)
-	if !exists {
-		err := errors.New("user not found")
-		return result.Err(http.StatusNotFound, err)
-	}
-
-	if _, err := sessions.Delete(user); err != nil {
-		return result.Err(http.StatusForbidden, err)
-	}
-
-	eraseSession(w)
-
-	ctx.Put(USER, action.ANONYMOUS_OWNER)
-
-	return c.user(w, r, ctx)
-}
-
 func (c *ControllerLogin) docVerify() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Change the user's password by verifying the old one and setting a new one.",
@@ -277,6 +257,81 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx *ro
 	ctx.Put(USER, session.Username)
 
 	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) docDelete() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Delete the current user account and clear session data.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[responseUserData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+
+	sessions := repository.InstanceManagerSession()
+
+	user, exists := sessions.Find(username)
+	if !exists {
+		err := errors.New("user not found")
+		return result.Err(http.StatusNotFound, err)
+	}
+
+	if _, err := sessions.Delete(user); err != nil {
+		return result.Err(http.StatusForbidden, err)
+	}
+
+	c.managerWeb.Delete(username)
+
+	eraseSession(w)
+
+	ctx.Put(USER, action.ANONYMOUS_OWNER)
+
+	return c.user(w, r, ctx)
+}
+
+func (c *ControllerLogin) docFindWebData() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Get the currently authenticated user's web data.",
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[web.WebData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) findWebData(_ http.ResponseWriter, _ *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+	webData, _ := c.managerWeb.FindByOwner(username)
+	return result.JsonOk(webData)
+}
+
+func (c *ControllerLogin) docResolveWebData() docs.DocRoute {
+	return docs.DocRoute{
+		Description: "Updates the currently authenticated user's web data.",
+		Request:     docs.DocJsonPayload[web.WebData](),
+		Responses: docs.DocResponses{
+			"200": docs.DocJsonPayload[web.WebData](),
+		},
+	}
+}
+
+func (c *ControllerLogin) resolveWebData(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
+	username := findUser(ctx)
+
+	opts := router.InputOpts{
+		Limit:  configuration.Instance().WebDataLimit,
+		Strict: true,
+	}
+	
+	input, res := router.InputJsonWithOpts[web.WebData](w, r, opts)
+	if res != nil {
+		return *res
+	}
+
+	output := c.managerWeb.Resolve(username, &input)
+	return result.JsonOk(output)
 }
 
 func defineSession(w http.ResponseWriter, session *session.Session) (string, string, error) {

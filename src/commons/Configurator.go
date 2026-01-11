@@ -5,16 +5,18 @@ import (
 	"os"
 
 	core_commons "github.com/Rafael24595/go-api-core/src/commons"
-	"github.com/Rafael24595/go-api-core/src/commons/dependency"
+	"github.com/Rafael24595/go-api-render/src/commons/dependency"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 )
 
 func Initialize() (*configuration.Configuration, *dependency.DependencyContainer) {
 	kargs := core_commons.ReadAllEnv(".env")
-	core, container := core_commons.Initialize(kargs)
+	core_conf, core_cont := core_commons.Initialize(kargs)
 	frontPackage := ReadFrontPackage()
-	config := configuration.Initialize(core, kargs, frontPackage)
+	
+	config := configuration.Initialize(core_conf, kargs, frontPackage)
+	container := dependency.Initialize(config, *core_cont)
 
 	log.Messagef("Display front: %v", config.Front.Enabled)
 

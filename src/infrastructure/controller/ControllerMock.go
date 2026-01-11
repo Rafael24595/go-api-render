@@ -101,7 +101,7 @@ func (c *ControllerMock) bridgeStpToCnd(w http.ResponseWriter, r *http.Request, 
 		return *res
 	}
 
-	steps, errs := swr.UnmarshalWithOptions(string(input), swr.UnmarshalOpts{
+	steps, errs := swr.UnmarshalWithOptions(input, swr.UnmarshalOpts{
 		Evalue: true,
 	})
 	if len(errs) > 0 {
@@ -164,7 +164,7 @@ func (c *ControllerMock) bridgeEndToReq(w http.ResponseWriter, r *http.Request, 
 		return result.Reject(http.StatusNotFound)
 	}
 
-	request := endPointToRequest(endPoint)
+	request := endPointToRequest(r.Host, endPoint)
 	dto := dto.FromRequest(request)
 
 	return result.JsonOk(dto)
@@ -512,7 +512,7 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 		return strings.Join(h, ", ")
 	})
 
-	response, ok := mock.FindResponse(string(payload), headers.Merge(queries).Collect(), endPoint)
+	response, ok := mock.FindResponse(payload, headers.Merge(queries).Collect(), endPoint)
 	if !ok {
 		res := result.TextErr(http.StatusNotFound, "the resource does not have a defined default response")
 		return nil, &res
@@ -521,8 +521,8 @@ func (c *ControllerMock) findResponse(r *http.Request, endPoint *mock.EndPoint) 
 	return response, nil
 }
 
-func endPointToRequest(endPoint *mock.EndPoint) *action.Request {
-	server := mockEndPointPath(endPoint)
+func endPointToRequest(host string, endPoint *mock.EndPoint) *action.Request {
+	server := mockEndPointPath(host, endPoint)
 	request := mock.ToRequest(server, endPoint)
 
 	if endPoint.Safe {
@@ -532,9 +532,15 @@ func endPointToRequest(endPoint *mock.EndPoint) *action.Request {
 	return request
 }
 
-func mockEndPointPath(endPoint *mock.EndPoint) string {
+func mockEndPointPath(host string, endPoint *mock.EndPoint) string {
 	config := configuration.Instance()
 	protocol := config.DefaultProtocol()
-	port := config.DefaultPort()
-	return fmt.Sprintf("%s://localhost:%d/api/v1/mock/call/%s", protocol, port, endPoint.Owner)
+	
+	if host == "" {
+		port := config.DefaultPort()
+		host = "localhost"
+		host = fmt.Sprintf("localhost:%d", port)
+	}
+
+	return fmt.Sprintf("%s://%s/api/v1/mock/call/%s", protocol, host, endPoint.Owner)
 }
