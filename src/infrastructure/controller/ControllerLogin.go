@@ -164,7 +164,7 @@ func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *rout
 
 	sessions := repository.InstanceManagerSession()
 
-	user, exists := sessions.Find(username)
+	user, exists := sessions.FindSafe(username)
 	if !exists {
 		err := errors.New("user not found")
 		return result.Err(http.StatusNotFound, err)
