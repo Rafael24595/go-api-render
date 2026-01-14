@@ -68,7 +68,7 @@ func (c *ControllerSystem) docCmdExec() docs.DocRoute {
 		Description: "Executes a system command; requires administrator privileges.",
 		Request:     docs.DocText(CMD_DESCRIPTION),
 		Responses: docs.DocResponses{
-			"200": docs.DocText(CMD_SUCCESS_RESPONSE),
+			"200": docs.DocJsonPayload[cmdResult](CMD_SUCCESS_RESPONSE),
 			"500": docs.DocText(CMD_EXCEPTION_RESPONSE),
 		},
 	}
@@ -87,12 +87,14 @@ func (c *ControllerSystem) cmdExec(w http.ResponseWriter, r *http.Request, ctx *
 		return *res
 	}
 
-	message, err := command.Exec(user, cmd)
-	if err != nil {
-		return result.Err(http.StatusInternalServerError, err)
+	cmdRes := command.Exec(user, cmd)
+
+	response := cmdResult{
+		Input: cmdRes.Input,
+		Output: cmdRes.Output,
 	}
 
-	return result.TextOk(message)
+	return result.JsonOk(response)
 }
 
 func (c *ControllerSystem) docCmdComp() docs.DocRoute {

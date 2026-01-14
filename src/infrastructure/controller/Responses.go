@@ -87,3 +87,8 @@ type cmdCompHelp struct {
 	Position    int    `json:"position"`
 	Lenght      int    `json:"lenght"`
 }
+
+type cmdResult struct {
+	Input  string `json:"input"`
+	Output string `json:"output"`
+}
