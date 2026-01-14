@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
-	"github.com/Rafael24595/go-api-render/src/commons/system"
 	core_system "github.com/Rafael24595/go-api-core/src/commons/system"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-api-render/src/commons/system"
 	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
 	"github.com/Rafael24595/go-collections/collection"
 	"github.com/google/uuid"
@@ -46,7 +46,7 @@ func (r *RepositoryMemory) watch() {
 			return
 		}
 
-		hub := make(chan core_system .SystemEvent, 1)
+		hub := make(chan core_system.SystemEvent, 1)
 		defer close(hub)
 
 		topics := []string{
@@ -87,15 +87,17 @@ func (r *RepositoryMemory) read() error {
 func (r *RepositoryMemory) Find(id string) (*web_domain.WebData, bool) {
 	r.muMemory.RLock()
 	defer r.muMemory.RUnlock()
-	return r.collection.Get(id)
+	data, ok := r.collection.Get(id)
+	return &data, ok
 }
 
 func (r *RepositoryMemory) FindByOwner(owner string) (*web_domain.WebData, bool) {
 	r.muMemory.RLock()
 	defer r.muMemory.RUnlock()
-	return r.collection.FindOne(func(s string, w web_domain.WebData) bool {
+	data, ok := r.collection.FindOne(func(s string, w web_domain.WebData) bool {
 		return w.Owner == owner
 	})
+	return &data, ok
 }
 
 func (r *RepositoryMemory) Resolve(owner string, webData *web_domain.WebData) *web_domain.WebData {
@@ -141,7 +143,7 @@ func (r *RepositoryMemory) Delete(webData *web_domain.WebData) *web_domain.WebDa
 	cursor, _ := r.collection.Remove(webData.Id)
 	go r.write(r.collection)
 
-	return cursor
+	return &cursor
 }
 
 func (r *RepositoryMemory) write(snapshot collection.IDictionary[string, web_domain.WebData]) {
