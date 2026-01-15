@@ -6,10 +6,10 @@ import (
 
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
 	core_dependency "github.com/Rafael24595/go-api-core/src/commons/dependency"
-	core_system "github.com/Rafael24595/go-api-core/src/commons/system"
+	core_topic_snapshot "github.com/Rafael24595/go-api-core/src/commons/system/topic/snapshot"
 	core_repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	"github.com/Rafael24595/go-api-render/src/commons/system"
+	topic_snapshot "github.com/Rafael24595/go-api-render/src/commons/system/topic/snapshot"
 	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/repository/web"
@@ -48,7 +48,7 @@ func loadRepositoryWeb(config configuration.Configuration) repository.IRepositor
 
 	snapshot := config.Snapshot()
 	if snapshot.Enable {
-		topic := system.SNAPSHOT_TOPIC_WEB_DATA
+		topic := topic_snapshot.TOPIC_WEB_DATA
 		file = loadManagerSnapshotFile(topic, snapshot, file)
 	}
 
@@ -61,7 +61,7 @@ func loadRepositoryWeb(config configuration.Configuration) repository.IRepositor
 	return repository
 }
 
-func loadManagerSnapshotFile[T core_repository.IStructure](topic core_system.TopicSnapshot, snapshot core_configuration.Snapshot, file core_repository.IFileManager[T]) core_repository.IFileManager[T] {
+func loadManagerSnapshotFile[T core_repository.IStructure](topic core_topic_snapshot.TopicSnapshot, snapshot core_configuration.Snapshot, file core_repository.IFileManager[T]) core_repository.IFileManager[T] {
 	return core_repository.
 		BuilderManagerSnapshotFile(topic, file).
 		Limit(snapshot.Limit).

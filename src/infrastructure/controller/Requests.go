@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Rafael24595/go-api-core/src/commons/command"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
@@ -60,6 +61,32 @@ type requestNode struct {
 	Order int    `json:"order"`
 	Item  string `json:"item"`
 }
+
+type cmdCompPayload struct {
+	Cmd  string   `json:"cmd"`
+	Apps []cmdApp `json:"apps"`
+}
+
+type cmdApp struct {
+	Order int    `json:"cmd"`
+	Flag  string `json:"flag"`
+	Help  string `json:"help"`
+}
+
+func toCmdAuxApp(app ...cmdApp) []command.CmdAuxApp {
+	aux := make([]command.CmdAuxApp, len(app))
+
+	for i, v := range app {
+		aux[i] = command.CmdAuxApp{
+			Order: v.Order,
+			Flag: v.Flag,
+			Help: v.Help,
+		}
+	}
+
+	return aux
+}
+
 
 func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadCollectRequest {
 	request := dto.ToRequest(&payload.Request)

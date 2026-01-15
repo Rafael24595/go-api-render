@@ -103,7 +103,7 @@ func (c *ControllerSystem) docCmdComp() docs.DocRoute {
 		Query: docs.DocParameters{
 			CMD_QUERY_POSITION: CMD_QUERY_POSITION_DESCRIPTION,
 		},
-		Request: docs.DocText(CMD_DESCRIPTION),
+		Request: docs.DocJsonPayload[cmdCompPayload](CMD_DESCRIPTION),
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[cmdCompHelp](),
 		},
@@ -125,12 +125,12 @@ func (c *ControllerSystem) cmdComp(w http.ResponseWriter, r *http.Request, ctx *
 		}
 	}
 
-	cmd, res := router.InputText(r)
+	cmd, res := router.InputJson[cmdCompPayload](r)
 	if res != nil {
 		return *res
 	}
 
-	data, err := command.Comp(user, cmd, step)
+	data, err := command.Comp(user, cmd.Cmd, step, toCmdAuxApp(cmd.Apps...)...)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
