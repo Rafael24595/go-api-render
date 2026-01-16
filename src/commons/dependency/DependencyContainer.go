@@ -8,9 +8,10 @@ import (
 	core_dependency "github.com/Rafael24595/go-api-core/src/commons/dependency"
 	core_topic_snapshot "github.com/Rafael24595/go-api-core/src/commons/system/topic/snapshot"
 	core_repository "github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	"github.com/Rafael24595/go-api-render/src/application/manager"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	topic_snapshot "github.com/Rafael24595/go-api-render/src/commons/system/topic/snapshot"
-	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
+	domain_web "github.com/Rafael24595/go-api-render/src/domain/web"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/repository/web"
 	"github.com/Rafael24595/go-collections/collection"
@@ -23,7 +24,7 @@ var (
 
 type DependencyContainer struct {
 	core_dependency.DependencyContainer
-	ManagerWeb *repository.ManagerWeb
+	ManagerWeb *manager.ManagerWeb
 }
 
 func Initialize(config configuration.Configuration, dependency core_dependency.DependencyContainer) *DependencyContainer {
@@ -42,9 +43,9 @@ func Initialize(config configuration.Configuration, dependency core_dependency.D
 	return instance
 }
 
-func loadRepositoryWeb(config configuration.Configuration) repository.IRepositoryWeb {
-	var file core_repository.IFileManager[web_domain.WebData]
-	file = core_repository.NewManagerCsvtFile[web_domain.WebData](repository.CSVT_FILE_PATH_WEB_DATA)
+func loadRepositoryWeb(config configuration.Configuration) domain_web.Repository {
+	var file core_repository.IFileManager[domain_web.WebData]
+	file = core_repository.NewManagerCsvtFile[domain_web.WebData](repository.CSVT_FILE_PATH_WEB_DATA)
 
 	snapshot := config.Snapshot()
 	if snapshot.Enable {
@@ -52,7 +53,7 @@ func loadRepositoryWeb(config configuration.Configuration) repository.IRepositor
 		file = loadManagerSnapshotFile(topic, snapshot, file)
 	}
 
-	impl := collection.DictionarySyncEmpty[string, web_domain.WebData]()
+	impl := collection.DictionarySyncEmpty[string, domain_web.WebData]()
 	repository, err := web.InitializeRepositoryMemory(impl, file)
 	if err != nil {
 		log.Panic(err)
@@ -69,6 +70,6 @@ func loadManagerSnapshotFile[T core_repository.IStructure](topic core_topic_snap
 		Make()
 }
 
-func loadManagerWeb(web repository.IRepositoryWeb) *repository.ManagerWeb {
-	return repository.NewManagerWeb(web)
+func loadManagerWeb(web domain_web.Repository) *manager.ManagerWeb {
+	return manager.NewManagerWeb(web)
 }

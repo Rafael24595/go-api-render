@@ -3,31 +3,33 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	action_domain "github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerHistoric struct {
-	router            *router.Router
-	managerRequest    *repository.ManagerRequest
-	managerHistoric   *repository.ManagerHistoric
-	managerClientData *repository.ManagerClientData
+	router             *router.Router
+	managerRequest     *manager.ManagerRequest
+	managerHistoric    *manager.ManagerHistoric
+	managerSessionData *session.ManagerSessionData
 }
 
 func NewControllerHistoric(
 	router *router.Router,
-	managerRequest *repository.ManagerRequest,
-	managerHistoric *repository.ManagerHistoric,
-	managerClientData *repository.ManagerClientData) ControllerHistoric {
+	managerRequest *manager.ManagerRequest,
+	managerHistoric *manager.ManagerHistoric,
+	managerSessionData *session.ManagerSessionData,
+) ControllerHistoric {
 	instance := ControllerHistoric{
-		router:            router,
-		managerRequest:    managerRequest,
-		managerHistoric:   managerHistoric,
-		managerClientData: managerClientData,
+		router:             router,
+		managerRequest:     managerRequest,
+		managerHistoric:    managerHistoric,
+		managerSessionData: managerSessionData,
 	}
 
 	router.
@@ -50,7 +52,7 @@ func (c *ControllerHistoric) docFind() docs.DocRoute {
 func (c *ControllerHistoric) find(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findTransientCollection(user, c.managerClientData)
+	collection, resultStatus := findTransientCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -95,7 +97,7 @@ func (c *ControllerHistoric) insert(w http.ResponseWriter, r *http.Request, ctx 
 		return result.JsonOk(dto)
 	}
 
-	collection, resultStatus := findTransientCollection(user, c.managerClientData)
+	collection, resultStatus := findTransientCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -126,7 +128,7 @@ func (c *ControllerHistoric) delete(w http.ResponseWriter, r *http.Request, ctx 
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := findTransientCollection(user, c.managerClientData)
+	collection, resultStatus := findTransientCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

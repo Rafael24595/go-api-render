@@ -3,8 +3,9 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -14,19 +15,20 @@ const ID_CONTEXT = "id_context"
 const ID_CONTEXT_DESCRIPTION = "Context ID"
 
 type ControllerContext struct {
-	router            *router.Router
-	managerContext    *repository.ManagerContext
-	managerClientData *repository.ManagerClientData
+	router             *router.Router
+	managerContext     *manager.ManagerContext
+	managerSessionData *session.ManagerSessionData
 }
 
 func NewControllerContext(
 	router *router.Router,
-	managerContext *repository.ManagerContext,
-	managerClientData *repository.ManagerClientData) ControllerContext {
+	managerContext *manager.ManagerContext,
+	managerSessionData *session.ManagerSessionData,
+) ControllerContext {
 	instance := ControllerContext{
-		router:            router,
-		managerContext:    managerContext,
-		managerClientData: managerClientData,
+		router:             router,
+		managerContext:     managerContext,
+		managerSessionData: managerSessionData,
 	}
 
 	instance.router.
@@ -75,7 +77,7 @@ func (c *ControllerContext) docFindFromUser() docs.DocRoute {
 func (c *ControllerContext) findFromUser(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

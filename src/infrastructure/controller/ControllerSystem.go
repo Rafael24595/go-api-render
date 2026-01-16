@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Rafael24595/go-api-core/src/commons/command"
+	"github.com/Rafael24595/go-api-core/src/application/command"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
-	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
+	domain_session "github.com/Rafael24595/go-api-core/src/domain/session"
 )
 
 const CMD_SUCCESS_RESPONSE = "Output message"
@@ -56,7 +56,7 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx *rout
 		return *res
 	}
 
-	if !sess.HasRole(session.ROLE_ADMIN) {
+	if !sess.HasRole(domain_session.ROLE_ADMIN) {
 		return result.Reject(http.StatusForbidden)
 	}
 
@@ -176,7 +176,7 @@ func (c *ControllerSystem) hasCmdPrivileges(user string) *result.Result {
 		return res
 	}
 
-	if !sess.HasRole(session.ROLE_ADMIN) {
+	if !sess.HasRole(domain_session.ROLE_ADMIN) {
 		res := result.TextErr(http.StatusForbidden, "the user does not have privileges to execute cmd actions")
 		return &res
 	}

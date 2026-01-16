@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
@@ -14,7 +15,6 @@ import (
 	"github.com/Rafael24595/go-api-core/src/domain/mock/swr"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-collections/collection"
 	"github.com/Rafael24595/go-web/router"
@@ -35,16 +35,17 @@ const SWR_INPUT_DESCRIPTION = "SWR sentence"
 
 type ControllerMock struct {
 	router          *router.Router
-	managerToken    *repository.ManagerToken
-	managerEndPoint *repository.ManagerEndPoint
-	managerMetrics  *repository.ManagerMetrics
+	managerToken    *manager.ManagerToken
+	managerEndPoint *manager.ManagerEndPoint
+	managerMetrics  *manager.ManagerMetrics
 }
 
 func NewControllerMock(
 	router *router.Router,
-	managerToken *repository.ManagerToken,
-	managerEndPoint *repository.ManagerEndPoint,
-	managerMetrics *repository.ManagerMetrics) ControllerMock {
+	managerToken *manager.ManagerToken,
+	managerEndPoint *manager.ManagerEndPoint,
+	managerMetrics *manager.ManagerMetrics,
+) ControllerMock {
 	instance := ControllerMock{
 		router:          router,
 		managerToken:    managerToken,
@@ -535,7 +536,7 @@ func endPointToRequest(host string, endPoint *mock.EndPoint) *action.Request {
 func mockEndPointPath(host string, endPoint *mock.EndPoint) string {
 	config := configuration.Instance()
 	protocol := config.DefaultProtocol()
-	
+
 	if host == "" {
 		port := config.DefaultPort()
 		host = "localhost"

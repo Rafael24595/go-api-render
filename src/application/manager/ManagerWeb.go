@@ -1,27 +1,27 @@
-package repository
+package manager
 
 import (
-	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
+	"github.com/Rafael24595/go-api-render/src/domain/web"
 )
 
 type ManagerWeb struct {
-	web IRepositoryWeb
+	web web.Repository
 }
 
-func NewManagerWeb(web IRepositoryWeb) *ManagerWeb {
+func NewManagerWeb(web web.Repository) *ManagerWeb {
 	return &ManagerWeb{
 		web: web,
 	}
 }
 
-func (m *ManagerWeb) FindByOwner(owner string) (*web_domain.WebData, bool) {
+func (m *ManagerWeb) FindByOwner(owner string) (*web.WebData, bool) {
 	if result, ok := m.web.FindByOwner(owner); ok && result != nil {
 		return result, true
 	}
-	return m.Resolve(owner, web_domain.EmptyWebData(owner)), true
+	return m.Resolve(owner, web.EmptyWebData(owner)), true
 }
 
-func (m *ManagerWeb) Resolve(owner string, webData *web_domain.WebData) *web_domain.WebData {
+func (m *ManagerWeb) Resolve(owner string, webData *web.WebData) *web.WebData {
 	if owner != "" && webData.Owner != owner {
 		webData, _ = m.FindByOwner(owner)
 		return webData
@@ -34,7 +34,7 @@ func (m *ManagerWeb) Resolve(owner string, webData *web_domain.WebData) *web_dom
 	return m.web.Resolve(owner, webData)
 }
 
-func (m *ManagerWeb) Delete(owner string) (*web_domain.WebData, bool) {
+func (m *ManagerWeb) Delete(owner string) (*web.WebData, bool) {
 	webData, ok := m.FindByOwner(owner)
 	if !ok {
 		return nil, false

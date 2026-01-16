@@ -3,40 +3,40 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	action_domain "github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
 )
 
 type ControllerRequest struct {
-	router            *router.Router
-	managerRequest    *repository.ManagerRequest
-	managerCollection *repository.ManagerCollection
-	managerClientData *repository.ManagerClientData
+	router             *router.Router
+	managerRequest     *manager.ManagerRequest
+	managerCollection  *manager.ManagerCollection
+	managerSessionData *session.ManagerSessionData
 }
 
 func NewControllerRequest(
 	router *router.Router,
-	managerRequest *repository.ManagerRequest,
-	managerCollection *repository.ManagerCollection,
-	managerClientData *repository.ManagerClientData) ControllerRequest {
+	managerRequest *manager.ManagerRequest,
+	managerCollection *manager.ManagerCollection,
+	managerSessionData *session.ManagerSessionData,
+) ControllerRequest {
 	instance := ControllerRequest{
-		router:            router,
-		managerRequest:    managerRequest,
-		managerCollection: managerCollection,
-		managerClientData: managerClientData,
+		router:             router,
+		managerRequest:     managerRequest,
+		managerCollection:  managerCollection,
+		managerSessionData: managerSessionData,
 	}
 
 	router.
 		RouteDocument(http.MethodPut, instance.sort, "sort/request", instance.docSort()).
-
 		RouteDocument(http.MethodGet, instance.exportAll, "export/request", instance.docExportAll()).
 		RouteDocument(http.MethodPost, instance.exportMany, "export/request", instance.docExportMany()).
 		RouteDocument(http.MethodPost, instance.importMany, "import/request", instance.docImportMany()).
-
 		RouteDocument(http.MethodGet, instance.findAll, "request", instance.docFindAll()).
 		RouteDocument(http.MethodPost, instance.insert, "request", instance.docInsert()).
 		RouteDocument(http.MethodPut, instance.update, "request", instance.docUpdate()).
@@ -64,7 +64,7 @@ func (c *ControllerRequest) sort(w http.ResponseWriter, r *http.Request, ctx *ro
 		return *res
 	}
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -88,7 +88,7 @@ func (c *ControllerRequest) docExportAll() docs.DocRoute {
 func (c *ControllerRequest) exportAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -141,7 +141,7 @@ func (c *ControllerRequest) importMany(w http.ResponseWriter, r *http.Request, c
 		return *res
 	}
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -170,7 +170,7 @@ func (c *ControllerRequest) docFindAll() docs.DocRoute {
 func (c *ControllerRequest) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -202,7 +202,7 @@ func (c *ControllerRequest) insert(w http.ResponseWriter, r *http.Request, ctx *
 	request, response := c.managerRequest.Release(user, dto.ToRequest(&action.Request), dto.ToResponse(&action.Response))
 
 	if request.Status == action_domain.FINAL {
-		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+		collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -237,7 +237,7 @@ func (c *ControllerRequest) update(w http.ResponseWriter, r *http.Request, ctx *
 
 	request := c.managerRequest.Update(user, dto.ToRequest(dtoRequest))
 	if request.Status == action_domain.FINAL {
-		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+		collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -298,7 +298,7 @@ func (c *ControllerRequest) delete(w http.ResponseWriter, r *http.Request, ctx *
 	user := findUser(ctx)
 	idRequest := r.PathValue(ID_REQUEST)
 
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
