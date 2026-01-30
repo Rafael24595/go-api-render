@@ -3,7 +3,7 @@ module github.com/Rafael24595/go-api-render
 go 1.25.3
 
 require (
-	github.com/Rafael24595/go-api-core v1.3.0
+	github.com/Rafael24595/go-api-core v1.3.1
 	github.com/Rafael24595/go-collections v0.6.0
 	github.com/Rafael24595/go-web v0.9.0
 	github.com/golang-jwt/jwt/v5 v5.3.0

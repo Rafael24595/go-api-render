@@ -1,5 +1,7 @@
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
+github.com/Rafael24595/go-api-core v1.3.1 h1:Tve3Wgdma+zkO+lrxqJU80KsmwP1ns8GVCNGLujsWiA=
+github.com/Rafael24595/go-api-core v1.3.1/go.mod h1:V+YK9x3bOwQKQuzcHpX0v1O9RN0Ey/Ymfb+lbfWN4SQ=
 github.com/Rafael24595/go-collections v0.6.0 h1:lDCyjpA1FSDLPsL0J1ecw7LnxOPMfjYVtGrsrySJfZ0=
 github.com/Rafael24595/go-collections v0.6.0/go.mod h1:X9aAFvQP7Plo+Czy49reqNZSikoo0jggEG88dyhzAoE=
 github.com/Rafael24595/go-csvt v0.2.4 h1:6QVINvFPIbaCSISHDBcrg/SDPh/Kwy+AxhQyEYspXro=
