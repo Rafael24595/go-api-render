@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"github.com/Rafael24595/go-api-core/src/application/command"
+	"github.com/Rafael24595/go-api-core/src/application/manager"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 )
 
 type requestCloneCollection struct {
@@ -44,12 +45,12 @@ type requestSigninUser struct {
 }
 
 type requestPushToCollection struct {
-	SourceId    string              `json:"source_id"`
-	TargetId    string              `json:"target_id"`
-	TargetName  string              `json:"target_name"`
-	Request     dto.DtoRequest      `json:"request"`
-	RequestName string              `json:"request_name"`
-	Movement    repository.Movement `json:"move"`
+	SourceId    string           `json:"source_id"`
+	TargetId    string           `json:"target_id"`
+	TargetName  string           `json:"target_name"`
+	Request     dto.DtoRequest   `json:"request"`
+	RequestName string           `json:"request_name"`
+	Movement    manager.Movement `json:"move"`
 }
 
 type requestSortNodes struct {
@@ -61,9 +62,34 @@ type requestNode struct {
 	Item  string `json:"item"`
 }
 
-func requestPushToCollectionToPayload(payload *requestPushToCollection) repository.PayloadCollectRequest {
+type cmdCompPayload struct {
+	Cmd  string   `json:"cmd"`
+	Apps []cmdApp `json:"apps"`
+}
+
+type cmdApp struct {
+	Order int    `json:"cmd"`
+	Flag  string `json:"flag"`
+	Help  string `json:"help"`
+}
+
+func toCmdAuxApp(app ...cmdApp) []command.CmdAuxApp {
+	aux := make([]command.CmdAuxApp, len(app))
+
+	for i, v := range app {
+		aux[i] = command.CmdAuxApp{
+			Order: v.Order,
+			Flag:  v.Flag,
+			Help:  v.Help,
+		}
+	}
+
+	return aux
+}
+
+func requestPushToCollectionToPayload(payload *requestPushToCollection) manager.PayloadCollectRequest {
 	request := dto.ToRequest(&payload.Request)
-	return repository.PayloadCollectRequest{
+	return manager.PayloadCollectRequest{
 		SourceId:    payload.SourceId,
 		TargetId:    payload.TargetId,
 		TargetName:  payload.TargetName,
@@ -73,15 +99,15 @@ func requestPushToCollectionToPayload(payload *requestPushToCollection) reposito
 	}
 }
 
-func requestSortCollectionToPayload(payload *requestSortNodes) repository.PayloadSortNodes {
-	nodes := make([]repository.PayloadCollectionNode, len(payload.Nodes))
+func requestSortCollectionToPayload(payload *requestSortNodes) manager.PayloadSortNodes {
+	nodes := make([]manager.PayloadCollectionNode, len(payload.Nodes))
 	for i, v := range payload.Nodes {
-		nodes[i] = repository.PayloadCollectionNode{
+		nodes[i] = manager.PayloadCollectionNode{
 			Order: v.Order,
 			Item:  v.Item,
 		}
 	}
-	return repository.PayloadSortNodes{
+	return manager.PayloadSortNodes{
 		Nodes: nodes,
 	}
 }

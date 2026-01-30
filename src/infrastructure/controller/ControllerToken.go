@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
 	"github.com/Rafael24595/go-api-core/src/domain/token"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -20,12 +20,13 @@ const RAW_TOKEN_DESCRIPTION = "Raw token"
 
 type ControllerToken struct {
 	router       *router.Router
-	managerToken *repository.ManagerToken
+	managerToken *manager.ManagerToken
 }
 
 func NewControllerToken(
 	router *router.Router,
-	managerToken *repository.ManagerToken) ControllerToken {
+	managerToken *manager.ManagerToken,
+) ControllerToken {
 	instance := ControllerToken{
 		router:       router,
 		managerToken: managerToken,

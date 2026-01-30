@@ -5,14 +5,17 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/commons/log"
-	"github.com/Rafael24595/go-api-render/src/commons/system"
 	core_system "github.com/Rafael24595/go-api-core/src/commons/system"
+	"github.com/Rafael24595/go-api-core/src/commons/system/topic"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	topic_repository "github.com/Rafael24595/go-api-render/src/commons/system/topic/repository"
 	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
 	"github.com/Rafael24595/go-collections/collection"
 	"github.com/google/uuid"
 )
+
+const NameMemory = "web_memory" 
 
 type RepositoryMemory struct {
 	once       sync.Once
@@ -46,11 +49,11 @@ func (r *RepositoryMemory) watch() {
 			return
 		}
 
-		hub := make(chan core_system .SystemEvent, 1)
+		hub := make(chan core_system.SystemEvent, 1)
 		defer close(hub)
 
-		topics := []string{
-			system.SNAPSHOT_TOPIC_WEB_DATA.TopicSnapshotApplyOutput(),
+		topics := []topic.TopicAction{
+			topic_repository.TOPIC_WEB_DATA.ActionReload(),
 		}
 
 		conf.EventHub.Subcribe(repository.RepositoryListener, hub, topics...)
@@ -59,15 +62,16 @@ func (r *RepositoryMemory) watch() {
 		for {
 			select {
 			case <-r.close:
-				log.Customf(repository.SnapshotCategory, "Watcher stopped: local close signal received.")
+				log.Customf(repository.RepositoryCategory, "Watcher stopped: local close signal received.")
 				return
 			case <-hub:
 				if err := r.read(); err != nil {
-					log.Custome(repository.SnapshotCategory, err)
+					log.Custome(repository.RepositoryCategory, err)
 					return
 				}
+				log.Customf(repository.RepositoryCategory, "The repository %q has been reloaded.", NameMemory)
 			case <-conf.Signal.Done():
-				log.Customf(repository.SnapshotCategory, "Watcher stopped: global shutdown signal received.")
+				log.Customf(repository.RepositoryCategory, "Watcher stopped: global shutdown signal received.")
 				return
 			}
 		}
@@ -87,15 +91,17 @@ func (r *RepositoryMemory) read() error {
 func (r *RepositoryMemory) Find(id string) (*web_domain.WebData, bool) {
 	r.muMemory.RLock()
 	defer r.muMemory.RUnlock()
-	return r.collection.Get(id)
+	data, ok := r.collection.Get(id)
+	return &data, ok
 }
 
 func (r *RepositoryMemory) FindByOwner(owner string) (*web_domain.WebData, bool) {
 	r.muMemory.RLock()
 	defer r.muMemory.RUnlock()
-	return r.collection.FindOne(func(s string, w web_domain.WebData) bool {
+	data, ok := r.collection.FindOne(func(s string, w web_domain.WebData) bool {
 		return w.Owner == owner
 	})
+	return &data, ok
 }
 
 func (r *RepositoryMemory) Resolve(owner string, webData *web_domain.WebData) *web_domain.WebData {
@@ -141,7 +147,7 @@ func (r *RepositoryMemory) Delete(webData *web_domain.WebData) *web_domain.WebDa
 	cursor, _ := r.collection.Remove(webData.Id)
 	go r.write(r.collection)
 
-	return cursor
+	return &cursor
 }
 
 func (r *RepositoryMemory) write(snapshot collection.IDictionary[string, web_domain.WebData]) {

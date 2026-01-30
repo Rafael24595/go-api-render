@@ -3,16 +3,16 @@ module github.com/Rafael24595/go-api-render
 go 1.25.3
 
 require (
-	github.com/Rafael24595/go-api-core v1.3.0
-	github.com/Rafael24595/go-collections v0.5.1
-	github.com/Rafael24595/go-web v0.8.0
+	github.com/Rafael24595/go-api-core v1.3.1
+	github.com/Rafael24595/go-collections v0.6.0
+	github.com/Rafael24595/go-web v0.9.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 )
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/Rafael24595/go-csvt v0.2.3 // indirect
+	github.com/Rafael24595/go-csvt v0.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
 	github.com/go-openapi/jsonreference v0.21.4 // indirect
 	github.com/go-openapi/spec v0.22.3 // indirect

@@ -3,7 +3,7 @@ package controller
 import (
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
-	"github.com/Rafael24595/go-api-core/src/commons/session"
+	"github.com/Rafael24595/go-api-core/src/domain/session"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router/docs"
@@ -86,4 +86,9 @@ type cmdCompHelp struct {
 	Application string `json:"application"`
 	Position    int    `json:"position"`
 	Lenght      int    `json:"lenght"`
+}
+
+type cmdResult struct {
+	Input  string `json:"input"`
+	Output string `json:"output"`
 }

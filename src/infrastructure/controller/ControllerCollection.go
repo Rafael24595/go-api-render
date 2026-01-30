@@ -4,9 +4,10 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	"github.com/Rafael24595/go-api-core/src/domain/collection"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -18,22 +19,23 @@ const ACTION = "action"
 const TARGET = "target"
 
 type ControllerCollection struct {
-	router            *router.Router
-	managerCollection *repository.ManagerCollection
-	managerGroup      *repository.ManagerGroup
-	managerClientData *repository.ManagerClientData
+	router             *router.Router
+	managerCollection  *manager.ManagerCollection
+	managerGroup       *manager.ManagerGroup
+	managerSessionData *session.ManagerSessionData
 }
 
 func NewControllerCollection(
 	router *router.Router,
-	managerCollection *repository.ManagerCollection,
-	managerGroup *repository.ManagerGroup,
-	managerClientData *repository.ManagerClientData) ControllerCollection {
+	managerCollection *manager.ManagerCollection,
+	managerGroup *manager.ManagerGroup,
+	managerSessionData *session.ManagerSessionData,
+) ControllerCollection {
 	instance := ControllerCollection{
-		router:            router,
-		managerCollection: managerCollection,
-		managerGroup:      managerGroup,
-		managerClientData: managerClientData,
+		router:             router,
+		managerCollection:  managerCollection,
+		managerGroup:       managerGroup,
+		managerSessionData: managerSessionData,
 	}
 
 	instance.router.
@@ -77,7 +79,7 @@ func (c *ControllerCollection) sort(w http.ResponseWriter, r *http.Request, ctx 
 		return *res
 	}
 
-	group, res := findUserCollections(user, c.managerClientData)
+	group, res := findUserCollections(user, c.managerSessionData)
 	if res != nil {
 		return *res
 	}
@@ -140,7 +142,7 @@ func (c *ControllerCollection) docExportAll() docs.DocRoute {
 func (c *ControllerCollection) exportAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -208,7 +210,7 @@ func (c *ControllerCollection) openApi(w http.ResponseWriter, r *http.Request, c
 		return result.Err(http.StatusInternalServerError, err)
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -239,7 +241,7 @@ func (c *ControllerCollection) importItems(w http.ResponseWriter, r *http.Reques
 		return *res
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -283,7 +285,7 @@ func (c *ControllerCollection) importTo(w http.ResponseWriter, r *http.Request, 
 		return *res
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -306,7 +308,7 @@ func (c *ControllerCollection) docFindAll() docs.DocRoute {
 func (c *ControllerCollection) findAll(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	user := findUser(ctx)
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -386,7 +388,7 @@ func (c *ControllerCollection) insert(w http.ResponseWriter, r *http.Request, ct
 		return *res
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -426,7 +428,7 @@ func (c *ControllerCollection) delete(w http.ResponseWriter, r *http.Request, ct
 		return result.Reject(http.StatusNotFound)
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -456,7 +458,7 @@ func (c *ControllerCollection) clone(w http.ResponseWriter, r *http.Request, ctx
 		return result.Reject(http.StatusNotFound)
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -479,7 +481,7 @@ func (c *ControllerCollection) collect(w http.ResponseWriter, r *http.Request, c
 		return *res
 	}
 
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -517,12 +519,12 @@ func (c *ControllerCollection) take(w http.ResponseWriter, r *http.Request, ctx 
 		return result.Reject(http.StatusNotFound)
 	}
 
-	target, resultStatus := findPersistentCollection(user, c.managerClientData)
+	target, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
 
-	source, _, _ := c.managerCollection.MoveRequestBetweenCollectionsById(user, sourceId, target.Id, idRequest, repository.MOVE)
+	source, _, _ := c.managerCollection.MoveRequestBetweenCollectionsById(user, sourceId, target.Id, idRequest, manager.MOVE)
 
 	return result.Ok(source.Id)
 }

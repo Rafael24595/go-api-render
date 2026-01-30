@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Rafael24595/go-api-core/src/commons/session"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
+	domain_session "github.com/Rafael24595/go-api-core/src/domain/session"
+	"github.com/Rafael24595/go-api-render/src/application/manager"
 	auth "github.com/Rafael24595/go-api-render/src/commons/auth/Jwt.go"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/domain/web"
-	render_repository "github.com/Rafael24595/go-api-render/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -26,12 +26,13 @@ const REFRESH_COOKIE_DESCRIPTION = "User refresh token"
 
 type ControllerLogin struct {
 	router     *router.Router
-	managerWeb *render_repository.ManagerWeb
+	managerWeb *manager.ManagerWeb
 }
 
 func NewControllerLogin(
 	router *router.Router,
-	managerWeb *render_repository.ManagerWeb) ControllerLogin {
+	managerWeb *manager.ManagerWeb,
+) ControllerLogin {
 	instance := ControllerLogin{
 		router:     router,
 		managerWeb: managerWeb,
@@ -68,7 +69,7 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx *rou
 		return *res
 	}
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 	session, err := sessions.Authorize(login.Username, login.Password)
 	if err != nil {
 		return result.Err(http.StatusUnauthorized, err)
@@ -82,6 +83,8 @@ func (c *ControllerLogin) login(w http.ResponseWriter, r *http.Request, ctx *rou
 	if err != nil {
 		return result.Err(http.StatusUnauthorized, err)
 	}
+
+	sessions.Visited(session)
 
 	ctx.Put(USER, login.Username)
 
@@ -129,7 +132,7 @@ func (c *ControllerLogin) refresh(w http.ResponseWriter, r *http.Request, ctx *r
 
 	user := claims.Username
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 	session, exists := sessions.Find(user)
 	if !exists {
 		err = errors.New("user not exists")
@@ -162,9 +165,9 @@ func (c *ControllerLogin) docUser() docs.DocRoute {
 func (c *ControllerLogin) user(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 
-	user, exists := sessions.Find(username)
+	user, exists := sessions.FindSafe(username)
 	if !exists {
 		err := errors.New("user not found")
 		return result.Err(http.StatusNotFound, err)
@@ -198,7 +201,7 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *ro
 		return *res
 	}
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 
 	user, exists := sessions.Find(username)
 	if !exists {
@@ -206,9 +209,9 @@ func (c *ControllerLogin) signin(w http.ResponseWriter, r *http.Request, ctx *ro
 		return result.Err(http.StatusNotFound, err)
 	}
 
-	roles := make([]session.Role, 0)
+	roles := make([]domain_session.Role, 0)
 	if request.IsAdmin {
-		roles = append(roles, session.ROLE_ADMIN)
+		roles = append(roles, domain_session.ROLE_ADMIN)
 	}
 
 	session, err := sessions.Insert(user, request.Username, request.Password1, roles)
@@ -239,7 +242,7 @@ func (c *ControllerLogin) verify(w http.ResponseWriter, r *http.Request, ctx *ro
 		return *res
 	}
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 	session, err := sessions.Verify(username, verify.OldPassword, verify.NewPassword1, verify.NewPassword2)
 	if err != nil {
 		return result.Err(http.StatusUnauthorized, err)
@@ -271,7 +274,7 @@ func (c *ControllerLogin) docDelete() docs.DocRoute {
 func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *router.Context) result.Result {
 	username := findUser(ctx)
 
-	sessions := repository.InstanceManagerSession()
+	sessions := session.InstanceManagerSession()
 
 	user, exists := sessions.Find(username)
 	if !exists {
@@ -279,7 +282,7 @@ func (c *ControllerLogin) delete(w http.ResponseWriter, r *http.Request, ctx *ro
 		return result.Err(http.StatusNotFound, err)
 	}
 
-	if _, err := sessions.Delete(user); err != nil {
+	if _, err := sessions.Delete(user, user); err != nil {
 		return result.Err(http.StatusForbidden, err)
 	}
 
@@ -324,7 +327,7 @@ func (c *ControllerLogin) resolveWebData(w http.ResponseWriter, r *http.Request,
 		Limit:  configuration.Instance().WebDataLimit,
 		Strict: true,
 	}
-	
+
 	input, res := router.InputJsonWithOpts[web.WebData](w, r, opts)
 	if res != nil {
 		return *res
@@ -334,10 +337,10 @@ func (c *ControllerLogin) resolveWebData(w http.ResponseWriter, r *http.Request,
 	return result.JsonOk(output)
 }
 
-func defineSession(w http.ResponseWriter, session *session.Session) (string, string, error) {
-	sessions := repository.InstanceManagerSession()
+func defineSession(w http.ResponseWriter, sess *domain_session.Session) (string, string, error) {
+	sessions := session.InstanceManagerSession()
 
-	token, err := auth.GenerateJWT(session.Username)
+	token, err := auth.GenerateJWT(sess.Username)
 	if err != nil {
 		return "", "", err
 	}
@@ -351,13 +354,13 @@ func defineSession(w http.ResponseWriter, session *session.Session) (string, str
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	refresh := session.Refresh
+	refresh := sess.Refresh
 	if _, err := auth.ValidateJWT(refresh); err != nil {
-		refresh, err = auth.GenerateRefreshJWT(session.Username)
+		refresh, err = auth.GenerateRefreshJWT(sess.Username)
 		if err != nil {
 			return "", "", err
 		}
-		sessions.Refresh(session, refresh)
+		sessions.Refresh(sess, refresh)
 	}
 
 	http.SetCookie(w, &http.Cookie{

@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Rafael24595/go-api-core/src/application/manager"
+	"github.com/Rafael24595/go-api-core/src/application/session"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/context"
 	"github.com/Rafael24595/go-api-core/src/domain/formatter/curl"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
-	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -23,31 +24,32 @@ const SW_RAW_DESCRIPTION = "Raw flag"
 const CURL_COMMAND_DESCRIPTION = "CURL commands"
 
 type ControllerCurl struct {
-	router            *router.Router
-	managerRequest    *repository.ManagerRequest
-	managerCollection *repository.ManagerCollection
-	managerGroup      *repository.ManagerGroup
-	managerContext    *repository.ManagerContext
-	managerEndPoint   *repository.ManagerEndPoint
-	managerClientData *repository.ManagerClientData
+	router             *router.Router
+	managerRequest     *manager.ManagerRequest
+	managerCollection  *manager.ManagerCollection
+	managerGroup       *manager.ManagerGroup
+	managerContext     *manager.ManagerContext
+	managerEndPoint    *manager.ManagerEndPoint
+	managerSessionData *session.ManagerSessionData
 }
 
 func NewControllerCurl(
 	router *router.Router,
-	managerRequest *repository.ManagerRequest,
-	managerCollection *repository.ManagerCollection,
-	managerGroup *repository.ManagerGroup,
-	managerContext *repository.ManagerContext,
-	managerEndPoint *repository.ManagerEndPoint,
-	managerClientData *repository.ManagerClientData) ControllerCurl {
+	managerRequest *manager.ManagerRequest,
+	managerCollection *manager.ManagerCollection,
+	managerGroup *manager.ManagerGroup,
+	managerContext *manager.ManagerContext,
+	managerEndPoint *manager.ManagerEndPoint,
+	managerSessionData *session.ManagerSessionData,
+) ControllerCurl {
 	instance := ControllerCurl{
-		router:            router,
-		managerRequest:    managerRequest,
-		managerGroup:      managerGroup,
-		managerCollection: managerCollection,
-		managerContext:    managerContext,
-		managerEndPoint:   managerEndPoint,
-		managerClientData: managerClientData,
+		router:             router,
+		managerRequest:     managerRequest,
+		managerGroup:       managerGroup,
+		managerCollection:  managerCollection,
+		managerContext:     managerContext,
+		managerEndPoint:    managerEndPoint,
+		managerSessionData: managerSessionData,
 	}
 
 	router.
@@ -98,7 +100,7 @@ func (c *ControllerCurl) encodeCurl(w http.ResponseWriter, r *http.Request, ctx 
 
 	context_id := r.URL.Query().Get(ID_CONTEXT)
 	if context_id == "" {
-		collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+		collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 		if resultStatus != nil {
 			return *resultStatus
 		}
@@ -202,7 +204,7 @@ func (c *ControllerCurl) toCurlWithContext(context *context.Context, request *ac
 
 func (c *ControllerCurl) endPointToCurl(host string, endPoint *mock.EndPoint, inline bool) result.Result {
 	request := endPointToRequest(host, endPoint)
-	
+
 	curl, err := curl.Marshal(request, inline)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
@@ -212,7 +214,7 @@ func (c *ControllerCurl) endPointToCurl(host string, endPoint *mock.EndPoint, in
 }
 
 func (c *ControllerCurl) decodeCurlToCollection(user, coll string, reqs []action.Request) result.Result {
-	group, resultStatus := findUserCollections(user, c.managerClientData)
+	group, resultStatus := findUserCollections(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}
@@ -223,7 +225,7 @@ func (c *ControllerCurl) decodeCurlToCollection(user, coll string, reqs []action
 }
 
 func (c *ControllerCurl) decodeCurlToGlobal(user string, reqs []action.Request) result.Result {
-	collection, resultStatus := findPersistentCollection(user, c.managerClientData)
+	collection, resultStatus := findPersistentCollection(user, c.managerSessionData)
 	if resultStatus != nil {
 		return *resultStatus
 	}

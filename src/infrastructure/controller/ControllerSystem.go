@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Rafael24595/go-api-core/src/commons/command"
+	"github.com/Rafael24595/go-api-core/src/application/command"
 	"github.com/Rafael24595/go-api-core/src/commons/log"
-	"github.com/Rafael24595/go-api-core/src/commons/session"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
+	domain_session "github.com/Rafael24595/go-api-core/src/domain/session"
 )
 
 const CMD_SUCCESS_RESPONSE = "Output message"
@@ -56,7 +56,7 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx *rout
 		return *res
 	}
 
-	if !sess.HasRole(session.ROLE_ADMIN) {
+	if !sess.HasRole(domain_session.ROLE_ADMIN) {
 		return result.Reject(http.StatusForbidden)
 	}
 
@@ -68,7 +68,7 @@ func (c *ControllerSystem) docCmdExec() docs.DocRoute {
 		Description: "Executes a system command; requires administrator privileges.",
 		Request:     docs.DocText(CMD_DESCRIPTION),
 		Responses: docs.DocResponses{
-			"200": docs.DocText(CMD_SUCCESS_RESPONSE),
+			"200": docs.DocJsonPayload[cmdResult](CMD_SUCCESS_RESPONSE),
 			"500": docs.DocText(CMD_EXCEPTION_RESPONSE),
 		},
 	}
@@ -87,12 +87,14 @@ func (c *ControllerSystem) cmdExec(w http.ResponseWriter, r *http.Request, ctx *
 		return *res
 	}
 
-	message, err := command.Exec(user, cmd)
-	if err != nil {
-		return result.Err(http.StatusInternalServerError, err)
+	cmdRes := command.Exec(user, cmd)
+
+	response := cmdResult{
+		Input: cmdRes.Input,
+		Output: cmdRes.Output,
 	}
 
-	return result.TextOk(message)
+	return result.JsonOk(response)
 }
 
 func (c *ControllerSystem) docCmdComp() docs.DocRoute {
@@ -101,7 +103,7 @@ func (c *ControllerSystem) docCmdComp() docs.DocRoute {
 		Query: docs.DocParameters{
 			CMD_QUERY_POSITION: CMD_QUERY_POSITION_DESCRIPTION,
 		},
-		Request: docs.DocText(CMD_DESCRIPTION),
+		Request: docs.DocJsonPayload[cmdCompPayload](CMD_DESCRIPTION),
 		Responses: docs.DocResponses{
 			"200": docs.DocJsonPayload[cmdCompHelp](),
 		},
@@ -123,12 +125,12 @@ func (c *ControllerSystem) cmdComp(w http.ResponseWriter, r *http.Request, ctx *
 		}
 	}
 
-	cmd, res := router.InputText(r)
+	cmd, res := router.InputJson[cmdCompPayload](r)
 	if res != nil {
 		return *res
 	}
 
-	data, err := command.Comp(user, cmd, step)
+	data, err := command.Comp(user, cmd.Cmd, step, toCmdAuxApp(cmd.Apps...)...)
 	if err != nil {
 		return result.Err(http.StatusInternalServerError, err)
 	}
@@ -174,7 +176,7 @@ func (c *ControllerSystem) hasCmdPrivileges(user string) *result.Result {
 		return res
 	}
 
-	if !sess.HasRole(session.ROLE_ADMIN) {
+	if !sess.HasRole(domain_session.ROLE_ADMIN) {
 		res := result.TextErr(http.StatusForbidden, "the user does not have privileges to execute cmd actions")
 		return &res
 	}
