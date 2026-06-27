@@ -4,18 +4,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Rafael24595/go-api-core/src/commons/log"
 	core_system "github.com/Rafael24595/go-api-core/src/commons/system"
+	topic_repository "github.com/Rafael24595/go-api-render/src/commons/system/topic/repository"
+	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
+
 	"github.com/Rafael24595/go-api-core/src/commons/system/topic"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/repository"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
-	topic_repository "github.com/Rafael24595/go-api-render/src/commons/system/topic/repository"
-	web_domain "github.com/Rafael24595/go-api-render/src/domain/web"
 	"github.com/Rafael24595/go-collections/collection"
+	"github.com/Rafael24595/go-log/log"
 	"github.com/google/uuid"
 )
 
-const NameMemory = "web_memory" 
+const NameMemory = "web_memory"
 
 type RepositoryMemory struct {
 	once       sync.Once

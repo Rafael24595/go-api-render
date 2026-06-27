@@ -1,30 +1,28 @@
 package main
 
 import (
+	"context"
 	"os"
 	"time"
 
-	"github.com/Rafael24595/go-web/router"
-	"github.com/Rafael24595/go-web/router/docs/swagger"
-
-	web_log "github.com/Rafael24595/go-api-render/src/commons/log"
-
-	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-render/src/commons"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-api-render/src/infrastructure/controller"
+	"github.com/Rafael24595/go-log/log"
+	"github.com/Rafael24595/go-web/router"
+	"github.com/Rafael24595/go-web/router/docs/swagger"
 )
 
 func main() {
-	config, container := commons.Initialize()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	webLog := web_log.NewWebLog()
+	config, container := commons.Initialize(ctx)
 
 	route := router.NewRouter()
-	route.Logger(webLog)
+	route.Logger(log.Default())
 
 	if config.Dev() {
-		route = addOAPIViewer(config, route, webLog)
+		route = addOAPIViewer(config, route)
 	}
 
 	controller.NewController(route,
@@ -52,10 +50,12 @@ func main() {
 
 	log.Message("Exiting app.")
 
+	cancel()
+
 	time.Sleep(1 * time.Second)
 }
 
-func addOAPIViewer(config *configuration.Configuration, route *router.Router, webLog web_log.WebLog) *router.Router {
+func addOAPIViewer(config *configuration.Configuration, route *router.Router) *router.Router {
 	options := swagger.OpenAPI3ViewerOptions{
 		Version:   config.Project.Version,
 		EnableTLS: config.EnableTLS(),
@@ -66,7 +66,7 @@ func addOAPIViewer(config *configuration.Configuration, route *router.Router, we
 	}
 
 	viewer := swagger.NewViewer()
-	viewer.Logger(webLog)
+	viewer.Logger(log.Default())
 	viewer.Load(options)
 
 	return route.DocViewer(viewer)

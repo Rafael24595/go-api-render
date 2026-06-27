@@ -7,8 +7,10 @@ import (
 	"time"
 
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
-	"github.com/Rafael24595/go-api-core/src/commons/log"
+
+	"github.com/Rafael24595/go-api-core/src/commons/local"
 	"github.com/Rafael24595/go-api-core/src/commons/utils"
+	"github.com/Rafael24595/go-log/log"
 )
 
 const defaultPort = 8080
@@ -84,7 +86,7 @@ func Initialize(core *core_configuration.Configuration, kargs map[string]utils.A
 	})
 
 	if instance == nil {
-		log.Panics("The configuration is not initialized properly")
+		local.Panics("The configuration is not initialized properly")
 	}
 
 	return *instance
@@ -172,7 +174,7 @@ func fetchLastVersion(c *Configuration) {
 
 func Instance() Configuration {
 	if instance == nil {
-		log.Panics("The configuration is not initialized yet")
+		local.Panics("The configuration is not initialized yet")
 	}
 	return *instance
 }

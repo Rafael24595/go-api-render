@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/application/manager"
-	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
@@ -17,6 +16,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-collections/collection"
+	"github.com/Rafael24595/go-log/log"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
@@ -318,15 +318,9 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 		return *res
 	}
 
-	oldEndPoint, _ := c.managerEndPoint.Find(user, endPoint.Id)
-
 	endPointResult, errs := c.managerEndPoint.Insert(user, &endPoint)
 	if endPointResult == nil {
 		return result.Err(http.StatusUnprocessableEntity, errs...)
-	}
-
-	if oldEndPoint == nil {
-		oldEndPoint = endPointResult
 	}
 
 	go c.managerMetrics.ResolveStatus(user, endPointResult, endPointResult)
@@ -539,7 +533,6 @@ func mockEndPointPath(host string, endPoint *mock.EndPoint) string {
 
 	if host == "" {
 		port := config.DefaultPort()
-		host = "localhost"
 		host = fmt.Sprintf("localhost:%d", port)
 	}
 

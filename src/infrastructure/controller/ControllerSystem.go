@@ -4,13 +4,15 @@ import (
 	"net/http"
 	"strconv"
 
+	domain_session "github.com/Rafael24595/go-api-core/src/domain/session"
+
 	"github.com/Rafael24595/go-api-core/src/application/command"
-	"github.com/Rafael24595/go-api-core/src/commons/log"
+	"github.com/Rafael24595/go-api-core/src/commons/dependency"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
+	"github.com/Rafael24595/go-log/log/record"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
-	domain_session "github.com/Rafael24595/go-api-core/src/domain/session"
 )
 
 const CMD_SUCCESS_RESPONSE = "Output message"
@@ -43,7 +45,7 @@ func (c *ControllerSystem) docLog() docs.DocRoute {
 	return docs.DocRoute{
 		Description: "Returns all server-side application logs. Only accessible by admin users.",
 		Responses: docs.DocResponses{
-			"200": docs.DocJsonPayload[[]log.Record](),
+			"200": docs.DocJsonPayload[[]record.Record](),
 		},
 	}
 }
@@ -60,7 +62,9 @@ func (c *ControllerSystem) log(w http.ResponseWriter, r *http.Request, ctx *rout
 		return result.Reject(http.StatusForbidden)
 	}
 
-	return result.JsonOk(log.Records())
+	store := dependency.Instance().RecordStore
+
+	return result.JsonOk(store.All())
 }
 
 func (c *ControllerSystem) docCmdExec() docs.DocRoute {
@@ -90,7 +94,7 @@ func (c *ControllerSystem) cmdExec(w http.ResponseWriter, r *http.Request, ctx *
 	cmdRes := command.Exec(user, cmd)
 
 	response := cmdResult{
-		Input: cmdRes.Input,
+		Input:  cmdRes.Input,
 		Output: cmdRes.Output,
 	}
 

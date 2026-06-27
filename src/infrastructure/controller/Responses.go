@@ -2,7 +2,8 @@ package controller
 
 import (
 	core_configuration "github.com/Rafael24595/go-api-core/src/commons/configuration"
-	"github.com/Rafael24595/go-api-core/src/commons/log"
+
+	"github.com/Rafael24595/go-api-core/src/commons/local"
 	"github.com/Rafael24595/go-api-core/src/domain/session"
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
@@ -57,7 +58,7 @@ func makeResponseSystemMetadata(sessionId string, timestamp int64,
 	enableSecrets bool) responseSystemMetadata {
 	core, ok := mod.Dependencies["github.com/Rafael24595/go-api-core"]
 	if !ok {
-		log.Panics("Core dependency is not defined")
+		local.Panics("Core dependency is not defined")
 	}
 
 	renderRelease := project.Version
