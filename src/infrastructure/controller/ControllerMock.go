@@ -318,15 +318,9 @@ func (c *ControllerMock) insert(w http.ResponseWriter, r *http.Request, ctx *rou
 		return *res
 	}
 
-	oldEndPoint, _ := c.managerEndPoint.Find(user, endPoint.Id)
-
 	endPointResult, errs := c.managerEndPoint.Insert(user, &endPoint)
 	if endPointResult == nil {
 		return result.Err(http.StatusUnprocessableEntity, errs...)
-	}
-
-	if oldEndPoint == nil {
-		oldEndPoint = endPointResult
 	}
 
 	go c.managerMetrics.ResolveStatus(user, endPointResult, endPointResult)
@@ -539,7 +533,6 @@ func mockEndPointPath(host string, endPoint *mock.EndPoint) string {
 
 	if host == "" {
 		port := config.DefaultPort()
-		host = "localhost"
 		host = fmt.Sprintf("localhost:%d", port)
 	}
 
