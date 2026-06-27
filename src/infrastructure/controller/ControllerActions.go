@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
 	core_infrastructure "github.com/Rafael24595/go-api-core/src/infrastructure"
+
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
@@ -47,14 +49,12 @@ func (c *ControllerActions) action(w http.ResponseWriter, r *http.Request, ctx *
 	actionContext := dto.ToContext(&actionData.Context)
 	actionRequest := dto.ToRequest(&actionData.Request)
 
-	status, err := valideRequest(actionRequest)
-	if err != nil {
-		return result.Err(status, err)
-	}
-
 	actionResponse, err := core_infrastructure.Client().
 		FetchWithContext(actionContext, actionRequest)
 	if err != nil {
+		if errors.Is(err, core_infrastructure.ErrValidation) {
+			return result.Err(http.StatusUnprocessableEntity, err)
+		}
 		return result.Err(http.StatusBadRequest, err)
 	}
 

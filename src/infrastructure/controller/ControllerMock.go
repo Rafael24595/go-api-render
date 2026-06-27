@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Rafael24595/go-api-core/src/application/manager"
-	"github.com/Rafael24595/go-api-core/src/commons/log"
 	"github.com/Rafael24595/go-api-core/src/domain"
 	"github.com/Rafael24595/go-api-core/src/domain/action"
 	"github.com/Rafael24595/go-api-core/src/domain/mock"
@@ -17,6 +16,7 @@ import (
 	"github.com/Rafael24595/go-api-core/src/infrastructure/dto"
 	"github.com/Rafael24595/go-api-render/src/commons/configuration"
 	"github.com/Rafael24595/go-collections/collection"
+	"github.com/Rafael24595/go-log/log"
 	"github.com/Rafael24595/go-web/router"
 	"github.com/Rafael24595/go-web/router/docs"
 	"github.com/Rafael24595/go-web/router/result"
